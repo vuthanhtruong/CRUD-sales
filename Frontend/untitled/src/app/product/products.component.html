@@ -60,7 +60,16 @@
     <div class="product-grid" role="list">
       <article class="product-card" role="listitem" *ngFor="let p of products; trackBy: trackByProductId">
         <div class="product-media" aria-hidden="true">
-          <div class="media-placeholder" [style.--seed]="seedFromId(p.productId)"></div>
+          <img
+            *ngIf="p.image"
+            [src]="buildProductImageSrc(p.image)"
+            alt="{{ p.productName }}"
+            class="media-img">
+          <div
+            *ngIf="!p.image"
+            class="media-placeholder"
+            [style.--seed]="seedFromId(p.productId)">
+          </div>
         </div>
         <div class="product-body">
           <h3 class="product-title" [title]="p.productName">{{ p.productName || 'Untitled product' }}</h3>

@@ -22,10 +22,9 @@ interface ImageRow {
   selector: 'app-product',
   imports: [CommonModule, FormsModule],
   templateUrl: './products.component.html',
-  styleUrls: ['./products.component.css']
+  styleUrls: ['./products.component.css'],
 })
 export class ProductsComponent implements OnInit {
-
   // =========================
   // UI (site-like shell)
   // =========================
@@ -42,8 +41,13 @@ export class ProductsComponent implements OnInit {
   productTypes: ProductType[] = [];
 
   form: ProductDTO = {
-    productId: '', productName: '', status: '',
-    productTypeId: '', price: undefined, description: '', images: []
+    productId: '',
+    productName: '',
+    status: '',
+    productTypeId: '',
+    price: undefined,
+    description: '',
+    images: [],
   };
 
   isEdit = false;
@@ -54,8 +58,11 @@ export class ProductsComponent implements OnInit {
   // SEARCH
   // =========================
   searchParams: ProductSearchParams = {
-    keyword: '', minPrice: undefined, maxPrice: undefined,
-    productTypeId: '', status: ''
+    keyword: '',
+    minPrice: undefined,
+    maxPrice: undefined,
+    productTypeId: '',
+    status: '',
   };
   isSearchMode = false;
   searchError = '';
@@ -104,10 +111,14 @@ export class ProductsComponent implements OnInit {
     private sizeService: SizeService,
     private colorService: ColorService,
     private exportService: ExportService,
-    private cdr: ChangeDetectorRef
+    private cdr: ChangeDetectorRef,
   ) {}
 
-  
+  buildProductImageSrc(image: string | undefined): string {
+    if (!image) return '';
+    if (image.startsWith('data:')) return image;
+    return `data:image/jpeg;base64,${image}`;
+  }
 
   // =========================
   // INIT
@@ -154,7 +165,7 @@ export class ProductsComponent implements OnInit {
   }
 
   resolveTypeName(typeId: string) {
-    const found = this.productTypes.find(t => t.id === typeId);
+    const found = this.productTypes.find((t) => t.id === typeId);
     return found?.typeName || typeId;
   }
 
@@ -178,9 +189,9 @@ export class ProductsComponent implements OnInit {
   loadProductsPaged() {
     forkJoin({
       products: this.productService.findAllPaged(this.currentPage, this.pageSize),
-      totalPages: this.productService.countTotalPages(this.pageSize)
+      totalPages: this.productService.countTotalPages(this.pageSize),
     }).subscribe({
-      next: res => {
+      next: (res) => {
         this.products = res.products;
         this.totalPages = res.totalPages;
         if (this.currentPage > this.totalPages) {
@@ -188,30 +199,30 @@ export class ProductsComponent implements OnInit {
         }
         this.cdr.detectChanges();
       },
-      error: err => console.error(err)
+      error: (err) => console.error(err),
     });
   }
   exportExcel() {
-  const data = this.isSearchMode ? this.products : this.products;
-  this.exportService.exportExcel(data).catch(err => {
-    console.error(err);
-    alert('Export Excel failed');
-  });
-}
+    const data = this.isSearchMode ? this.products : this.products;
+    this.exportService.exportExcel(data).catch((err) => {
+      console.error(err);
+      alert('Export Excel failed');
+    });
+  }
 
-exportWord() {
-  this.exportService.exportWord(this.products).catch(err => {
-    console.error(err);
-    alert('Export Word failed');
-  });
-}
+  exportWord() {
+    this.exportService.exportWord(this.products).catch((err) => {
+      console.error(err);
+      alert('Export Word failed');
+    });
+  }
 
-exportPdf() {
-  this.exportService.exportPdf(this.products).catch(err => {
-    console.error(err);
-    alert('Export PDF failed');
-  });
-}
+  exportPdf() {
+    this.exportService.exportPdf(this.products).catch((err) => {
+      console.error(err);
+      alert('Export PDF failed');
+    });
+  }
 
   goToPage(page: number) {
     if (page < 1 || page > this.totalPages) return;
@@ -234,25 +245,31 @@ exportPdf() {
   }
 
   loadStatuses() {
-    this.productService.getStatuses().subscribe(res => {
+    this.productService.getStatuses().subscribe((res) => {
       this.statuses = res;
       this.cdr.detectChanges();
     });
   }
 
   loadProductTypes() {
-    this.productTypeService.getAll().subscribe(res => {
+    this.productTypeService.getAll().subscribe((res) => {
       this.productTypes = res;
       this.cdr.detectChanges();
     });
   }
 
   loadSizes() {
-    this.sizeService.getAll().subscribe(res => { this.sizes = res; this.cdr.detectChanges(); });
+    this.sizeService.getAll().subscribe((res) => {
+      this.sizes = res;
+      this.cdr.detectChanges();
+    });
   }
 
   loadColors() {
-    this.colorService.getAll().subscribe(res => { this.colors = res; this.cdr.detectChanges(); });
+    this.colorService.getAll().subscribe((res) => {
+      this.colors = res;
+      this.cdr.detectChanges();
+    });
   }
 
   // =========================
@@ -270,7 +287,8 @@ exportPdf() {
 
     const hasAnyFilter =
       !!this.searchParams.keyword?.trim() ||
-      min != null || max != null ||
+      min != null ||
+      max != null ||
       !!this.searchParams.productTypeId?.trim() ||
       !!this.searchParams.status?.trim();
 
@@ -281,24 +299,27 @@ exportPdf() {
 
     this.isSearchMode = true;
     this.productService.searchProducts(this.searchParams).subscribe({
-      next: res => {
+      next: (res) => {
         this.products = res;
         this.totalPages = 1;
         this.currentPage = 1;
         this.cdr.detectChanges();
       },
-      error: err => {
+      error: (err) => {
         console.error(err);
         this.searchError = 'Search failed. Please try again.';
         this.cdr.detectChanges();
-      }
+      },
     });
   }
 
   resetSearch() {
     this.searchParams = {
-      keyword: '', minPrice: undefined, maxPrice: undefined,
-      productTypeId: '', status: ''
+      keyword: '',
+      minPrice: undefined,
+      maxPrice: undefined,
+      productTypeId: '',
+      status: '',
     };
     this.isSearchMode = false;
     this.searchError = '';
@@ -320,8 +341,16 @@ exportPdf() {
     this.cdr.detectChanges();
 
     this.productImageService.findByProductId(productId).subscribe({
-      next: res => { this.productImages = res; this.imageModalLoading = false; this.cdr.detectChanges(); },
-      error: err => { console.error(err); this.imageModalLoading = false; this.cdr.detectChanges(); }
+      next: (res) => {
+        this.productImages = res;
+        this.imageModalLoading = false;
+        this.cdr.detectChanges();
+      },
+      error: (err) => {
+        console.error(err);
+        this.imageModalLoading = false;
+        this.cdr.detectChanges();
+      },
     });
   }
 
@@ -343,19 +372,30 @@ exportPdf() {
   }
 
   selectAllImages() {
-    this.productImages.forEach(img => { if (img.id) this.selectedImageIds.add(img.id); });
+    this.productImages.forEach((img) => {
+      if (img.id) this.selectedImageIds.add(img.id);
+    });
     this.cdr.detectChanges();
   }
 
-  clearSelection() { this.selectedImageIds = new Set(); this.cdr.detectChanges(); }
+  clearSelection() {
+    this.selectedImageIds = new Set();
+    this.cdr.detectChanges();
+  }
 
   deleteSelectedImages() {
-    if (this.selectedImageIds.size === 0) { alert('Please select at least one image to delete'); return; }
+    if (this.selectedImageIds.size === 0) {
+      alert('Please select at least one image to delete');
+      return;
+    }
     if (!confirm(`Delete ${this.selectedImageIds.size} selected image(s)?`)) return;
     const ids = Array.from(this.selectedImageIds);
     this.productImageService.deleteBatch(ids).subscribe({
       next: () => this.openImageModal(this.imageModalProductId),
-      error: err => { console.error(err); alert('Error deleting images'); }
+      error: (err) => {
+        console.error(err);
+        alert('Error deleting images');
+      },
     });
   }
 
@@ -383,7 +423,7 @@ exportPdf() {
   }
 
   setModalPrimary(index: number) {
-    this.modalImageRows.forEach((r, i) => r.isPrimary = i === index);
+    this.modalImageRows.forEach((r, i) => (r.isPrimary = i === index));
     this.cdr.detectChanges();
   }
 
@@ -392,8 +432,14 @@ exportPdf() {
     const file = input.files?.[0];
     this.modalImageErrors[index] = '';
     if (!file) return;
-    if (!file.type.startsWith('image/')) { this.modalImageErrors[index] = 'Only image files are allowed'; return; }
-    if (file.size > 5 * 1024 * 1024) { this.modalImageErrors[index] = 'Image must be under 5MB'; return; }
+    if (!file.type.startsWith('image/')) {
+      this.modalImageErrors[index] = 'Only image files are allowed';
+      return;
+    }
+    if (file.size > 5 * 1024 * 1024) {
+      this.modalImageErrors[index] = 'Image must be under 5MB';
+      return;
+    }
     const reader = new FileReader();
     reader.onload = () => {
       const dataUrl = reader.result as string;
@@ -407,40 +453,55 @@ exportPdf() {
 
   submitModalImages() {
     let valid = true;
-    this.modalImageErrors = this.modalImageRows.map(row => {
-      if (!row.imageData) { valid = false; return 'Please select an image file'; }
+    this.modalImageErrors = this.modalImageRows.map((row) => {
+      if (!row.imageData) {
+        valid = false;
+        return 'Please select an image file';
+      }
       return '';
     });
-    if (!valid) { this.cdr.detectChanges(); return; }
-    if (this.modalImageRows.length === 0) { alert('Please add at least one image'); return; }
+    if (!valid) {
+      this.cdr.detectChanges();
+      return;
+    }
+    if (this.modalImageRows.length === 0) {
+      alert('Please add at least one image');
+      return;
+    }
 
     this.modalUploadSubmitting = true;
     this.cdr.detectChanges();
 
-    const requests = this.modalImageRows.map(row =>
+    const requests = this.modalImageRows.map((row) =>
       this.productImageService.create({
         productId: this.imageModalProductId,
         imageData: row.imageData,
         contentType: row.contentType,
-        isPrimary: row.isPrimary
-      })
+        isPrimary: row.isPrimary,
+      }),
     );
 
     let hasError = false;
     const sendNext = (i: number) => {
       if (i >= requests.length) {
         this.modalUploadSubmitting = false;
-        if (!hasError) { this.modalImageRows = []; this.modalImageErrors = []; this.openImageModal(this.imageModalProductId); }
+        if (!hasError) {
+          this.modalImageRows = [];
+          this.modalImageErrors = [];
+          this.openImageModal(this.imageModalProductId);
+        }
         this.cdr.detectChanges();
         return;
       }
       requests[i].subscribe({
         next: () => sendNext(i + 1),
-        error: err => {
-          console.error(err); hasError = true;
+        error: (err) => {
+          console.error(err);
+          hasError = true;
           alert(`Error uploading image ${i + 1}`);
-          this.modalUploadSubmitting = false; this.cdr.detectChanges();
-        }
+          this.modalUploadSubmitting = false;
+          this.cdr.detectChanges();
+        },
       });
     };
     sendNext(0);
@@ -465,7 +526,7 @@ exportPdf() {
   }
 
   setPrimary(index: number) {
-    this.imageRows.forEach((r, i) => r.isPrimary = i === index);
+    this.imageRows.forEach((r, i) => (r.isPrimary = i === index));
     this.cdr.detectChanges();
   }
 
@@ -474,8 +535,14 @@ exportPdf() {
     const file = input.files?.[0];
     this.imageErrors[index] = '';
     if (!file) return;
-    if (!file.type.startsWith('image/')) { this.imageErrors[index] = 'Only image files are allowed'; return; }
-    if (file.size > 5 * 1024 * 1024) { this.imageErrors[index] = 'Image must be under 5MB'; return; }
+    if (!file.type.startsWith('image/')) {
+      this.imageErrors[index] = 'Only image files are allowed';
+      return;
+    }
+    if (file.size > 5 * 1024 * 1024) {
+      this.imageErrors[index] = 'Image must be under 5MB';
+      return;
+    }
     const reader = new FileReader();
     reader.onload = () => {
       const dataUrl = reader.result as string;
@@ -489,8 +556,11 @@ exportPdf() {
 
   validateImages(): boolean {
     let valid = true;
-    this.imageErrors = this.imageRows.map(row => {
-      if (!row.imageData) { valid = false; return 'Please select an image file'; }
+    this.imageErrors = this.imageRows.map((row) => {
+      if (!row.imageData) {
+        valid = false;
+        return 'Please select an image file';
+      }
       return '';
     });
     return valid;
@@ -503,39 +573,60 @@ exportPdf() {
     this.errors.productId = '';
     this.idExists = false;
     const id = this.form.productId?.trim();
-    if (!id) { this.errors.productId = 'Product ID cannot be empty'; return; }
-    if (id.length < 2 || id.length > 20) { this.errors.productId = 'Product ID must be 2–20 characters'; return; }
+    if (!id) {
+      this.errors.productId = 'Product ID cannot be empty';
+      return;
+    }
+    if (id.length < 2 || id.length > 20) {
+      this.errors.productId = 'Product ID must be 2–20 characters';
+      return;
+    }
     if (this.isEdit) return;
-    this.productService.findById(id).pipe(catchError(() => of(null))).subscribe(res => {
-      this.idExists = !!res;
-      this.cdr.detectChanges();
-    });
+    this.productService
+      .findById(id)
+      .pipe(catchError(() => of(null)))
+      .subscribe((res) => {
+        this.idExists = !!res;
+        this.cdr.detectChanges();
+      });
   }
 
   onNameChange() {
     this.errors.productName = '';
     const name = this.form.productName?.trim();
-    if (!name) { this.errors.productName = 'Product name cannot be empty'; return; }
-    if (name.length < 2 || name.length > 100) { this.errors.productName = 'Product name must be 2–100 characters'; }
+    if (!name) {
+      this.errors.productName = 'Product name cannot be empty';
+      return;
+    }
+    if (name.length < 2 || name.length > 100) {
+      this.errors.productName = 'Product name must be 2–100 characters';
+    }
   }
 
   onStatusChange() {
     this.errors.status = '';
-    if (!this.form.status?.trim()) { this.errors.status = 'Status cannot be empty'; }
+    if (!this.form.status?.trim()) {
+      this.errors.status = 'Status cannot be empty';
+    }
   }
 
   onTypeChange() {
     this.errors.productTypeId = '';
-    if (!this.form.productTypeId?.trim()) { this.errors.productTypeId = 'Product type is required'; }
+    if (!this.form.productTypeId?.trim()) {
+      this.errors.productTypeId = 'Product type is required';
+    }
   }
 
   onPriceChange() {
     this.errors.price = '';
     const price = this.form.price;
     if (price === null || price === undefined || String(price).trim() === '') {
-      this.errors.price = 'Price is required'; return;
+      this.errors.price = 'Price is required';
+      return;
     }
-    if (Number(price) <= 0) { this.errors.price = 'Price must be greater than 0'; }
+    if (Number(price) <= 0) {
+      this.errors.price = 'Price must be greater than 0';
+    }
   }
 
   onDescriptionChange() {
@@ -546,11 +637,20 @@ exportPdf() {
   }
 
   validate(): boolean {
-    this.onIdChange(); this.onNameChange(); this.onStatusChange();
-    this.onTypeChange(); this.onPriceChange(); this.onDescriptionChange();
-    const formValid = !this.errors.productId && !this.errors.productName
-      && !this.errors.status && !this.errors.productTypeId
-      && !this.errors.price && !this.errors.description && !this.idExists;
+    this.onIdChange();
+    this.onNameChange();
+    this.onStatusChange();
+    this.onTypeChange();
+    this.onPriceChange();
+    this.onDescriptionChange();
+    const formValid =
+      !this.errors.productId &&
+      !this.errors.productName &&
+      !this.errors.status &&
+      !this.errors.productTypeId &&
+      !this.errors.price &&
+      !this.errors.description &&
+      !this.idExists;
     return formValid && (this.imageRows.length === 0 || this.validateImages());
   }
 
@@ -559,15 +659,21 @@ exportPdf() {
   // =========================
   submit() {
     if (!this.validate()) return;
-    this.form.images = this.imageRows.map(row => ({
-      imageData: row.imageData, contentType: row.contentType, isPrimary: row.isPrimary
+    this.form.images = this.imageRows.map((row) => ({
+      imageData: row.imageData,
+      contentType: row.contentType,
+      isPrimary: row.isPrimary,
     }));
     const request$ = this.isEdit
       ? this.productService.edit(this.form.productId, this.form)
       : this.productService.create(this.form);
     request$.subscribe({
-      next: () => { this.loadProductsPaged(); this.reset(); this.showProductModal = false; },
-      error: err => console.error(err)
+      next: () => {
+        this.loadProductsPaged();
+        this.reset();
+        this.showProductModal = false;
+      },
+      error: (err) => console.error(err),
     });
   }
 
@@ -576,8 +682,11 @@ exportPdf() {
   // =========================
   edit(p: ProductDTO) {
     this.form = { ...p, images: [] };
-    this.imageRows = []; this.imageErrors = [];
-    this.isEdit = true; this.idExists = false; this.errors = {};
+    this.imageRows = [];
+    this.imageErrors = [];
+    this.isEdit = true;
+    this.idExists = false;
+    this.errors = {};
     this.cdr.detectChanges();
   }
 
@@ -587,9 +696,20 @@ exportPdf() {
   }
 
   reset() {
-    this.form = { productId: '', productName: '', status: '', productTypeId: '', price: undefined, description: '', images: [] };
-    this.imageRows = []; this.imageErrors = [];
-    this.errors = {}; this.isEdit = false; this.idExists = false;
+    this.form = {
+      productId: '',
+      productName: '',
+      status: '',
+      productTypeId: '',
+      price: undefined,
+      description: '',
+      images: [],
+    };
+    this.imageRows = [];
+    this.imageErrors = [];
+    this.errors = {};
+    this.isEdit = false;
+    this.idExists = false;
     this.cdr.detectChanges();
   }
 
@@ -599,53 +719,85 @@ exportPdf() {
   openVariantModal(productId: string) {
     this.selectedProductId = productId;
     this.showVariantModal = true;
-    this.existingVariants = []; this.newVariantRows = [];
+    this.existingVariants = [];
+    this.newVariantRows = [];
     this.cdr.detectChanges();
     this.loadVariants(productId);
   }
 
   closeModal() {
-    this.showVariantModal = false; this.selectedProductId = '';
-    this.existingVariants = []; this.newVariantRows = [];
+    this.showVariantModal = false;
+    this.selectedProductId = '';
+    this.existingVariants = [];
+    this.newVariantRows = [];
     this.cdr.detectChanges();
   }
 
   loadVariants(productId: string) {
-    this.variantService.findByProduct(productId).subscribe(res => {
-      this.existingVariants = res; this.cdr.detectChanges();
+    this.variantService.findByProduct(productId).subscribe((res) => {
+      this.existingVariants = res;
+      this.cdr.detectChanges();
     });
   }
 
   addRow() {
-    this.newVariantRows.push({ productId: this.selectedProductId, sizeId: '', colorId: '', quantity: 1 });
+    this.newVariantRows.push({
+      productId: this.selectedProductId,
+      sizeId: '',
+      colorId: '',
+      quantity: 1,
+    });
     this.cdr.detectChanges();
   }
 
-  removeRow(index: number) { this.newVariantRows.splice(index, 1); this.cdr.detectChanges(); }
+  removeRow(index: number) {
+    this.newVariantRows.splice(index, 1);
+    this.cdr.detectChanges();
+  }
 
   submitVariants() {
-    const invalid = this.newVariantRows.some(v => !v.sizeId || !v.colorId || (v.quantity ?? 0) < 1);
-    if (invalid) { alert('Please fill in all fields for each variant row'); return; }
-    if (this.newVariantRows.length === 0) { alert('No new variants to save'); return; }
-    const payload: ProductVariantDTO[] = this.newVariantRows.map(v => ({
-      productId: this.selectedProductId, sizeId: v.sizeId, colorId: v.colorId, quantity: v.quantity
+    const invalid = this.newVariantRows.some(
+      (v) => !v.sizeId || !v.colorId || (v.quantity ?? 0) < 1,
+    );
+    if (invalid) {
+      alert('Please fill in all fields for each variant row');
+      return;
+    }
+    if (this.newVariantRows.length === 0) {
+      alert('No new variants to save');
+      return;
+    }
+    const payload: ProductVariantDTO[] = this.newVariantRows.map((v) => ({
+      productId: this.selectedProductId,
+      sizeId: v.sizeId,
+      colorId: v.colorId,
+      quantity: v.quantity,
     }));
     this.variantService.createBatch(payload).subscribe({
-      next: () => { alert('Variants saved successfully'); this.newVariantRows = []; this.loadVariants(this.selectedProductId); this.cdr.detectChanges(); },
-      error: err => { console.error(err); alert('Error saving variants'); }
+      next: () => {
+        alert('Variants saved successfully');
+        this.newVariantRows = [];
+        this.loadVariants(this.selectedProductId);
+        this.cdr.detectChanges();
+      },
+      error: (err) => {
+        console.error(err);
+        alert('Error saving variants');
+      },
     });
   }
 
   updateVariant(v: ProductVariantDTO) {
     this.variantService.update(v).subscribe({
       next: () => alert('Variant updated'),
-      error: err => console.error(err)
+      error: (err) => console.error(err),
     });
   }
 
   deleteVariant(v: ProductVariantDTO) {
     if (!confirm('Delete this variant?')) return;
-    this.variantService.delete(v.productId, v.sizeId, v.colorId)
+    this.variantService
+      .delete(v.productId, v.sizeId, v.colorId)
       .subscribe(() => this.loadVariants(this.selectedProductId));
   }
 }

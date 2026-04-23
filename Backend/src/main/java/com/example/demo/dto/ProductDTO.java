@@ -36,6 +36,8 @@ public class ProductDTO {
     @Size(max = 2000, message = "Description too long")
     private String description;
 
+    private String image; // 🔥 đổi tên đúng bản chất
+
     private List<ProductImageDTO> images;
 
 }

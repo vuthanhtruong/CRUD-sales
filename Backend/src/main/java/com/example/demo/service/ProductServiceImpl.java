@@ -230,7 +230,26 @@ public class ProductServiceImpl implements ProductService {
     // ==================== HELPER ====================
 
     private ProductDTO toDTO(Product product) {
-        return new ProductDTO(
+        if (product == null) return null;
+
+        String base64Image = null;
+
+        if (product.getImages() != null && !product.getImages().isEmpty()) {
+            for (ProductImage img : product.getImages()) {
+                if (img.isPrimary()) {
+                    base64Image = java.util.Base64.getEncoder()
+                            .encodeToString(img.getImageData());
+                    break;
+                }
+            }
+
+            if (base64Image == null) {
+                base64Image = java.util.Base64.getEncoder()
+                        .encodeToString(product.getImages().get(0).getImageData());
+            }
+        }
+
+        ProductDTO dto = new ProductDTO(
                 product.getProductId(),
                 product.getProductName(),
                 product.getStatus() != null ? product.getStatus().name() : null,
@@ -238,8 +257,11 @@ public class ProductServiceImpl implements ProductService {
                 product.getCreatedBy() != null ? product.getCreatedBy().getId() : null,
                 product.getPrice(),
                 product.getDescription(),
+                base64Image,
                 null
         );
+
+        return dto;
     }
 
     private ProductUserDTO toUserDTO(Product product) {

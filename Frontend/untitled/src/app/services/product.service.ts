@@ -11,6 +11,7 @@ export interface ProductDTO {
   createdBy?: string;
   price?: number;
   description?: string;
+  image?: string; // ← thêm dòng này
   images?: ProductImageDTO[];
 }
 
