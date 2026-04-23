@@ -1,0 +1,89 @@
+<div class="wrap">
+  <div class="profile-top">
+    <a class="btn btn-ghost btn-small" [routerLink]="['/home']">Back</a>
+  </div>
+
+  <header class="profile-head">
+    <p class="eyebrow">Account</p>
+    <h1 class="profile-title">My profile</h1>
+    <p class="profile-sub">Keep your details up to date for faster checkout.</p>
+  </header>
+
+  <p class="muted" *ngIf="loading">Loading...</p>
+
+  <section class="card" *ngIf="!loading" aria-label="Profile form">
+    <div class="banner success" *ngIf="successMessage">{{ successMessage }}</div>
+    <div class="banner error" *ngIf="errorMessage">{{ errorMessage }}</div>
+
+    <form class="form" [formGroup]="profileForm" (ngSubmit)="submit()">
+      <div class="grid">
+        <label class="field field-full">
+          <span class="field-label">Username</span>
+          <input class="input input-readonly" formControlName="username">
+        </label>
+
+        <label class="field">
+          <span class="field-label">First name</span>
+          <input class="input" formControlName="firstName" placeholder="First name">
+          <p class="form-hint error" *ngIf="profileForm.get('firstName').invalid && profileForm.get('firstName').touched">
+            First name is required (max 50 characters)
+          </p>
+        </label>
+
+        <label class="field">
+          <span class="field-label">Last name</span>
+          <input class="input" formControlName="lastName" placeholder="Last name">
+          <p class="form-hint error" *ngIf="profileForm.get('lastName').invalid && profileForm.get('lastName').touched">
+            Last name is required (max 50 characters)
+          </p>
+        </label>
+
+        <label class="field">
+          <span class="field-label">Phone</span>
+          <input class="input" formControlName="phone" placeholder="0xxxxxxxxx">
+          <p class="form-hint error" *ngIf="profileForm.get('phone').invalid && profileForm.get('phone').touched">
+            Invalid phone number (Vietnam format: 0xxxxxxxxx)
+          </p>
+        </label>
+
+        <label class="field">
+          <span class="field-label">Address</span>
+          <input class="input" formControlName="address" placeholder="Address">
+          <p class="form-hint error" *ngIf="profileForm.get('address').invalid && profileForm.get('address').touched">
+            Address is required (max 255 characters)
+          </p>
+        </label>
+
+        <label class="field">
+          <span class="field-label">Gender</span>
+          <select class="input" formControlName="gender">
+            <option value="MALE">Male</option>
+            <option value="FEMALE">Female</option>
+          </select>
+        </label>
+
+        <label class="field">
+          <span class="field-label">Birthday</span>
+          <input class="input" type="date" formControlName="birthday">
+          <p class="form-hint error" *ngIf="profileForm.get('birthday').invalid && profileForm.get('birthday').touched">
+            Birthday is required
+          </p>
+        </label>
+      </div>
+
+      <div class="actions">
+        <button *ngIf="!isEdit" class="btn btn-primary" type="button" (click)="enableEdit()">
+          Edit
+        </button>
+
+        <button *ngIf="isEdit" class="btn btn-primary" type="submit" [disabled]="profileForm.invalid || submitting">
+          {{ submitting ? 'Saving...' : 'Save changes' }}
+        </button>
+
+        <button *ngIf="isEdit" class="btn btn-ghost" type="button" (click)="cancelEdit()">
+          Cancel
+        </button>
+      </div>
+    </form>
+  </section>
+</div>

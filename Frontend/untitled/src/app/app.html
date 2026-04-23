@@ -1,0 +1,72 @@
+<div class="root">
+  <header class="site-header" role="banner">
+    <div class="wrap header-inner">
+      <a class="brand" routerLink="/home" aria-label="Go to homepage">
+        <span class="brand-name">Shop</span>
+      </a>
+
+      <nav class="nav" aria-label="Primary navigation">
+        <a class="nav-link" routerLink="/home" routerLinkActive="is-active">Home</a>
+        <a class="nav-link" routerLink="/news" routerLinkActive="is-active">News</a>
+        <a class="nav-link" routerLink="/profile" routerLinkActive="is-active">Account</a>
+        <a class="nav-link" routerLink="/Support" routerLinkActive="is-active">Support</a>
+      </nav>
+
+      <div class="header-actions">
+        <button class="icon-btn" type="button" (click)="toggleMobileMenu()" aria-label="Open menu">
+          <span class="icon icon-menu" aria-hidden="true"></span>
+        </button>
+      </div>
+    </div>
+
+    <div class="mobile-nav" *ngIf="isMobileMenuOpen" role="navigation" aria-label="Mobile navigation">
+      <div class="wrap mobile-nav-inner">
+        <a class="mobile-link" routerLink="/home" (click)="closeMobileMenu()">Home</a>
+        <a class="mobile-link" routerLink="/products" (click)="closeMobileMenu()">Shop</a>
+        <a class="mobile-link" routerLink="/admin" (click)="closeMobileMenu()">Admin</a>
+        <a class="mobile-link" routerLink="/profile" (click)="closeMobileMenu()">Profile</a>
+      </div>
+    </div>
+  </header>
+
+  <main class="main" role="main">
+    <router-outlet />
+  </main>
+
+  <footer class="site-footer" role="contentinfo">
+    <div class="wrap footer-grid">
+      <div>
+        <div class="brand brand-footer">
+          <span class="brand-name">Shop</span>
+        </div>
+        <p class="footer-text">
+          Simple ecommerce UI for Angular.
+        </p>
+      </div>
+
+      <div class="footer-col">
+        <p class="footer-title">Explore</p>
+        <a class="footer-link" routerLink="/home">Home</a>
+        <a class="footer-link" routerLink="/products">Shop</a>
+        <a class="footer-link" routerLink="/product-types">Categories</a>
+      </div>
+
+      <div class="footer-col">
+        <p class="footer-title">Account</p>
+        <a class="footer-link" routerLink="/profile">Profile</a>
+        <a class="footer-link" routerLink="/admin">Admin</a>
+      </div>
+
+      <div class="footer-col">
+        <p class="footer-title">Support</p>
+        <a class="footer-link" href="#">Shipping</a>
+        <a class="footer-link" href="#">Returns</a>
+        <a class="footer-link" href="#">Contact</a>
+      </div>
+    </div>
+
+    <div class="wrap footer-bottom">
+      <p class="muted">© {{ currentYear }} Shop.</p>
+    </div>
+  </footer>
+</div>

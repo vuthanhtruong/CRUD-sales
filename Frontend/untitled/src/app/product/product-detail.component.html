@@ -1,0 +1,79 @@
+<div class="wrap">
+  <div class="detail-top">
+    <a class="btn btn-ghost btn-small" [routerLink]="['/home']">Back</a>
+  </div>
+
+  <p class="muted" *ngIf="loading">Loading...</p>
+
+  <section class="detail" *ngIf="!loading && product" aria-label="Product detail">
+    <div class="gallery">
+      <div class="hero-image">
+        <img *ngIf="selectedImage && selectedImage.imageData" [src]="buildImageSrc(selectedImage)" alt="Product image">
+        <div class="hero-fallback" *ngIf="!selectedImage || !selectedImage.imageData" aria-hidden="true"></div>
+      </div>
+
+      <div class="thumbs" *ngIf="images.length > 0" aria-label="Product images">
+        <button
+          class="thumb"
+          type="button"
+          *ngFor="let img of images"
+          (click)="selectImage(img)"
+          [class.is-active]="selectedImage === img">
+          <img *ngIf="img.imageData" [src]="buildImageSrc(img)" alt="Thumbnail">
+          <span *ngIf="!img.imageData" class="muted">—</span>
+        </button>
+      </div>
+    </div>
+
+    <article class="info">
+      <p class="eyebrow">Premium item</p>
+      <h1 class="title">{{ product.productName }}</h1>
+
+      <div class="price-line">
+        <span class="price">{{ product.price | number:'1.0-0' }}</span>
+        <span class="currency">đ</span>
+      </div>
+
+      <div class="meta">
+        <div class="meta-row">
+          <span class="meta-label">Status</span>
+          <span class="meta-value">{{ product.status || '—' }}</span>
+        </div>
+        <div class="meta-row">
+          <span class="meta-label">Type</span>
+          <span class="meta-value">{{ product.productTypeId || '—' }}</span>
+        </div>
+      </div>
+
+      <section class="option" *ngIf="sizes.length > 0" aria-label="Choose size">
+        <h2 class="option-title">Size</h2>
+        <div class="option-grid">
+          <button class="opt" type="button" *ngFor="let s of sizes" (click)="selectSize(s)" [class.is-active]="selectedSize?.id === s.id">
+            {{ s.name }}
+          </button>
+        </div>
+      </section>
+
+      <section class="option" *ngIf="colors.length > 0" aria-label="Choose color">
+        <h2 class="option-title">Color</h2>
+        <div class="option-grid">
+          <button class="opt" type="button" *ngFor="let c of colors" (click)="selectColor(c)" [class.is-active]="selectedColor?.id === c.id">
+            {{ c.name }}
+          </button>
+        </div>
+      </section>
+
+      <section class="desc" *ngIf="product.description" aria-label="Description">
+        <h2 class="option-title">Description</h2>
+        <p class="desc-text">{{ product.description }}</p>
+      </section>
+
+      <div class="cta">
+        <button class="btn btn-primary" type="button">Add to Cart</button>
+        <a class="btn btn-ghost" [routerLink]="['/products']">Browse more</a>
+      </div>
+    </article>
+  </section>
+
+  <p class="muted" *ngIf="!loading && !product">Product not found.</p>
+</div>

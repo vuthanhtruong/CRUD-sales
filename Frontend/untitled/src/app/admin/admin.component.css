@@ -1,0 +1,54 @@
+.admin-head {
+  padding: 10px 0 18px;
+}
+
+.admin-title {
+  margin: 0;
+  font-size: clamp(26px, 3.5vw, 40px);
+  line-height: 1.08;
+  letter-spacing: -0.04em;
+}
+
+.admin-sub {
+  margin: 12px 0 0;
+  color: var(--muted);
+  max-width: 70ch;
+}
+
+.admin-grid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 14px;
+  margin-top: 12px;
+}
+
+.admin-card {
+  border: 1px solid var(--border);
+  background: var(--surface);
+  border-radius: 18px;
+  padding: 16px;
+  transition: transform .18s ease, box-shadow .25s ease, border-color .2s ease;
+}
+
+.admin-card:hover {
+  transform: translateY(-3px);
+  border-color: color-mix(in srgb, var(--border) 60%, white);
+  box-shadow: var(--shadow);
+}
+
+.card-title {
+  margin: 0;
+  font-size: 16px;
+  letter-spacing: -0.02em;
+}
+
+.card-sub {
+  margin: 10px 0 14px;
+  color: var(--muted);
+}
+
+@media (min-width: 900px) {
+  .admin-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}

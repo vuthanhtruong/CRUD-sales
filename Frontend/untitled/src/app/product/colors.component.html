@@ -1,0 +1,60 @@
+<div class="wrap">
+  <header class="page-head">
+    <p class="eyebrow">Catalog attributes</p>
+    <h1 class="title">Color management</h1>
+    <p class="subtitle">Create and maintain product colors used in variants.</p>
+  </header>
+
+  <section class="panel" aria-label="Color form">
+    <div class="panel-head">
+      <h2 class="panel-title">{{ isEdit ? 'Edit color' : 'Create color' }}</h2>
+      <p class="panel-sub">Keep IDs short and consistent.</p>
+    </div>
+
+    <div class="form-grid">
+      <label class="field">
+        <span class="field-label">ID</span>
+        <input class="input" [(ngModel)]="form.id" (input)="onIdChange()" [disabled]="isEdit" placeholder="e.g. BLACK">
+        <p class="form-hint error" *ngIf="errors.id">{{ errors.id }}</p>
+        <p class="form-hint warn" *ngIf="idExists && !isEdit">Color ID already exists</p>
+      </label>
+
+      <label class="field">
+        <span class="field-label">Name</span>
+        <input class="input" [(ngModel)]="form.name" (input)="onNameChange()" placeholder="e.g. Jet Black">
+        <p class="form-hint error" *ngIf="errors.name">{{ errors.name }}</p>
+      </label>
+    </div>
+
+    <div class="actions">
+      <button class="btn btn-primary" type="button" (click)="save()">{{ isEdit ? 'Update' : 'Create' }}</button>
+      <button class="btn btn-ghost" type="button" (click)="reset()">Reset</button>
+    </div>
+  </section>
+
+  <section class="panel" aria-label="Color list">
+    <header class="panel-head list-head">
+      <h2 class="panel-title">Colors</h2>
+      <p class="panel-sub">{{ colors.length }} item(s)</p>
+    </header>
+
+    <div class="table" role="table">
+      <div class="tr th" role="row">
+        <div class="td" role="columnheader">ID</div>
+        <div class="td" role="columnheader">Name</div>
+        <div class="td actions-col" role="columnheader">Actions</div>
+      </div>
+
+      <div class="tr" role="row" *ngFor="let c of colors">
+        <div class="td mono" role="cell">{{ c.id }}</div>
+        <div class="td" role="cell">{{ c.name }}</div>
+        <div class="td actions-col" role="cell">
+          <button class="btn btn-ghost btn-small" type="button" (click)="edit(c)">Edit</button>
+          <button class="btn btn-ghost btn-small danger" type="button" (click)="delete(c.id)">Delete</button>
+        </div>
+      </div>
+
+      <div class="empty" *ngIf="colors.length === 0">No colors yet.</div>
+    </div>
+  </section>
+</div>

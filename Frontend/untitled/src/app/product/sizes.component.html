@@ -1,0 +1,60 @@
+<div class="wrap">
+  <header class="page-head">
+    <p class="eyebrow">Catalog attributes</p>
+    <h1 class="title">Size management</h1>
+    <p class="subtitle">Create and maintain sizes used by product variants.</p>
+  </header>
+
+  <section class="panel" aria-label="Size form">
+    <div class="panel-head">
+      <h2 class="panel-title">{{ isEditMode ? 'Edit size' : 'Create size' }}</h2>
+      <p class="panel-sub">Use short, readable IDs (S, M, L...).</p>
+    </div>
+
+    <div class="form-grid">
+      <label class="field">
+        <span class="field-label">ID</span>
+        <input class="input" [(ngModel)]="form.id" (input)="onIdChange()" [disabled]="isEditMode" placeholder="e.g. M">
+        <p class="form-hint error" *ngIf="errors.id">{{ errors.id }}</p>
+        <p class="form-hint warn" *ngIf="idExists && !isEditMode">Size ID already exists</p>
+      </label>
+
+      <label class="field">
+        <span class="field-label">Name</span>
+        <input class="input" [(ngModel)]="form.name" (input)="onNameChange()" placeholder="e.g. Medium">
+        <p class="form-hint error" *ngIf="errors.name">{{ errors.name }}</p>
+      </label>
+    </div>
+
+    <div class="actions">
+      <button class="btn btn-primary" type="button" (click)="submit()">{{ isEditMode ? 'Update' : 'Create' }}</button>
+      <button class="btn btn-ghost" type="button" (click)="resetForm()">Reset</button>
+    </div>
+  </section>
+
+  <section class="panel" aria-label="Size list">
+    <header class="panel-head list-head">
+      <h2 class="panel-title">Sizes</h2>
+      <p class="panel-sub">{{ sizes.length }} item(s)</p>
+    </header>
+
+    <div class="table" role="table">
+      <div class="tr th" role="row">
+        <div class="td" role="columnheader">ID</div>
+        <div class="td" role="columnheader">Name</div>
+        <div class="td actions-col" role="columnheader">Actions</div>
+      </div>
+
+      <div class="tr" role="row" *ngFor="let s of sizes">
+        <div class="td mono" role="cell">{{ s.id }}</div>
+        <div class="td" role="cell">{{ s.name }}</div>
+        <div class="td actions-col" role="cell">
+          <button class="btn btn-ghost btn-small" type="button" (click)="edit(s)">Edit</button>
+          <button class="btn btn-ghost btn-small danger" type="button" (click)="delete(s.id)">Delete</button>
+        </div>
+      </div>
+
+      <div class="empty" *ngIf="sizes.length === 0">No sizes yet.</div>
+    </div>
+  </section>
+</div>

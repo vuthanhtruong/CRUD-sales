@@ -1,0 +1,79 @@
+/* Profile (premium minimal) */
+
+.profile-top {
+  padding: 10px 0 14px;
+}
+
+.profile-head {
+  padding: 6px 0 16px;
+}
+
+.profile-title {
+  margin: 0;
+  font-size: clamp(26px, 3.5vw, 40px);
+  line-height: 1.08;
+  letter-spacing: -0.04em;
+}
+
+.profile-sub {
+  margin: 12px 0 0;
+  color: var(--muted);
+  max-width: 70ch;
+}
+
+.card {
+  border: 1px solid var(--border);
+  background: var(--surface);
+  border-radius: 18px;
+  padding: 16px;
+}
+
+.banner {
+  padding: 10px 12px;
+  border-radius: 14px;
+  border: 1px solid var(--border);
+  margin-bottom: 12px;
+}
+
+.banner.success {
+  background: rgba(34, 197, 94, .12);
+  border-color: rgba(34, 197, 94, .25);
+  color: rgba(187, 247, 208, .95);
+}
+
+.banner.error {
+  background: rgba(239, 68, 68, .12);
+  border-color: rgba(239, 68, 68, .25);
+  color: rgba(254, 202, 202, .95);
+}
+
+.form {
+  margin-top: 6px;
+}
+
+.grid {
+  display: grid;
+  gap: 10px;
+}
+
+.field-full {
+  grid-column: 1 / -1;
+}
+
+.input-readonly {
+  opacity: .85;
+}
+
+.actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin-top: 14px;
+}
+
+@media (min-width: 900px) {
+  .grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+

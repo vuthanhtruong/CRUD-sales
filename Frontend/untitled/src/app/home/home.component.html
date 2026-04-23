@@ -1,0 +1,175 @@
+<div class="wrap">
+
+  <header class="simple-hero">
+    <div>
+      <h1 class="hero-title">Find products.</h1>
+      <p class="hero-sub">Simple catalog browsing with search and price filters.</p>
+      <div class="hero-links">
+        <!-- Nút Open products chỉ hiện với admin -->
+        <a *ngIf="isAdmin()" class="btn btn-primary" routerLink="/products">Open products</a>
+        <a *ngIf="isAdminOrUser()" class="btn btn-ghost" routerLink="/profile">My account</a>
+        <a *ngIf="isAdmin()" class="btn btn-ghost" routerLink="/admin" routerLinkActive="is-active">Admin</a>
+      </div>
+    </div>
+    <div class="hero-auth">
+      <ng-container *ngIf="!currentUser; else signedIn">
+        <p class="muted">Not logged in.</p>
+        <div class="hero-links">
+          <button class="btn btn-ghost btn-small" type="button" (click)="openRegister()">Register</button>
+          <button class="btn btn-primary btn-small" type="button" (click)="openLogin()">Login</button>
+        </div>
+      </ng-container>
+      <ng-template #signedIn>
+        <p><strong>{{ currentUser }}</strong> <span class="muted">({{ role || '—' }})</span></p>
+        <div class="hero-links">
+          <button class="btn btn-ghost btn-small" type="button" (click)="logout()">Logout</button>
+        </div>
+      </ng-template>
+    </div>
+  </header>
+
+  <section class="search" aria-label="Search products">
+    <div class="search-row">
+      <label class="field search-field">
+        <span class="field-label">Search</span>
+        <input class="input" type="text" [(ngModel)]="keyword" (input)="onSearchInput()" placeholder="Search products by name...">
+      </label>
+      <button class="btn btn-primary search-btn" type="button" (click)="onSearchClick()">Search</button>
+    </div>
+
+    <div class="filters" aria-label="Price filters">
+      <button
+        class="chip"
+        *ngFor="let r of priceRanges"
+        type="button"
+        (click)="selectPriceRange(r)"
+        [class.is-active]="selectedMinPrice === r.min && selectedMaxPrice === r.max">
+        {{ r.label }}
+      </button>
+    </div>
+  </section>
+
+  <section class="grid-section" aria-label="Products">
+    <header class="section-head">
+      <div>
+        <h2 class="section-title">Products</h2>
+        <p class="section-subtitle">Browse items from the current page.</p>
+      </div>
+      <div class="section-actions">
+        <span class="muted">{{ products.length }} item(s)</span>
+      </div>
+    </header>
+
+    <p class="muted" *ngIf="products.length === 0">No products found.</p>
+
+    <div class="product-grid" role="list" *ngIf="products.length > 0">
+      <article class="product-card" role="listitem" *ngFor="let p of pagedProducts">
+        <a class="product-media" [routerLink]="['/product', p.productId]" aria-label="View product detail">
+          <img *ngIf="p.image" [src]="buildImageSrc(p.image)" alt="Product image">
+          <div class="media-fallback" *ngIf="!p.image" aria-hidden="true"></div>
+        </a>
+
+        <div class="product-body">
+          <h3 class="product-title" [title]="p.productName">{{ p.productName }}</h3>
+          <div class="product-row">
+            <div class="price">
+              <span class="price-value">{{ p.price | number:'1.0-0' }}</span>
+              <span class="price-currency">đ</span>
+            </div>
+          </div>
+
+          <div class="product-actions">
+            <a class="btn btn-ghost btn-small" [routerLink]="['/product', p.productId]">View detail</a>
+            <button class="btn btn-primary btn-small" type="button" (click)="addToCart(p)">Add to Cart</button>
+            <button class="btn btn-ghost btn-small" type="button" (click)="buyNow(p)">Buy now</button>
+          </div>
+        </div>
+      </article>
+    </div>
+
+    <nav class="pager" *ngIf="totalPages > 1" aria-label="Pagination">
+      <button class="btn btn-ghost btn-small" type="button" (click)="goToPage(1)" [disabled]="currentPage === 1">First</button>
+      <button class="btn btn-ghost btn-small" type="button" (click)="goToPage(currentPage - 1)" [disabled]="currentPage === 1">Prev</button>
+      <span class="pager-text">Page {{ currentPage }} / {{ totalPages }}</span>
+      <button class="btn btn-ghost btn-small" type="button" (click)="goToPage(currentPage + 1)" [disabled]="currentPage === totalPages">Next</button>
+      <button class="btn btn-ghost btn-small" type="button" (click)="goToPage(totalPages)" [disabled]="currentPage === totalPages">Last</button>
+    </nav>
+  </section>
+
+  <div class="modal" *ngIf="showRegister || showLogin" role="dialog" aria-modal="true">
+    <div class="modal-backdrop" (click)="closePopup()" aria-hidden="true"></div>
+    <div class="modal-card">
+      <div class="modal-head">
+        <h2 class="modal-title">{{ showRegister ? 'Create account' : 'Welcome back' }}</h2>
+        <button class="icon-btn" type="button" (click)="closePopup()" aria-label="Close">
+          <span class="icon icon-close" aria-hidden="true"></span>
+        </button>
+      </div>
+
+      <form *ngIf="showRegister" class="modal-form" [formGroup]="registerForm" (ngSubmit)="submitRegister()">
+        <div class="form-grid">
+          <label class="field">
+            <span class="field-label">First name</span>
+            <input class="input" formControlName="firstName" placeholder="First name">
+          </label>
+          <label class="field">
+            <span class="field-label">Last name</span>
+            <input class="input" formControlName="lastName" placeholder="Last name">
+          </label>
+          <label class="field">
+            <span class="field-label">Phone</span>
+            <input class="input" formControlName="phone" placeholder="0xxxxxxxxx">
+          </label>
+          <label class="field">
+            <span class="field-label">Address</span>
+            <input class="input" formControlName="address" placeholder="Address">
+          </label>
+          <label class="field">
+            <span class="field-label">Email</span>
+            <input class="input" formControlName="email" placeholder="Email">
+          </label>
+          <label class="field">
+            <span class="field-label">Username</span>
+            <input class="input" formControlName="username" placeholder="Username">
+          </label>
+          <label class="field">
+            <span class="field-label">Password</span>
+            <input class="input" type="password" formControlName="password" placeholder="Password">
+          </label>
+          <label class="field">
+            <span class="field-label">Gender</span>
+            <select class="input" formControlName="gender">
+              <option value="MALE">Male</option>
+              <option value="FEMALE">Female</option>
+            </select>
+          </label>
+          <label class="field field-full">
+            <span class="field-label">Birthday</span>
+            <input class="input" type="date" formControlName="birthday">
+          </label>
+        </div>
+        <div class="modal-actions">
+          <button class="btn btn-primary" type="submit">Register</button>
+          <button class="btn btn-ghost" type="button" (click)="closePopup()">Cancel</button>
+        </div>
+      </form>
+
+      <form *ngIf="showLogin" class="modal-form" [formGroup]="loginForm" (ngSubmit)="submitLogin()">
+        <div class="form-grid">
+          <label class="field field-full">
+            <span class="field-label">Username</span>
+            <input class="input" formControlName="username" placeholder="Username">
+          </label>
+          <label class="field field-full">
+            <span class="field-label">Password</span>
+            <input class="input" type="password" formControlName="password" placeholder="Password">
+          </label>
+        </div>
+        <div class="modal-actions">
+          <button class="btn btn-primary" type="submit">Login</button>
+          <button class="btn btn-ghost" type="button" (click)="closePopup()">Cancel</button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
