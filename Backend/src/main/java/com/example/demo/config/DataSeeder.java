@@ -11,7 +11,8 @@ import org.springframework.stereotype.Component;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;
-import java.util.*;
+import java.util.List;
+import java.util.Random;
 
 @Component
 @Transactional
@@ -66,7 +67,7 @@ public class DataSeeder implements CommandLineRunner {
         }
     }
 
-    // ================= TYPE =================
+    // ================= PRODUCT TYPE =================
     private void seedProductTypes() {
         if (em.find(ProductType.class, "t1") == null) {
 
@@ -102,16 +103,21 @@ public class DataSeeder implements CommandLineRunner {
         }
     }
 
-    // ================= PRODUCT =================
+    // ================= PRODUCT + VARIANT =================
     private void seedProductsAndVariants() {
 
         if (em.find(Product.class, "p1") != null) return;
 
         Admin admin = em.find(Admin.class, "admin01");
 
-        List<ProductType> types = em.createQuery("SELECT t FROM ProductType t", ProductType.class).getResultList();
-        List<Size> sizes = em.createQuery("SELECT s FROM Size s", Size.class).getResultList();
-        List<Color> colors = em.createQuery("SELECT c FROM Color c", Color.class).getResultList();
+        List<ProductType> types =
+                em.createQuery("SELECT t FROM ProductType t", ProductType.class).getResultList();
+
+        List<Size> sizes =
+                em.createQuery("SELECT s FROM Size s", Size.class).getResultList();
+
+        List<Color> colors =
+                em.createQuery("SELECT c FROM Color c", Color.class).getResultList();
 
         Random random = new Random();
 
@@ -121,19 +127,22 @@ public class DataSeeder implements CommandLineRunner {
             p.setProductId("p" + i);
             p.setProductName("Product " + i);
 
-            // random ACTIVE / INACTIVE
+            // ACTIVE / INACTIVE logic
             p.setStatus(i % 5 == 0 ? ProductStatus.INACTIVE : ProductStatus.ACTIVE);
 
             p.setProductType(types.get(random.nextInt(types.size())));
             p.setCreatedBy(admin);
 
-            p.setPrice(BigDecimal.valueOf(50 + random.nextInt(500)));
+            // ================= VND PRICE =================
+            // 99,000 -> 1,500,000 VND
+            int priceVnd = 99000 + random.nextInt(1400000);
+            p.setPrice(BigDecimal.valueOf(priceVnd));
 
             p.setDescription("Description for product " + i);
 
             em.persist(p);
 
-            // ===== VARIANTS =====
+            // ================= VARIANTS =================
             for (Size s : sizes) {
                 for (Color c : colors) {
 
@@ -151,7 +160,7 @@ public class DataSeeder implements CommandLineRunner {
                         variant.setProduct(p);
                         variant.setSize(s);
                         variant.setColor(c);
-                        variant.setQuantity(random.nextInt(50));
+                        variant.setQuantity(random.nextInt(50) + 1);
 
                         em.persist(variant);
                     }
@@ -159,6 +168,6 @@ public class DataSeeder implements CommandLineRunner {
             }
         }
 
-        System.out.println("Products + Variants seeded");
+        System.out.println("Products + Variants seeded (VND)");
     }
 }
