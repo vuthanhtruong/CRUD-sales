@@ -159,13 +159,12 @@ public class ProductServiceImpl implements ProductService {
 
     @Override
     @Caching(evict = {
-            @CacheEvict(value = "product", key = "#dto.productId"),
+            @CacheEvict(value = "product", key = "#id"),
             @CacheEvict(value = "products", allEntries = true),
             @CacheEvict(value = "userProducts", allEntries = true)
     })
-    public void delete(ProductDTO dto) {
-        Product product = toEntity(dto);
-        productDAO.delete(product);
+    public void delete(String id) {
+        productDAO.delete(id);
     }
 
     // ==================== USER ====================

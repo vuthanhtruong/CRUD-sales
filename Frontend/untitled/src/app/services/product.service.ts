@@ -61,9 +61,8 @@ export class ProductService {
   }
 
   delete(productId: string): Observable<any> {
-    return this.http.delete(this.apiUrl, {
-      headers: this.getAuthHeaders(),
-      body: { productId }
+    return this.http.delete(`${this.apiUrl}/${productId}`, {
+      headers: this.getAuthHeaders()
     });
   }
 

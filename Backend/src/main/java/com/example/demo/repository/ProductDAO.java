@@ -10,7 +10,7 @@ public interface ProductDAO {
     List<Product> findAll();
     void create(Product product);
     void edit(Product product, String id);
-    void delete(Product product);
+    void delete(String id);
     Product findById(String id);
     long countProducts();
     List<Product> findAllPaged(int page, int pageSize);

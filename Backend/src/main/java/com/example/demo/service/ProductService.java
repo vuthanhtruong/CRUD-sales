@@ -11,7 +11,7 @@ public interface ProductService {
     List<ProductDTO> findAll();
     void create(ProductDTO product);
     void edit(ProductDTO product, String id);
-    void delete(ProductDTO product);
+    void delete(String id);
     ProductDTO findById(String id);
     long countProducts();
     List<ProductDTO> findAllPaged(int page, int pageSize);

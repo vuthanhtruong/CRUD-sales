@@ -61,9 +61,7 @@ public class AccountController {
 
             String token = jwtUtil.generateToken(request.getUsername());
 
-            httpSession.setAttribute("username", request.getUsername());
-
-            System.out.println(httpSession.getAttribute("username"));
+            System.out.println("token: " + token);
 
             return ResponseEntity.ok(
                     Map.of(

@@ -78,9 +78,9 @@ public class ProductController {
         productService.edit(dto, id);
     }
 
-    @DeleteMapping
-    public void delete(@RequestBody ProductDTO dto) {
-        productService.delete(dto);
+    @DeleteMapping("/{productId}")
+    public void delete(@PathVariable String productId) {
+        productService.delete(productId);
     }
 
     @GetMapping("/statuses")

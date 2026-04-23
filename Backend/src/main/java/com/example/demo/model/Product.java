@@ -38,8 +38,11 @@ public class Product {
     @Column(columnDefinition = "TEXT")
     private String description;
 
-    @OneToMany(mappedBy = "product", cascade = CascadeType.ALL, orphanRemoval = true)
+    @OneToMany(mappedBy = "product")
     private List<ProductImage> images;
+
+    @OneToMany(mappedBy = "product")
+    private List<ProductVariant> variants;
 
     @Column(name = "created_date", updatable = false)
     @CreationTimestamp

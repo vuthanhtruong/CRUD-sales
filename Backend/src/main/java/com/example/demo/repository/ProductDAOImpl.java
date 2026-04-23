@@ -269,11 +269,9 @@ public class ProductDAOImpl implements ProductDAO {
     }
 
     @Override
-    public void delete(Product product) {
+    public void delete(String id) {
 
-        Product managed = entityManager.contains(product)
-                ? product
-                : entityManager.merge(product);
+        Product managed = entityManager.find(Product.class, id);
 
         // 1. xóa variants trước
         entityManager.createQuery(

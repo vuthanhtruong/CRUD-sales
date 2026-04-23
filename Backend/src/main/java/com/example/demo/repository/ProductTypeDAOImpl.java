@@ -1,5 +1,6 @@
 package com.example.demo.repository;
 
+import com.example.demo.model.Product;
 import com.example.demo.model.ProductType;
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.PersistenceContext;
@@ -14,6 +15,12 @@ public class ProductTypeDAOImpl implements ProductTypeDAO {
 
     @PersistenceContext
     private EntityManager entityManager;
+
+    private final ProductDAO productDAO;
+
+    public ProductTypeDAOImpl(ProductDAO productDAO) {
+        this.productDAO = productDAO;
+    }
 
     @Override
     public List<ProductType> getProductTypes() {
@@ -44,6 +51,14 @@ public class ProductTypeDAOImpl implements ProductTypeDAO {
     @Override
     public void deleteProductType(String id) {
         ProductType entity = entityManager.find(ProductType.class, id);
+
+        List<Product> list=productDAO.findAll();
+        for (Product product : list) {
+            if(product.getProductType().equals(entity)) {
+                productDAO.delete(product.getProductId());
+            }
+        }
+
         if (entity != null) {
             entityManager.remove(entity);
         }
