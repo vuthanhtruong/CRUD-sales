@@ -20,7 +20,6 @@ import { debounceTime } from 'rxjs/operators';
   styleUrls: ['./home.component.css'],
 })
 export class HomeComponent implements OnInit {
-  // ================= AUTH =================
   registerForm: any;
   loginForm: any;
 
