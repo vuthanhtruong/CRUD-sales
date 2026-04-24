@@ -18,6 +18,21 @@ interface ImageRow {
   isPrimary: boolean;
 }
 
+// Danh sách ảnh placeholder từ Picsum Photos (free, no API key needed)
+const PLACEHOLDER_IMAGES = [
+  'https://picsum.photos/seed/product1/400/300',
+  'https://picsum.photos/seed/product2/400/300',
+  'https://picsum.photos/seed/product3/400/300',
+  'https://picsum.photos/seed/product4/400/300',
+  'https://picsum.photos/seed/product5/400/300',
+  'https://picsum.photos/seed/product6/400/300',
+  'https://picsum.photos/seed/product7/400/300',
+  'https://picsum.photos/seed/product8/400/300',
+];
+
+const MAX_IMAGE_SIZE_MB = 1;
+const MAX_IMAGE_SIZE_BYTES = MAX_IMAGE_SIZE_MB * 1024 * 1024;
+
 @Component({
   selector: 'app-product',
   imports: [CommonModule, FormsModule],
@@ -106,7 +121,7 @@ export class ProductsComponent implements OnInit {
   exportScope: 'current' | 'all' | number = 'current';
   exportLoading = false;
   exportError = '';
-  // danh sách trang để render checkbox
+
   get pageNumbers(): number[] {
     return Array.from({ length: this.totalPages }, (_, i) => i + 1);
   }
@@ -137,8 +152,26 @@ export class ProductsComponent implements OnInit {
 
   buildProductImageSrc(image: string | undefined): string {
     if (!image) return '';
-    if (image.startsWith('data:')) return image;
+    if (image.startsWith('data:') || image.startsWith('http')) return image;
     return `data:image/jpeg;base64,${image}`;
+  }
+
+  /**
+   * Trả về URL ảnh placeholder từ Picsum dựa vào productId.
+   * Mỗi product sẽ luôn có cùng 1 ảnh placeholder (deterministic).
+   */
+  getPlaceholderImageUrl(productId: string | undefined): string {
+    const id = productId || '';
+    const index = Math.abs(this.simpleHash(id)) % PLACEHOLDER_IMAGES.length;
+    return PLACEHOLDER_IMAGES[index];
+  }
+
+  private simpleHash(str: string): number {
+    let hash = 0;
+    for (let i = 0; i < str.length; i++) {
+      hash = ((hash << 5) - hash + str.charCodeAt(i)) | 0;
+    }
+    return hash;
   }
 
   openCart() {
@@ -336,10 +369,8 @@ export class ProductsComponent implements OnInit {
       let data: ProductDTO[] = [];
 
       if (this.exportScopeType === 'current') {
-        // trang hiện tại đang hiển thị
         data = this.products;
       } else if (this.exportScopeType === 'selected') {
-        // fetch từng trang được chọn song song
         const pages = Array.from(this.selectedPages).sort((a, b) => a - b);
         const results = await Promise.all(
           pages.map((p) =>
@@ -351,7 +382,6 @@ export class ProductsComponent implements OnInit {
         );
         data = results.flat();
       } else {
-        // all
         const allData = await this.productService.findAll().toPromise();
         data = allData ?? [];
       }
@@ -476,8 +506,10 @@ export class ProductsComponent implements OnInit {
       this.modalImageErrors[index] = 'Only image files are allowed';
       return;
     }
-    if (file.size > 5 * 1024 * 1024) {
-      this.modalImageErrors[index] = 'Image must be under 5MB';
+    // Giới hạn 1MB
+    if (file.size > MAX_IMAGE_SIZE_BYTES) {
+      this.modalImageErrors[index] = `Image must be under ${MAX_IMAGE_SIZE_MB}MB`;
+      (event.target as HTMLInputElement).value = '';
       return;
     }
     const reader = new FileReader();
@@ -571,8 +603,10 @@ export class ProductsComponent implements OnInit {
       this.imageErrors[index] = 'Only image files are allowed';
       return;
     }
-    if (file.size > 5 * 1024 * 1024) {
-      this.imageErrors[index] = 'Image must be under 5MB';
+    // Giới hạn 1MB
+    if (file.size > MAX_IMAGE_SIZE_BYTES) {
+      this.imageErrors[index] = `Image must be under ${MAX_IMAGE_SIZE_MB}MB`;
+      (event.target as HTMLInputElement).value = '';
       return;
     }
     const reader = new FileReader();

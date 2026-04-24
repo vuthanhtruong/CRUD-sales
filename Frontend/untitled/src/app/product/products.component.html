@@ -69,8 +69,20 @@
     <div class="product-grid" role="list">
       <article class="product-card" role="listitem" *ngFor="let p of products; trackBy: trackByProductId">
         <div class="product-media" aria-hidden="true">
-          <img *ngIf="p.image" [src]="buildProductImageSrc(p.image)" alt="{{ p.productName }}" class="media-img">
-          <div *ngIf="!p.image" class="media-placeholder" [style.--seed]="seedFromId(p.productId)"></div>
+          <!-- Nếu có ảnh từ DB thì dùng, không thì dùng ảnh placeholder từ Picsum -->
+          <img
+            *ngIf="p.image"
+            [src]="buildProductImageSrc(p.image)"
+            alt="{{ p.productName }}"
+            class="media-img"
+          >
+          <img
+            *ngIf="!p.image"
+            [src]="getPlaceholderImageUrl(p.productId)"
+            alt="Placeholder for {{ p.productName }}"
+            class="media-img media-placeholder-img"
+            loading="lazy"
+          >
         </div>
         <div class="product-body">
           <h3 class="product-title" [title]="p.productName">{{ p.productName || 'Untitled product' }}</h3>
@@ -192,7 +204,7 @@
       </div>
     </div>
 
-    <!-- PAGE PICKER — chỉ hiện khi chọn "selected" -->
+    <!-- PAGE PICKER -->
     <div class="export-section page-picker" *ngIf="exportScopeType === 'selected'">
       <div class="page-picker-head">
         <p class="export-label">Select pages <span class="muted">({{ selectedPages.size }} selected)</span></p>
@@ -289,7 +301,8 @@
     <section class="image-uploader" *ngIf="!isEdit" aria-label="Product images">
       <div class="image-head">
         <p class="image-title">Product images</p>
-        <p class="image-sub">Max 5MB / image • JPG/PNG/WEBP</p>
+        <!-- Đã cập nhật: giới hạn 1MB thay vì 5MB -->
+        <p class="image-sub">Max 1MB / image • JPG/PNG/WEBP</p>
       </div>
       <div class="image-rows">
         <div class="image-row" *ngFor="let row of imageRows; let i = index">
@@ -334,7 +347,7 @@
       </button>
     </div>
     <p class="muted" *ngIf="imageModalLoading">Loading images...</p>
-  <div class="toolbar" *ngIf="!imageModalLoading && productImages.length > 0">
+    <div class="toolbar" *ngIf="!imageModalLoading && productImages.length > 0">
       <button class="btn btn-ghost btn-small" type="button" (click)="selectAllImages()">
         <i class="bi bi-check2-all" aria-hidden="true"></i>
         <span>Select all</span>
@@ -369,6 +382,8 @@
     </div>
     <hr class="divider">
     <h4 class="subhead">Add new images</h4>
+    <!-- Đã cập nhật: giới hạn 1MB -->
+    <p class="form-hint">Max 1MB / image • JPG/PNG/WEBP</p>
     <div class="upload-row" *ngFor="let row of modalImageRows; let i = index">
       <div class="upload-file">
         <input class="file" type="file" accept="image/*" (change)="onModalFileChange($event, i)">
