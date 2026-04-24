@@ -664,6 +664,8 @@ export class HomeComponent implements OnInit {
     this.showToast('info', 'Logged out', 'See you next time!');
   }
 
+  isUser():        boolean { return this.role === 'ROLE_USER' || this.role === 'USER'; }
+
   isAdmin():        boolean { return this.role === 'ROLE_ADMIN' || this.role === 'ADMIN'; }
   isAdminOrUser():  boolean { return ['ROLE_ADMIN', 'ADMIN', 'ROLE_USER', 'USER'].includes(this.role || ''); }
 }

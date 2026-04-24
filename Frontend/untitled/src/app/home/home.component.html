@@ -60,7 +60,7 @@
       <ng-template #signedIn>
         <p><strong>{{ currentUser }}</strong> <span class="muted">({{ role || '—' }})</span></p>
         <div class="hero-links">
-          <button class="btn btn-primary btn-small cart-btn" type="button" (click)="openCart()">
+          <button *ngIf="isUser()" class="btn btn-primary btn-small cart-btn" type="button" (click)="openCart()">
             <i class="bi bi-cart3"></i> Cart
             <span class="cart-badge" *ngIf="cartCount > 0">{{ cartCount }}</span>
           </button>

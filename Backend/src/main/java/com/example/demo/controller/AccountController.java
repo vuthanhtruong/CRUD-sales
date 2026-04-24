@@ -25,17 +25,14 @@ public class AccountController {
     private final AccountService accountService;
     private final JwtUtil jwtUtil;
     private final AuthenticationManager authenticationManager;
-    private final HttpSession httpSession;
 
     @Autowired
     public AccountController(AccountService accountService,
                              JwtUtil jwtUtil,
-                             AuthenticationManager authenticationManager,
-                             HttpSession httpSession) {
+                             AuthenticationManager authenticationManager) {
         this.accountService = accountService;
         this.jwtUtil = jwtUtil;
         this.authenticationManager = authenticationManager;
-        this.httpSession = httpSession;
     }
 
     @PostMapping("/register")
