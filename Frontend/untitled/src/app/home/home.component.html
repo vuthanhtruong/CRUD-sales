@@ -76,8 +76,6 @@
         <a class="product-media" [routerLink]="['/product', p.productId]" aria-label="View product detail">
           <img *ngIf="p.image" [src]="buildImageSrc(p.image)" alt="Product image">
           <div class="media-fallback" *ngIf="!p.image" aria-hidden="true"></div>
-
-          <!-- Out of stock overlay -->
           <div class="oos-overlay" *ngIf="isOutOfStock(p.productId)" aria-label="Out of stock">
             <span>Hết hàng</span>
           </div>
@@ -91,22 +89,17 @@
               <span class="price-value">{{ p.price | number:'1.0-0' }}</span>
               <span class="price-currency">đ</span>
             </div>
-
             <!-- Stock badge -->
             <div class="stock-badge">
-              <!-- Loading state -->
               <ng-container *ngIf="getStock(p.productId) === null && stockLoading.has(p.productId)">
                 <span class="stock stock-loading">...</span>
               </ng-container>
-              <!-- Out of stock -->
               <ng-container *ngIf="getStock(p.productId) !== null && getStock(p.productId) === 0">
                 <span class="stock stock-out">Hết hàng</span>
               </ng-container>
-              <!-- Low stock (1–5) -->
               <ng-container *ngIf="getStock(p.productId) !== null && getStock(p.productId)! > 0 && getStock(p.productId)! <= 5">
                 <span class="stock stock-low">Còn {{ getStock(p.productId) }} cái</span>
               </ng-container>
-              <!-- In stock (>5) -->
               <ng-container *ngIf="getStock(p.productId) !== null && getStock(p.productId)! > 5">
                 <span class="stock stock-ok">Còn hàng ({{ getStock(p.productId) }})</span>
               </ng-container>
@@ -118,16 +111,9 @@
             <button
               class="btn btn-primary btn-small"
               type="button"
-              (click)="addToCart(p)"
+              (click)="openQuickAdd(p)"
               [disabled]="isOutOfStock(p.productId)">
-              Add to Cart
-            </button>
-            <button
-              class="btn btn-ghost btn-small"
-              type="button"
-              (click)="buyNow(p)"
-              [disabled]="isOutOfStock(p.productId)">
-              Buy now
+              🛒 Add to Cart
             </button>
           </div>
         </div>
@@ -142,6 +128,131 @@
       <button class="btn btn-ghost btn-small" type="button" (click)="goToPage(totalPages)" [disabled]="currentPage === totalPages">Last</button>
     </nav>
   </section>
+
+  <!-- ================= QUICK-ADD MODAL ================= -->
+  <div class="modal quick-add-modal" *ngIf="showQuickAdd" role="dialog" aria-modal="true" aria-label="Thêm vào giỏ hàng">
+    <div class="modal-backdrop" (click)="closeQuickAdd()" aria-hidden="true"></div>
+    <div class="modal-card quick-add-card">
+
+      <div class="modal-head">
+        <h2 class="modal-title">🛒 Thêm vào giỏ hàng</h2>
+        <button class="icon-btn" type="button" (click)="closeQuickAdd()" aria-label="Close">✕</button>
+      </div>
+
+      <!-- Loading -->
+      <div class="qa-loading" *ngIf="quickAddLoading">
+        <span>Đang tải...</span>
+      </div>
+
+      <div class="qa-body" *ngIf="!quickAddLoading && quickAddProduct">
+
+        <!-- Product summary -->
+        <div class="qa-product-info">
+          <div class="qa-thumb">
+            <img *ngIf="quickAddProduct.image" [src]="buildImageSrc(quickAddProduct.image)" alt="Product">
+            <div class="qa-thumb-fallback" *ngIf="!quickAddProduct.image"></div>
+          </div>
+          <div class="qa-product-text">
+            <p class="qa-name">{{ quickAddProduct.productName }}</p>
+            <p class="qa-price">{{ quickAddProduct.price | number:'1.0-0' }}đ</p>
+          </div>
+        </div>
+
+        <!-- Toast inside modal -->
+        <div class="qa-toast"
+             *ngIf="quickAddToastMsg"
+             [class.qa-toast-success]="quickAddToastType === 'success'"
+             [class.qa-toast-error]="quickAddToastType === 'error'">
+          {{ quickAddToastMsg }}
+        </div>
+
+        <!-- SIZE -->
+        <div class="qa-section" *ngIf="quickAddSizes.length > 0">
+          <p class="qa-label">
+            Size
+            <span class="qa-required" *ngIf="!quickAddSelectedSize">— vui lòng chọn</span>
+          </p>
+          <div class="qa-options">
+            <button
+              class="qa-opt"
+              type="button"
+              *ngFor="let s of quickAddSizes"
+              (click)="selectQuickSize(s)"
+              [class.is-active]="quickAddSelectedSize?.id === s.id">
+              {{ s.name }}
+            </button>
+          </div>
+        </div>
+
+        <!-- COLOR -->
+        <div class="qa-section" *ngIf="quickAddColors.length > 0">
+          <p class="qa-label">
+            Màu sắc
+            <span class="qa-required" *ngIf="!quickAddSelectedColor">— vui lòng chọn</span>
+          </p>
+          <div class="qa-options">
+            <button
+              class="qa-opt"
+              type="button"
+              *ngFor="let c of quickAddColors"
+              (click)="selectQuickColor(c)"
+              [class.is-active]="quickAddSelectedColor?.id === c.id">
+              {{ c.name }}
+            </button>
+          </div>
+        </div>
+
+        <!-- STOCK INFO -->
+        <div class="qa-stock" *ngIf="quickAddSelectedSize && quickAddSelectedColor">
+          <ng-container *ngIf="quickAddCurrentStock === 0">
+            <span class="stock stock-out">⚠ Hết hàng cho lựa chọn này</span>
+          </ng-container>
+          <ng-container *ngIf="quickAddCurrentStock !== null && quickAddCurrentStock! > 0 && quickAddCurrentStock! <= 5">
+            <span class="stock stock-low">⚡ Chỉ còn {{ quickAddCurrentStock }} sản phẩm</span>
+          </ng-container>
+          <ng-container *ngIf="quickAddCurrentStock !== null && quickAddCurrentStock! > 5">
+            <span class="stock stock-ok">✓ Còn hàng ({{ quickAddCurrentStock }})</span>
+          </ng-container>
+        </div>
+
+        <!-- QUANTITY -->
+        <div class="qa-section" *ngIf="!quickAddIsOutOfStock">
+          <p class="qa-label">Số lượng</p>
+          <div class="qty-control">
+            <button class="qty-btn" type="button" (click)="quickDecreaseQty()" [disabled]="quickAddQuantity <= 1">−</button>
+            <span class="qty-value">{{ quickAddQuantity }}</span>
+            <button
+              class="qty-btn"
+              type="button"
+              (click)="quickIncreaseQty()"
+              [disabled]="quickAddCurrentStock !== null && quickAddQuantity >= quickAddCurrentStock!">+</button>
+          </div>
+          <span class="qty-hint muted" *ngIf="quickAddCurrentStock !== null && quickAddCurrentStock! > 0">
+            Tối đa {{ quickAddCurrentStock }}
+          </span>
+        </div>
+
+      </div>
+
+      <!-- Footer actions -->
+      <div class="modal-actions qa-footer" *ngIf="!quickAddLoading">
+        <button
+          class="btn btn-primary"
+          type="button"
+          (click)="submitQuickAdd()"
+          [disabled]="quickAddAdding || quickAddIsOutOfStock || !quickAddSelectedSize || !quickAddSelectedColor">
+          <span *ngIf="quickAddAdding">Đang thêm...</span>
+          <span *ngIf="!quickAddAdding && !quickAddIsOutOfStock">🛒 Thêm vào giỏ</span>
+          <span *ngIf="!quickAddAdding && quickAddIsOutOfStock">Hết hàng</span>
+        </button>
+        <a class="btn btn-ghost" [routerLink]="['/product', quickAddProduct?.productId]" (click)="closeQuickAdd()">
+          Xem chi tiết →
+        </a>
+        <button class="btn btn-ghost" type="button" (click)="closeQuickAdd()">Đóng</button>
+      </div>
+
+    </div>
+  </div>
 
   <!-- ================= AUTH MODALS ================= -->
   <div class="modal" *ngIf="showRegister || showLogin" role="dialog" aria-modal="true">
@@ -229,14 +340,8 @@
         <button class="icon-btn" type="button" (click)="closeCart()" aria-label="Close cart">✕</button>
       </div>
 
-      <div class="cart-loading" *ngIf="cartLoading">
-        <span>Loading cart...</span>
-      </div>
-
-      <div class="cart-error" *ngIf="cartError && !cartLoading">
-        <span>{{ cartError }}</span>
-      </div>
-
+      <div class="cart-loading" *ngIf="cartLoading"><span>Loading cart...</span></div>
+      <div class="cart-error" *ngIf="cartError && !cartLoading"><span>{{ cartError }}</span></div>
       <div class="cart-empty" *ngIf="!cartLoading && !cartError && cartItems.length === 0">
         <p>🛍️ Your cart is empty.</p>
       </div>
@@ -269,17 +374,10 @@
             </p>
           </div>
           <div class="cart-item-actions">
-            <button class="qty-btn" type="button"
-                    (click)="decreaseQty(item)"
-                    [disabled]="cartLoading">−</button>
+            <button class="qty-btn" type="button" (click)="decreaseQty(item)" [disabled]="cartLoading">−</button>
             <span class="qty-value">{{ item.quantity }}</span>
-            <button class="qty-btn" type="button"
-                    (click)="increaseQty(item)"
-                    [disabled]="cartLoading">+</button>
-            <button class="remove-btn" type="button"
-                    (click)="removeItem(item)"
-                    [disabled]="cartLoading"
-                    title="Remove">🗑</button>
+            <button class="qty-btn" type="button" (click)="increaseQty(item)" [disabled]="cartLoading">+</button>
+            <button class="remove-btn" type="button" (click)="removeItem(item)" [disabled]="cartLoading" title="Remove">🗑</button>
           </div>
         </div>
       </div>
@@ -290,8 +388,7 @@
           <strong>{{ selectedTotal | number:'1.0-0' }}đ</strong>
         </div>
         <div class="cart-footer-actions">
-          <button class="btn btn-ghost btn-small" type="button"
-                  (click)="clearCart()" [disabled]="cartLoading">
+          <button class="btn btn-ghost btn-small" type="button" (click)="clearCart()" [disabled]="cartLoading">
             Xóa tất cả
           </button>
           <button class="btn btn-primary" type="button"
