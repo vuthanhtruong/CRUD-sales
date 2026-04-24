@@ -31,7 +31,6 @@
     </div>
   </header>
 
-  <!-- ================= SEARCH ================= -->
   <section class="search" aria-label="Search products">
     <div class="search-row">
       <label class="field search-field">
@@ -52,7 +51,6 @@
     </div>
   </section>
 
-  <!-- ================= PRODUCT GRID ================= -->
   <section class="grid-section" aria-label="Products">
     <header class="section-head">
       <div>
@@ -74,8 +72,8 @@
         [class.out-of-stock]="isOutOfStock(p.productId)">
 
         <a class="product-media" [routerLink]="['/product', p.productId]" aria-label="View product detail">
-          <img *ngIf="p.image" [src]="buildImageSrc(p.image)" alt="Product image">
-          <div class="media-fallback" *ngIf="!p.image" aria-hidden="true"></div>
+          <img [src]="p.image ? buildImageSrc(p.image) : 'https://images.unsplash.com/photo-1523275335684-37898b6baf30?auto=format&fit=crop&w=400&q=80'" [alt]="p.productName">
+
           <div class="oos-overlay" *ngIf="isOutOfStock(p.productId)" aria-label="Out of stock">
             <span>Hết hàng</span>
           </div>
@@ -89,7 +87,6 @@
               <span class="price-value">{{ p.price | number:'1.0-0' }}</span>
               <span class="price-currency">đ</span>
             </div>
-            <!-- Stock badge -->
             <div class="stock-badge">
               <ng-container *ngIf="getStock(p.productId) === null && stockLoading.has(p.productId)">
                 <span class="stock stock-loading">...</span>
@@ -129,7 +126,6 @@
     </nav>
   </section>
 
-  <!-- ================= QUICK-ADD MODAL ================= -->
   <div class="modal quick-add-modal" *ngIf="showQuickAdd" role="dialog" aria-modal="true" aria-label="Thêm vào giỏ hàng">
     <div class="modal-backdrop" (click)="closeQuickAdd()" aria-hidden="true"></div>
     <div class="modal-card quick-add-card">
@@ -141,18 +137,15 @@
         </button>
       </div>
 
-      <!-- Loading -->
       <div class="qa-loading" *ngIf="quickAddLoading">
         <span>Đang tải...</span>
       </div>
 
       <div class="qa-body" *ngIf="!quickAddLoading && quickAddProduct">
 
-        <!-- Product summary -->
         <div class="qa-product-info">
           <div class="qa-thumb">
-            <img *ngIf="quickAddProduct.image" [src]="buildImageSrc(quickAddProduct.image)" alt="Product">
-            <div class="qa-thumb-fallback" *ngIf="!quickAddProduct.image"></div>
+            <img [src]="quickAddProduct.image ? buildImageSrc(quickAddProduct.image) : 'https://images.unsplash.com/photo-1505740420928-5e560c06d30e?auto=format&fit=crop&w=200&q=80'" alt="Product">
           </div>
           <div class="qa-product-text">
             <p class="qa-name">{{ quickAddProduct.productName }}</p>
@@ -160,7 +153,6 @@
           </div>
         </div>
 
-        <!-- Toast inside modal -->
         <div class="qa-toast"
              *ngIf="quickAddToastMsg"
              [class.qa-toast-success]="quickAddToastType === 'success'"
@@ -168,7 +160,6 @@
           {{ quickAddToastMsg }}
         </div>
 
-        <!-- SIZE -->
         <div class="qa-section" *ngIf="quickAddSizes.length > 0">
           <p class="qa-label">
             Size
@@ -186,7 +177,6 @@
           </div>
         </div>
 
-        <!-- COLOR -->
         <div class="qa-section" *ngIf="quickAddColors.length > 0">
           <p class="qa-label">
             Màu sắc
@@ -204,7 +194,6 @@
           </div>
         </div>
 
-        <!-- STOCK INFO -->
         <div class="qa-stock" *ngIf="quickAddSelectedSize && quickAddSelectedColor">
           <ng-container *ngIf="quickAddCurrentStock === 0">
             <span class="stock stock-out"><i class="bi bi-exclamation-triangle-fill" aria-hidden="true"></i> Hết hàng cho lựa chọn này</span>
@@ -217,7 +206,6 @@
           </ng-container>
         </div>
 
-        <!-- QUANTITY -->
         <div class="qa-section" *ngIf="!quickAddIsOutOfStock">
           <p class="qa-label">Số lượng</p>
           <div class="qty-control">
@@ -236,7 +224,6 @@
 
       </div>
 
-      <!-- Footer actions -->
       <div class="modal-actions qa-footer" *ngIf="!quickAddLoading">
         <button
           class="btn btn-primary"
@@ -256,7 +243,6 @@
     </div>
   </div>
 
-  <!-- ================= AUTH MODALS ================= -->
   <div class="modal" *ngIf="showRegister || showLogin" role="dialog" aria-modal="true">
     <div class="modal-backdrop" (click)="closePopup()" aria-hidden="true"></div>
     <div class="modal-card">
@@ -334,7 +320,6 @@
     </div>
   </div>
 
-  <!-- ================= CART POPUP ================= -->
   <div class="modal cart-modal" *ngIf="showCart" role="dialog" aria-modal="true" aria-label="Shopping Cart">
     <div class="modal-backdrop" (click)="closeCart()" aria-hidden="true"></div>
     <div class="modal-card cart-card">
@@ -348,7 +333,9 @@
 
       <div class="cart-loading" *ngIf="cartLoading"><span>Loading cart...</span></div>
       <div class="cart-error" *ngIf="cartError && !cartLoading"><span>{{ cartError }}</span></div>
+
       <div class="cart-empty" *ngIf="!cartLoading && !cartError && cartItems.length === 0">
+        <img src="https://cdni.iconscout.com/illustration/premium/thumb/empty-cart-2130356-1800917.png" alt="Empty Cart" style="width: 150px; margin-bottom: 1rem; opacity: 0.7;">
         <p><i class="bi bi-bag-heart" aria-hidden="true"></i> Your cart is empty.</p>
       </div>
 

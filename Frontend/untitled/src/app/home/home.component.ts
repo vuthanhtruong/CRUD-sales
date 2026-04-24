@@ -146,6 +146,8 @@ export class HomeComponent implements OnInit {
     this.loadProducts();
   }
 
+  // Tương tự cho Add to Cart, Register...
+
   selectPriceRange(range: any) {
     this.selectedMinPrice = range.min;
     this.selectedMaxPrice = range.max;

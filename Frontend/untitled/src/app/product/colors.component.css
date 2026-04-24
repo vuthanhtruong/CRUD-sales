@@ -106,3 +106,52 @@
   .form-grid { grid-template-columns: repeat(2, 1fr); }
 }
 
+/* Container bao phủ toàn màn hình */
+.modal {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  display: flex;
+  align-items: center;     /* Căn giữa theo chiều dọc */
+  justify-content: center;  /* Căn giữa theo chiều ngang */
+  z-index: 9999;           /* Luôn nằm trên cùng */
+}
+
+/* Lớp nền tối phía sau */
+.modal-backdrop {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(0, 0, 0, 0.6); /* Làm mờ nền sau */
+  backdrop-filter: blur(4px);    /* Hiệu ứng mờ hiện đại */
+}
+
+/* Thẻ thông báo chính */
+.modal-card {
+  position: relative;
+  z-index: 10000;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  padding: 24px;
+  border-radius: 20px;
+  width: 90%;
+  max-width: 400px;
+  box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.3);
+  text-align: center;
+}
+
+/* Style bổ sung cho icon và text trong modal */
+.confirm-icon {
+  font-size: 48px;
+  margin-bottom: 16px;
+}
+.confirm-icon .bi-trash3 { color: #ef4444; }
+.confirm-icon .bi-exclamation-triangle { color: #f59e0b; }
+
+.confirm-title { margin-bottom: 8px; font-size: 20px; }
+.confirm-body { color: var(--muted); margin-bottom: 20px; line-height: 1.5; }
+.confirm-actions { display: flex; gap: 10px; justify-content: center; }

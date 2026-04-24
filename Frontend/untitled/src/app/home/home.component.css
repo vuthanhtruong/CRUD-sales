@@ -604,4 +604,33 @@
 @keyframes fadeUp {
   from { opacity: 0; transform: translateY(10px); }
   to { opacity: 1; transform: translateY(0); }
+}.toast-container {
+   position: fixed;
+   top: 24px;
+   left: 50%;
+   transform: translateX(-50%);
+   z-index: 10000;
+   pointer-events: none;
+ }
+
+.toast-card {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px 24px;
+  border-radius: 16px;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.4);
+  animation: slideDown 0.3s cubic-bezier(0.18, 0.89, 0.32, 1.28) both;
+  min-width: 300px;
+}
+
+.toast-card.success { border-left: 4px solid #22c55e; color: #bbf7d8; background: #064e3b; }
+.toast-card.error { border-left: 4px solid #ef4444; color: #fecaca; background: #7f1d1d; }
+.toast-card.info { border-left: 4px solid #3b82f6; color: #bfdbfe; background: #1e3a8a; }
+
+@keyframes slideDown {
+  from { opacity: 0; transform: translateY(-20px); }
+  to { opacity: 1; transform: translateY(0); }
 }
