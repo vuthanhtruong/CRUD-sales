@@ -47,7 +47,7 @@ public class AccountController {
     }
 
     @PostMapping("/login")
-    public ResponseEntity<?> login(@RequestBody LoginRequest request) {
+    public ResponseEntity<?> login(@RequestBody @Valid LoginRequest request) {
 
         try {
             Authentication authentication = authenticationManager.authenticate(

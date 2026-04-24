@@ -2,6 +2,7 @@ package com.example.demo.controller;
 
 import com.example.demo.dto.ProfileDTO;
 import com.example.demo.service.AccountService;
+import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
@@ -47,7 +48,7 @@ public class DetailAccountController {
     @PutMapping("/update/{username}")
     public ResponseEntity<Void> updateProfile(
             @PathVariable String username,
-            @RequestBody ProfileDTO dto
+            @RequestBody @Valid ProfileDTO dto
     ) {
         accountService.updateProfile(username, dto);
         return ResponseEntity.ok().build();

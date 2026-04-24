@@ -1,5 +1,44 @@
 <div class="wrap">
 
+  <!-- ═══════════════════════════ TOAST STACK ═══════════════════════════════ -->
+  <div class="toast-container" aria-live="polite">
+    <div
+      *ngFor="let t of toasts"
+      class="toast-card"
+      [ngClass]="t.type"
+      (click)="dismissToast(t.id)"
+      role="alert">
+      <i class="bi" [ngClass]="toastIcon(t.type)" aria-hidden="true"></i>
+      <div class="toast-body">
+        <p class="toast-title">{{ t.title }}</p>
+        <p class="toast-msg" *ngIf="t.message">{{ t.message }}</p>
+      </div>
+      <button class="toast-close" type="button" (click)="dismissToast(t.id)" aria-label="Dismiss">
+        <i class="bi bi-x" aria-hidden="true"></i>
+      </button>
+    </div>
+  </div>
+
+  <!-- ═══════════════════════════ CONFIRM DIALOG ════════════════════════════ -->
+  <div class="modal confirm-modal" *ngIf="confirmDialog" role="dialog" aria-modal="true">
+    <div class="modal-backdrop" (click)="onConfirmNo()" aria-hidden="true"></div>
+    <div class="modal-card confirm-card">
+      <div class="modal-head">
+        <h2 class="modal-title"><i class="bi bi-question-circle"></i> {{ confirmDialog.title }}</h2>
+      </div>
+      <p class="confirm-message">{{ confirmDialog.message }}</p>
+      <div class="modal-actions">
+        <button class="btn btn-primary" type="button" (click)="onConfirmYes()">
+          {{ confirmDialog.confirmLabel || 'Confirm' }}
+        </button>
+        <button class="btn btn-ghost" type="button" (click)="onConfirmNo()">
+          {{ confirmDialog.cancelLabel || 'Cancel' }}
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ═══════════════════════════ HEADER ═══════════════════════════════════ -->
   <header class="simple-hero">
     <div>
       <h1 class="hero-title">Find products.</h1>
@@ -25,19 +64,24 @@
             <i class="bi bi-cart3"></i> Cart
             <span class="cart-badge" *ngIf="cartCount > 0">{{ cartCount }}</span>
           </button>
-          <button class="btn btn-ghost btn-small" type="button" (click)="logout()"><i class="bi bi-box-arrow-right"></i> Logout</button>
+          <button class="btn btn-ghost btn-small" type="button" (click)="logout()">
+            <i class="bi bi-box-arrow-right"></i> Logout
+          </button>
         </div>
       </ng-template>
     </div>
   </header>
 
+  <!-- ═══════════════════════════ SEARCH ═══════════════════════════════════ -->
   <section class="search" aria-label="Search products">
     <div class="search-row">
       <label class="field search-field">
         <span class="field-label">Search</span>
-        <input class="input" type="text" [(ngModel)]="keyword" (input)="onSearchInput()" placeholder="Search products by name...">
+        <input class="input" type="text" [(ngModel)]="keyword" (input)="onSearchInput()" placeholder="Search products by name…">
       </label>
-      <button class="btn btn-primary search-btn" type="button" (click)="onSearchClick()"><i class="bi bi-search"></i> Search</button>
+      <button class="btn btn-primary search-btn" type="button" (click)="onSearchClick()">
+        <i class="bi bi-search"></i> Search
+      </button>
     </div>
     <div class="filters" aria-label="Price filters">
       <button
@@ -51,6 +95,7 @@
     </div>
   </section>
 
+  <!-- ═══════════════════════════ PRODUCT GRID ══════════════════════════════ -->
   <section class="grid-section" aria-label="Products">
     <header class="section-head">
       <div>
@@ -72,10 +117,11 @@
         [class.out-of-stock]="isOutOfStock(p.productId)">
 
         <a class="product-media" [routerLink]="['/product', p.productId]" aria-label="View product detail">
-          <img [src]="p.image ? buildImageSrc(p.image) : 'https://images.unsplash.com/photo-1523275335684-37898b6baf30?auto=format&fit=crop&w=400&q=80'" [alt]="p.productName">
-
+          <img
+            [src]="p.image ? buildImageSrc(p.image) : 'https://images.unsplash.com/photo-1523275335684-37898b6baf30?auto=format&fit=crop&w=400&q=80'"
+            [alt]="p.productName">
           <div class="oos-overlay" *ngIf="isOutOfStock(p.productId)" aria-label="Out of stock">
-            <span>Hết hàng</span>
+            <span>Out of stock</span>
           </div>
         </a>
 
@@ -89,22 +135,24 @@
             </div>
             <div class="stock-badge">
               <ng-container *ngIf="getStock(p.productId) === null && stockLoading.has(p.productId)">
-                <span class="stock stock-loading">...</span>
+                <span class="stock stock-loading">…</span>
               </ng-container>
               <ng-container *ngIf="getStock(p.productId) !== null && getStock(p.productId) === 0">
-                <span class="stock stock-out">Hết hàng</span>
+                <span class="stock stock-out">Out of stock</span>
               </ng-container>
               <ng-container *ngIf="getStock(p.productId) !== null && getStock(p.productId)! > 0 && getStock(p.productId)! <= 5">
-                <span class="stock stock-low">Còn {{ getStock(p.productId) }} cái</span>
+                <span class="stock stock-low">{{ getStock(p.productId) }} left</span>
               </ng-container>
               <ng-container *ngIf="getStock(p.productId) !== null && getStock(p.productId)! > 5">
-                <span class="stock stock-ok">Còn hàng ({{ getStock(p.productId) }})</span>
+                <span class="stock stock-ok">In stock ({{ getStock(p.productId) }})</span>
               </ng-container>
             </div>
           </div>
 
           <div class="product-actions">
-            <a class="btn btn-ghost btn-small" [routerLink]="['/product', p.productId]"><i class="bi bi-eye"></i> View detail</a>
+            <a class="btn btn-ghost btn-small" [routerLink]="['/product', p.productId]">
+              <i class="bi bi-eye"></i> View detail
+            </a>
             <button
               class="btn btn-primary btn-small"
               type="button"
@@ -118,34 +166,35 @@
     </div>
 
     <nav class="pager" *ngIf="totalPages > 1" aria-label="Pagination">
-      <button class="btn btn-ghost btn-small" type="button" (click)="goToPage(1)" [disabled]="currentPage === 1">First</button>
+      <button class="btn btn-ghost btn-small" type="button" (click)="goToPage(1)"              [disabled]="currentPage === 1">First</button>
       <button class="btn btn-ghost btn-small" type="button" (click)="goToPage(currentPage - 1)" [disabled]="currentPage === 1">Prev</button>
       <span class="pager-text">Page {{ currentPage }} / {{ totalPages }}</span>
       <button class="btn btn-ghost btn-small" type="button" (click)="goToPage(currentPage + 1)" [disabled]="currentPage === totalPages">Next</button>
-      <button class="btn btn-ghost btn-small" type="button" (click)="goToPage(totalPages)" [disabled]="currentPage === totalPages">Last</button>
+      <button class="btn btn-ghost btn-small" type="button" (click)="goToPage(totalPages)"      [disabled]="currentPage === totalPages">Last</button>
     </nav>
   </section>
 
-  <div class="modal quick-add-modal" *ngIf="showQuickAdd" role="dialog" aria-modal="true" aria-label="Thêm vào giỏ hàng">
+  <!-- ═══════════════════════════ QUICK-ADD MODAL ════════════════════════════ -->
+  <div class="modal quick-add-modal" *ngIf="showQuickAdd" role="dialog" aria-modal="true" aria-label="Add to cart">
     <div class="modal-backdrop" (click)="closeQuickAdd()" aria-hidden="true"></div>
     <div class="modal-card quick-add-card">
 
       <div class="modal-head">
-        <h2 class="modal-title"><i class="bi bi-cart-plus"></i> Thêm vào giỏ hàng</h2>
+        <h2 class="modal-title"><i class="bi bi-cart-plus"></i> Add to Cart</h2>
         <button class="icon-btn" type="button" (click)="closeQuickAdd()" aria-label="Close">
           <i class="bi bi-x-lg" aria-hidden="true"></i>
         </button>
       </div>
 
-      <div class="qa-loading" *ngIf="quickAddLoading">
-        <span>Đang tải...</span>
-      </div>
+      <div class="qa-loading" *ngIf="quickAddLoading"><span>Loading…</span></div>
 
       <div class="qa-body" *ngIf="!quickAddLoading && quickAddProduct">
 
         <div class="qa-product-info">
           <div class="qa-thumb">
-            <img [src]="quickAddProduct.image ? buildImageSrc(quickAddProduct.image) : 'https://images.unsplash.com/photo-1505740420928-5e560c06d30e?auto=format&fit=crop&w=200&q=80'" alt="Product">
+            <img
+              [src]="quickAddProduct.image ? buildImageSrc(quickAddProduct.image) : 'https://images.unsplash.com/photo-1505740420928-5e560c06d30e?auto=format&fit=crop&w=200&q=80'"
+              alt="Product">
           </div>
           <div class="qa-product-text">
             <p class="qa-name">{{ quickAddProduct.productName }}</p>
@@ -163,7 +212,7 @@
         <div class="qa-section" *ngIf="quickAddSizes.length > 0">
           <p class="qa-label">
             Size
-            <span class="qa-required" *ngIf="!quickAddSelectedSize">— vui lòng chọn</span>
+            <span class="qa-required" *ngIf="!quickAddSelectedSize">— please select</span>
           </p>
           <div class="qa-options">
             <button
@@ -179,8 +228,8 @@
 
         <div class="qa-section" *ngIf="quickAddColors.length > 0">
           <p class="qa-label">
-            Màu sắc
-            <span class="qa-required" *ngIf="!quickAddSelectedColor">— vui lòng chọn</span>
+            Color
+            <span class="qa-required" *ngIf="!quickAddSelectedColor">— please select</span>
           </p>
           <div class="qa-options">
             <button
@@ -196,18 +245,18 @@
 
         <div class="qa-stock" *ngIf="quickAddSelectedSize && quickAddSelectedColor">
           <ng-container *ngIf="quickAddCurrentStock === 0">
-            <span class="stock stock-out"><i class="bi bi-exclamation-triangle-fill" aria-hidden="true"></i> Hết hàng cho lựa chọn này</span>
+            <span class="stock stock-out"><i class="bi bi-exclamation-triangle-fill"></i> Out of stock for this combination</span>
           </ng-container>
           <ng-container *ngIf="quickAddCurrentStock !== null && quickAddCurrentStock! > 0 && quickAddCurrentStock! <= 5">
-            <span class="stock stock-low"><i class="bi bi-lightning-charge-fill" aria-hidden="true"></i> Chỉ còn {{ quickAddCurrentStock }} sản phẩm</span>
+            <span class="stock stock-low"><i class="bi bi-lightning-charge-fill"></i> Only {{ quickAddCurrentStock }} left</span>
           </ng-container>
           <ng-container *ngIf="quickAddCurrentStock !== null && quickAddCurrentStock! > 5">
-            <span class="stock stock-ok"><i class="bi bi-check-circle-fill" aria-hidden="true"></i> Còn hàng ({{ quickAddCurrentStock }})</span>
+            <span class="stock stock-ok"><i class="bi bi-check-circle-fill"></i> In stock ({{ quickAddCurrentStock }})</span>
           </ng-container>
         </div>
 
         <div class="qa-section" *ngIf="!quickAddIsOutOfStock">
-          <p class="qa-label">Số lượng</p>
+          <p class="qa-label">Quantity</p>
           <div class="qty-control">
             <button class="qty-btn" type="button" (click)="quickDecreaseQty()" [disabled]="quickAddQuantity <= 1">−</button>
             <span class="qty-value">{{ quickAddQuantity }}</span>
@@ -218,7 +267,7 @@
               [disabled]="quickAddCurrentStock !== null && quickAddQuantity >= quickAddCurrentStock!">+</button>
           </div>
           <span class="qty-hint muted" *ngIf="quickAddCurrentStock !== null && quickAddCurrentStock! > 0">
-            Tối đa {{ quickAddCurrentStock }}
+            Max {{ quickAddCurrentStock }}
           </span>
         </div>
 
@@ -230,19 +279,20 @@
           type="button"
           (click)="submitQuickAdd()"
           [disabled]="quickAddAdding || quickAddIsOutOfStock || !quickAddSelectedSize || !quickAddSelectedColor">
-          <span *ngIf="quickAddAdding">Đang thêm...</span>
-          <span *ngIf="!quickAddAdding && !quickAddIsOutOfStock"><i class="bi bi-cart-plus"></i> Thêm vào giỏ</span>
-          <span *ngIf="!quickAddAdding && quickAddIsOutOfStock">Hết hàng</span>
+          <span *ngIf="quickAddAdding"><i class="bi bi-arrow-repeat spin"></i> Adding…</span>
+          <span *ngIf="!quickAddAdding && !quickAddIsOutOfStock"><i class="bi bi-cart-plus"></i> Add to Cart</span>
+          <span *ngIf="!quickAddAdding && quickAddIsOutOfStock">Out of stock</span>
         </button>
         <a class="btn btn-ghost" [routerLink]="['/product', quickAddProduct?.productId]" (click)="closeQuickAdd()">
-          Xem chi tiết →
+          View detail →
         </a>
-        <button class="btn btn-ghost" type="button" (click)="closeQuickAdd()">Đóng</button>
+        <button class="btn btn-ghost" type="button" (click)="closeQuickAdd()">Close</button>
       </div>
 
     </div>
   </div>
 
+  <!-- ═══════════════════════════ AUTH MODALS ════════════════════════════════ -->
   <div class="modal" *ngIf="showRegister || showLogin" role="dialog" aria-modal="true">
     <div class="modal-backdrop" (click)="closePopup()" aria-hidden="true"></div>
     <div class="modal-card">
@@ -253,36 +303,58 @@
         </button>
       </div>
 
-      <form *ngIf="showRegister" class="modal-form" [formGroup]="registerForm" (ngSubmit)="submitRegister()">
+      <!-- ─── REGISTER FORM ─────────────────────────────────────────────── -->
+      <form *ngIf="showRegister" class="modal-form" [formGroup]="registerForm" (ngSubmit)="submitRegister()" novalidate>
         <div class="form-grid">
-          <label class="field">
-            <span class="field-label">First name</span>
+
+          <label class="field" [class.field-error]="regFieldInvalid('firstName')">
+            <span class="field-label">First name <span class="req">*</span></span>
             <input class="input" formControlName="firstName" placeholder="First name">
+            <span class="field-err-msg" *ngIf="regFieldInvalid('firstName')">{{ regFieldError('firstName') }}</span>
           </label>
-          <label class="field">
-            <span class="field-label">Last name</span>
+
+          <label class="field" [class.field-error]="regFieldInvalid('lastName')">
+            <span class="field-label">Last name <span class="req">*</span></span>
             <input class="input" formControlName="lastName" placeholder="Last name">
+            <span class="field-err-msg" *ngIf="regFieldInvalid('lastName')">{{ regFieldError('lastName') }}</span>
           </label>
-          <label class="field">
-            <span class="field-label">Phone</span>
+
+          <label class="field" [class.field-error]="regFieldInvalid('phone')">
+            <span class="field-label">Phone <span class="req">*</span></span>
             <input class="input" formControlName="phone" placeholder="0xxxxxxxxx">
+            <span class="field-err-msg" *ngIf="regFieldInvalid('phone')">{{ regFieldError('phone') }}</span>
           </label>
-          <label class="field">
-            <span class="field-label">Address</span>
-            <input class="input" formControlName="address" placeholder="Address">
+
+          <label class="field" [class.field-error]="regFieldInvalid('address')">
+            <span class="field-label">Address <span class="req">*</span></span>
+            <input class="input" formControlName="address" placeholder="Street, city…">
+            <span class="field-err-msg" *ngIf="regFieldInvalid('address')">{{ regFieldError('address') }}</span>
           </label>
-          <label class="field">
-            <span class="field-label">Email</span>
-            <input class="input" formControlName="email" placeholder="Email">
+
+          <label class="field" [class.field-error]="regFieldInvalid('email')">
+            <span class="field-label">Email <span class="req">*</span></span>
+            <input class="input" type="email" formControlName="email" placeholder="you@example.com">
+            <span class="field-err-msg" *ngIf="regFieldInvalid('email')">{{ regFieldError('email') }}</span>
           </label>
-          <label class="field">
-            <span class="field-label">Username</span>
-            <input class="input" formControlName="username" placeholder="Username">
+
+          <label class="field" [class.field-error]="regFieldInvalid('username')">
+            <span class="field-label">Username <span class="req">*</span></span>
+            <input class="input" formControlName="username" placeholder="letters, numbers, _">
+            <span class="field-err-msg" *ngIf="regFieldInvalid('username')">{{ regFieldError('username') }}</span>
           </label>
-          <label class="field">
-            <span class="field-label">Password</span>
-            <input class="input" type="password" formControlName="password" placeholder="Password">
+
+          <label class="field" [class.field-error]="regFieldInvalid('password')">
+            <span class="field-label">Password <span class="req">*</span></span>
+            <input class="input" type="password" formControlName="password" placeholder="Min 6 characters">
+            <span class="field-err-msg" *ngIf="regFieldInvalid('password')">{{ regFieldError('password') }}</span>
           </label>
+
+          <label class="field" [class.field-error]="!!confirmPasswordError">
+            <span class="field-label">Confirm password <span class="req">*</span></span>
+            <input class="input" type="password" formControlName="confirmPassword" placeholder="Re-enter your password">
+            <span class="field-err-msg" *ngIf="confirmPasswordError">{{ confirmPasswordError }}</span>
+          </label>
+
           <label class="field">
             <span class="field-label">Gender</span>
             <select class="input" formControlName="gender">
@@ -290,10 +362,12 @@
               <option value="FEMALE">Female</option>
             </select>
           </label>
-          <label class="field field-full">
+
+          <label class="field">
             <span class="field-label">Birthday</span>
             <input class="input" type="date" formControlName="birthday">
           </label>
+
         </div>
         <div class="modal-actions">
           <button class="btn btn-primary" type="submit">Register</button>
@@ -301,6 +375,7 @@
         </div>
       </form>
 
+      <!-- ─── LOGIN FORM ──────────────────────────────────────────────────── -->
       <form *ngIf="showLogin" class="modal-form" [formGroup]="loginForm" (ngSubmit)="submitLogin()">
         <div class="form-grid">
           <label class="field field-full">
@@ -317,9 +392,11 @@
           <button class="btn btn-ghost" type="button" (click)="closePopup()">Cancel</button>
         </div>
       </form>
+
     </div>
   </div>
 
+  <!-- ═══════════════════════════ CART MODAL ════════════════════════════════ -->
   <div class="modal cart-modal" *ngIf="showCart" role="dialog" aria-modal="true" aria-label="Shopping Cart">
     <div class="modal-backdrop" (click)="closeCart()" aria-hidden="true"></div>
     <div class="modal-card cart-card">
@@ -331,19 +408,19 @@
         </button>
       </div>
 
-      <div class="cart-loading" *ngIf="cartLoading"><span>Loading cart...</span></div>
-      <div class="cart-error" *ngIf="cartError && !cartLoading"><span>{{ cartError }}</span></div>
+      <div class="cart-loading" *ngIf="cartLoading"><span>Loading cart…</span></div>
+      <div class="cart-error"   *ngIf="cartError && !cartLoading"><span>{{ cartError }}</span></div>
 
       <div class="cart-empty" *ngIf="!cartLoading && !cartError && cartItems.length === 0">
-        <img src="https://cdni.iconscout.com/illustration/premium/thumb/empty-cart-2130356-1800917.png" alt="Empty Cart" style="width: 150px; margin-bottom: 1rem; opacity: 0.7;">
-        <p><i class="bi bi-bag-heart" aria-hidden="true"></i> Your cart is empty.</p>
+        <img src="https://cdni.iconscout.com/illustration/premium/thumb/empty-cart-2130356-1800917.png" alt="Empty Cart" style="width:150px;margin-bottom:1rem;opacity:.7">
+        <p><i class="bi bi-bag-heart"></i> Your cart is empty.</p>
       </div>
 
       <div class="cart-items" *ngIf="!cartLoading && cartItems.length > 0">
         <div class="cart-select-all">
           <label class="checkbox-label">
             <input type="checkbox" [checked]="isAllSelected()" (change)="toggleSelectAll()" />
-            <span>Chọn tất cả ({{ cartItems.length }})</span>
+            <span>Select all ({{ cartItems.length }})</span>
           </label>
         </div>
 
@@ -362,7 +439,7 @@
               Color: <strong>{{ item.colorName }}</strong>
             </p>
             <p class="cart-item-price">
-              {{ item.price | number:'1.0-0' }}đ &times; {{ item.quantity }}
+              {{ item.price | number:'1.0-0' }}đ × {{ item.quantity }}
               = <strong>{{ item.subtotal | number:'1.0-0' }}đ</strong>
             </p>
           </div>
@@ -379,17 +456,17 @@
 
       <div class="cart-footer" *ngIf="!cartLoading && cartItems.length > 0">
         <div class="cart-total">
-          <span>Đã chọn <strong>{{ selectedCount }}</strong> / {{ cartItems.length }} sản phẩm</span>
+          <span>Selected <strong>{{ selectedCount }}</strong> / {{ cartItems.length }} item(s)</span>
           <strong>{{ selectedTotal | number:'1.0-0' }}đ</strong>
         </div>
         <div class="cart-footer-actions">
           <button class="btn btn-ghost btn-small" type="button" (click)="clearCart()" [disabled]="cartLoading">
-            Xóa tất cả
+            Clear all
           </button>
           <button class="btn btn-primary" type="button"
                   [disabled]="selectedCount === 0 || cartLoading"
                   (click)="checkout()">
-            Thanh toán ({{ selectedCount }})
+            Checkout ({{ selectedCount }})
           </button>
         </div>
       </div>
