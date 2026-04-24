@@ -22,6 +22,20 @@ import java.util.stream.Collectors;
 @Service
 @Transactional
 public class ProductServiceImpl implements ProductService {
+    @Override
+    public boolean existsByColorId(String colorId) {
+        return productDAO.existsByColorId(colorId);
+    }
+
+    @Override
+    public boolean existsBySizeId(String sizeId) {
+        return productDAO.existsBySizeId(sizeId);
+    }
+
+    @Override
+    public boolean existsByProductType(String productTypeId) {
+        return productDAO.existsByProductType(productTypeId);
+    }
 
     @Autowired
     private ProductDAO productDAO;

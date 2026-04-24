@@ -35,4 +35,7 @@ public interface ProductService {
             String productTypeId,
             String status
     );
+    boolean existsByProductType(String productTypeId);
+    boolean existsByColorId(String colorId);
+    boolean existsBySizeId(String sizeId);
 }

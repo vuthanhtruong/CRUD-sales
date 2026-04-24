@@ -25,7 +25,6 @@ export interface ProductSearchParams {
 
 @Injectable({ providedIn: 'root' })
 export class ProductService {
-
   private apiUrl = 'http://localhost:8080/api/products';
 
   constructor(private http: HttpClient) {}
@@ -40,17 +39,21 @@ export class ProductService {
   }
 
   findAllPaged(page: number, pageSize: number): Observable<ProductDTO[]> {
-    return this.http.get<ProductDTO[]>(
-      `${this.apiUrl}/paged?page=${page}&pageSize=${pageSize}`,
-      { headers: this.getAuthHeaders() }
-    );
+    return this.http.get<ProductDTO[]>(`${this.apiUrl}/paged?page=${page}&pageSize=${pageSize}`, {
+      headers: this.getAuthHeaders(),
+    });
+  }
+
+  existsByProductType(productTypeId: string): Observable<boolean> {
+    return this.http.get<boolean>(`${this.apiUrl}/exists-by-type/${productTypeId}`, {
+      headers: this.getAuthHeaders(),
+    });
   }
 
   countTotalPages(pageSize: number): Observable<number> {
-    return this.http.get<number>(
-      `${this.apiUrl}/total-pages?pageSize=${pageSize}`,
-      { headers: this.getAuthHeaders() }
-    );
+    return this.http.get<number>(`${this.apiUrl}/total-pages?pageSize=${pageSize}`, {
+      headers: this.getAuthHeaders(),
+    });
   }
 
   create(product: ProductDTO): Observable<any> {
@@ -63,7 +66,7 @@ export class ProductService {
 
   delete(productId: string): Observable<any> {
     return this.http.delete(`${this.apiUrl}/${productId}`, {
-      headers: this.getAuthHeaders()
+      headers: this.getAuthHeaders(),
     });
   }
 
@@ -75,17 +78,34 @@ export class ProductService {
     return this.http.get<ProductDTO>(`${this.apiUrl}/${id}`, { headers: this.getAuthHeaders() });
   }
 
+  // ================= EXISTS BY COLOR =================
+  existsByColor(colorId: string): Observable<boolean> {
+    return this.http.get<boolean>(`${this.apiUrl}/exists-by-color/${colorId}`, {
+      headers: this.getAuthHeaders(),
+    });
+  }
+
+  // ================= EXISTS BY SIZE =================
+  existsBySize(sizeId: string): Observable<boolean> {
+    return this.http.get<boolean>(`${this.apiUrl}/exists-by-size/${sizeId}`, {
+      headers: this.getAuthHeaders(),
+    });
+  }
+
   searchProducts(params: ProductSearchParams): Observable<ProductDTO[]> {
     let httpParams = new HttpParams();
-    if (params.keyword?.trim())       httpParams = httpParams.set('keyword', params.keyword.trim());
-    if (params.minPrice != null)      httpParams = httpParams.set('minPrice', params.minPrice.toString());
-    if (params.maxPrice != null)      httpParams = httpParams.set('maxPrice', params.maxPrice.toString());
-    if (params.productTypeId?.trim()) httpParams = httpParams.set('productTypeId', params.productTypeId.trim());
-    if (params.status?.trim())        httpParams = httpParams.set('status', params.status.trim());
+    if (params.keyword?.trim()) httpParams = httpParams.set('keyword', params.keyword.trim());
+    if (params.minPrice != null)
+      httpParams = httpParams.set('minPrice', params.minPrice.toString());
+    if (params.maxPrice != null)
+      httpParams = httpParams.set('maxPrice', params.maxPrice.toString());
+    if (params.productTypeId?.trim())
+      httpParams = httpParams.set('productTypeId', params.productTypeId.trim());
+    if (params.status?.trim()) httpParams = httpParams.set('status', params.status.trim());
 
     return this.http.get<ProductDTO[]>(`${this.apiUrl}/search`, {
       headers: this.getAuthHeaders(),
-      params: httpParams
+      params: httpParams,
     });
   }
 }

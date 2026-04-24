@@ -87,4 +87,21 @@ public class ProductController {
     public ProductStatus[] getStatuses() {
         return ProductStatus.values();
     }
+
+    @GetMapping("/exists-by-type/{productTypeId}")
+    public boolean existsByProductType(@PathVariable String productTypeId) {
+        return productService.existsByProductType(productTypeId);
+    }
+
+    // ================= CHECK BY COLOR =================
+    @GetMapping("/exists-by-color/{colorId}")
+    public boolean existsByColor(@PathVariable String colorId) {
+        return productService.existsByColorId(colorId);
+    }
+
+    // ================= CHECK BY SIZE =================
+    @GetMapping("/exists-by-size/{sizeId}")
+    public boolean existsBySize(@PathVariable String sizeId) {
+        return productService.existsBySizeId(sizeId);
+    }
 }

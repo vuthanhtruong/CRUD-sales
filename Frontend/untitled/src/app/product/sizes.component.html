@@ -5,6 +5,7 @@
     <p class="subtitle">Create and maintain sizes used by product variants.</p>
   </header>
 
+  <!-- ================= FORM ================= -->
   <section class="panel" aria-label="Size form">
     <div class="panel-head">
       <h2 class="panel-title">{{ isEditMode ? 'Edit size' : 'Create size' }}</h2>
@@ -32,6 +33,7 @@
     </div>
   </section>
 
+  <!-- ================= LIST ================= -->
   <section class="panel" aria-label="Size list">
     <header class="panel-head list-head">
       <h2 class="panel-title">Sizes</h2>
@@ -50,11 +52,54 @@
         <div class="td" role="cell">{{ s.name }}</div>
         <div class="td actions-col" role="cell">
           <button class="btn btn-ghost btn-small" type="button" (click)="edit(s)">Edit</button>
-          <button class="btn btn-ghost btn-small danger" type="button" (click)="delete(s.id)">Delete</button>
+          <button class="btn btn-ghost btn-small danger" type="button" (click)="requestDelete(s)">Delete</button>
         </div>
       </div>
 
       <div class="empty" *ngIf="sizes.length === 0">No sizes yet.</div>
     </div>
   </section>
+
+  <!-- ================= DELETE CONFIRM POPUP ================= -->
+  <div class="modal" *ngIf="showDeleteConfirm" role="dialog" aria-modal="true">
+    <div class="modal-backdrop" (click)="closeDeleteConfirm()" aria-hidden="true"></div>
+    <div class="modal-card confirm-card">
+
+      <div class="confirm-checking" *ngIf="deleteCheckLoading">
+        <p class="muted">Checking dependencies...</p>
+      </div>
+
+      <!-- BLOCKED -->
+      <ng-container *ngIf="!deleteCheckLoading && deleteBlocked">
+        <div class="confirm-icon">⚠️</div>
+        <h2 class="confirm-title">Cannot delete</h2>
+        <p class="confirm-body">
+          Size <strong>{{ deleteTarget?.name }}</strong>
+          (<span class="mono">{{ deleteTarget?.id }}</span>) is used by one or more product variants.
+        </p>
+        <p class="confirm-body">
+          Please <strong>delete all product variants</strong> using this size before removing it.
+        </p>
+        <div class="confirm-actions">
+          <button class="btn btn-primary" type="button" (click)="closeDeleteConfirm()">Got it</button>
+        </div>
+      </ng-container>
+
+      <!-- OK -->
+      <ng-container *ngIf="!deleteCheckLoading && !deleteBlocked">
+        <div class="confirm-icon">🗑️</div>
+        <h2 class="confirm-title">Delete size?</h2>
+        <p class="confirm-body">
+          Are you sure you want to delete <strong>{{ deleteTarget?.name }}</strong>
+          (<span class="mono">{{ deleteTarget?.id }}</span>)?
+          This action cannot be undone.
+        </p>
+        <div class="confirm-actions">
+          <button class="btn btn-ghost" type="button" (click)="closeDeleteConfirm()">Cancel</button>
+          <button class="btn btn-danger" type="button" (click)="confirmDelete()">Yes, delete</button>
+        </div>
+      </ng-container>
+
+    </div>
+  </div>
 </div>

@@ -1,5 +1,6 @@
 import { Component, OnInit, ChangeDetectorRef } from '@angular/core';
 import { ColorService, ColorDTO } from '../services/color.service';
+import { ProductService } from '../services/product.service';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { of } from 'rxjs';
@@ -10,77 +11,72 @@ import { catchError } from 'rxjs/operators';
   standalone: true,
   imports: [CommonModule, FormsModule],
   templateUrl: './colors.component.html',
-  styleUrls: ['./colors.component.css']
+  styleUrls: ['./colors.component.css'],
 })
 export class ColorsComponent implements OnInit {
-
   colors: ColorDTO[] = [];
 
-  form: ColorDTO = {
-    id: '',
-    name: ''
-  };
+  form: ColorDTO = { id: '', name: '' };
 
   isEdit = false;
   idExists = false;
-
   errors: any = {};
+
+  // ================= DELETE CONFIRM =================
+  showDeleteConfirm = false;
+  deleteTarget: ColorDTO | null = null;
+  deleteBlocked = false;
+  deleteCheckLoading = false;
 
   constructor(
     private colorService: ColorService,
-    private cdr: ChangeDetectorRef
+    private productService: ProductService,
+    private cdr: ChangeDetectorRef,
   ) {}
 
   ngOnInit(): void {
     this.loadColors();
   }
-  
+
   onIdChange() {
     this.errors.id = '';
     this.idExists = false;
 
     const id = this.form.id?.trim();
-
     if (!id) {
       this.errors.id = 'Color ID is required';
       return;
     }
-
     if (id.length < 1 || id.length > 20) {
       this.errors.id = 'Color ID must be 1–20 characters';
       return;
     }
-
     if (this.isEdit) return;
 
-    this.colorService.getById(id).pipe(
-      catchError(() => of(null))
-    ).subscribe(res => {
-      if (res) this.idExists = true;
-      this.cdr.detectChanges();
-    });
+    this.colorService
+      .getById(id)
+      .pipe(catchError(() => of(null)))
+      .subscribe((res) => {
+        if (res) this.idExists = true;
+        this.cdr.detectChanges();
+      });
   }
 
   onNameChange() {
     this.errors.name = '';
-
     const name = this.form.name?.trim();
-
     if (!name) {
       this.errors.name = 'Color name is required';
       return;
     }
-
     if (name.length < 1 || name.length > 50) {
       this.errors.name = 'Color name must be 1–50 characters';
     }
   }
 
   save() {
-
     this.onIdChange();
     this.onNameChange();
-
     if (this.errors.id || this.errors.name || this.idExists) return;
 
     const req = this.isEdit
@@ -92,12 +88,12 @@ export class ColorsComponent implements OnInit {
         this.reset();
         this.loadColors();
       },
-      error: (err) => console.error(err)
+      error: (err) => console.error(err),
     });
   }
 
   loadColors() {
-    this.colorService.getAll().subscribe(data => {
+    this.colorService.getAll().subscribe((data) => {
       this.colors = data;
       this.cdr.detectChanges();
     });
@@ -108,12 +104,46 @@ export class ColorsComponent implements OnInit {
     this.isEdit = true;
     this.errors = {};
     this.idExists = false;
+    this.closeDeleteConfirm();
   }
 
-  delete(id: string) {
-    this.colorService.delete(id).subscribe(() => {
-      this.loadColors();
+  // ================= DELETE FLOW =================
+  requestDelete(item: ColorDTO) {
+    this.deleteTarget = item;
+    this.deleteBlocked = false;
+    this.deleteCheckLoading = true;
+    this.showDeleteConfirm = true;
+    this.cdr.detectChanges();
+
+    this.productService
+      .existsByColor(item.id)
+      .pipe(catchError(() => of(false)))
+      .subscribe((exists) => {
+        this.deleteBlocked = exists;
+        this.deleteCheckLoading = false;
+        this.cdr.detectChanges();
+      });
+  }
+
+  confirmDelete() {
+    if (!this.deleteTarget || this.deleteBlocked) return;
+    this.colorService.delete(this.deleteTarget.id).subscribe({
+      next: () => {
+        this.closeDeleteConfirm();
+        this.loadColors();
+      },
+      error: () => {
+        this.closeDeleteConfirm();
+      },
     });
+  }
+
+  closeDeleteConfirm() {
+    this.showDeleteConfirm = false;
+    this.deleteTarget = null;
+    this.deleteBlocked = false;
+    this.deleteCheckLoading = false;
+    this.cdr.detectChanges();
   }
 
   reset() {

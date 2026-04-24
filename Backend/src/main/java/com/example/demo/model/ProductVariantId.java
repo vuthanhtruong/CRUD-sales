@@ -8,9 +8,18 @@ import java.io.Serializable;
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
+@Getter
+@Setter
 public class ProductVariantId implements Serializable {
 
+    @Column(name = "product_id")
     private String productId;
+
+    @Column(name = "size_id")
     private String sizeId;
+
+    @Column(name = "color_id")
     private String colorId;
+
+    // constructor, equals, hashCode
 }

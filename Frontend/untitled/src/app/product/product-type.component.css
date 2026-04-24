@@ -10,7 +10,53 @@
   line-height: 1.08;
   letter-spacing: -0.04em;
 }
+/* ===== CONFIRM POPUP ===== */
+.confirm-card {
+  max-width: 420px;
+  width: 100%;
+  text-align: center;
+  padding: 2rem 1.75rem;
+}
 
+.confirm-checking {
+  padding: 1.5rem 0;
+}
+
+.confirm-icon {
+  font-size: 2.5rem;
+  margin-bottom: 0.75rem;
+}
+
+.confirm-title {
+  font-size: 1.15rem;
+  font-weight: 700;
+  margin: 0 0 0.6rem;
+}
+
+.confirm-body {
+  font-size: 0.88rem;
+  color: #4a5568;
+  margin: 0 0 0.5rem;
+  line-height: 1.55;
+}
+
+.confirm-actions {
+  display: flex;
+  gap: 0.6rem;
+  justify-content: center;
+  margin-top: 1.25rem;
+}
+
+/* ===== DANGER BUTTON ===== */
+.btn-danger {
+  background: #e53e3e;
+  color: #fff;
+  border: none;
+}
+
+.btn-danger:hover {
+  background: #c53030;
+}
 .subtitle {
   margin: 12px 0 0;
   color: var(--muted);

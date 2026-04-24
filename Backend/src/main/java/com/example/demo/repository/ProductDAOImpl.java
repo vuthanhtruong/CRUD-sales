@@ -18,6 +18,56 @@ import java.util.List;
 public class ProductDAOImpl implements ProductDAO {
 
     @Override
+    public boolean existsByColorId(String colorId) {
+
+        String jpql = """
+        SELECT COUNT(p)
+        FROM Product p
+        JOIN p.variants v
+        WHERE v.color.id = :colorId
+    """;
+
+        Long count = entityManager.createQuery(jpql, Long.class)
+                .setParameter("colorId", colorId)
+                .getSingleResult();
+
+        return count > 0;
+    }
+
+    @Override
+    public boolean existsBySizeId(String sizeId) {
+
+        String jpql = """
+        SELECT COUNT(p)
+        FROM Product p
+        JOIN p.variants v
+        WHERE v.size.id = :sizeId
+    """;
+
+        Long count = entityManager.createQuery(jpql, Long.class)
+                .setParameter("sizeId", sizeId)
+                .getSingleResult();
+
+        return count > 0;
+    }
+
+    @Override
+    public boolean existsByProductType(String productTypeId) {
+
+        String jpql = """
+        SELECT COUNT(p)
+        FROM Product p
+        WHERE p.productType.id = :typeId
+    """;
+
+        Long count = entityManager.createQuery(jpql, Long.class)
+                .setParameter("typeId", productTypeId)
+                .getSingleResult();
+
+        return count > 0;
+    }
+
+    @Override
     public List<Product> searchProductsAdmin(
             String keyword,
             BigDecimal minPrice,

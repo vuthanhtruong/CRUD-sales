@@ -1,18 +1,27 @@
+<!-- product-detail.component.html -->
 <div class="wrap">
+
+  <!-- Toast -->
+  <div class="toast" *ngIf="toastMessage" [class.toast-success]="toastType === 'success'" [class.toast-error]="toastType === 'error'" role="alert">
+    <span class="toast-icon">{{ toastType === 'success' ? '✓' : '✕' }}</span>
+    {{ toastMessage }}
+  </div>
+
   <div class="detail-top">
-    <a class="btn btn-ghost btn-small" [routerLink]="['/home']">Back</a>
+    <a class="btn btn-ghost btn-small" [routerLink]="['/home']">← Back</a>
   </div>
 
   <p class="muted" *ngIf="loading">Loading...</p>
 
   <section class="detail" *ngIf="!loading && product" aria-label="Product detail">
+
+    <!-- GALLERY -->
     <div class="gallery">
       <div class="hero-image">
         <img *ngIf="selectedImage && selectedImage.imageData" [src]="buildImageSrc(selectedImage)" alt="Product image">
         <div class="hero-fallback" *ngIf="!selectedImage || !selectedImage.imageData" aria-hidden="true"></div>
       </div>
-
-      <div class="thumbs" *ngIf="images.length > 0" aria-label="Product images">
+      <div class="thumbs" *ngIf="images.length > 1" aria-label="Product images">
         <button
           class="thumb"
           type="button"
@@ -25,6 +34,7 @@
       </div>
     </div>
 
+    <!-- INFO -->
     <article class="info">
       <p class="eyebrow">Premium item</p>
       <h1 class="title">{{ product.productName }}</h1>
@@ -45,33 +55,71 @@
         </div>
       </div>
 
+      <!-- SIZE -->
       <section class="option" *ngIf="sizes.length > 0" aria-label="Choose size">
-        <h2 class="option-title">Size</h2>
+        <h2 class="option-title">
+          Size
+          <span class="option-required" *ngIf="!selectedSize">— please select</span>
+        </h2>
         <div class="option-grid">
-          <button class="opt" type="button" *ngFor="let s of sizes" (click)="selectSize(s)" [class.is-active]="selectedSize?.id === s.id">
+          <button
+            class="opt"
+            type="button"
+            *ngFor="let s of sizes"
+            (click)="selectSize(s)"
+            [class.is-active]="selectedSize?.id === s.id">
             {{ s.name }}
           </button>
         </div>
       </section>
 
+      <!-- COLOR -->
       <section class="option" *ngIf="colors.length > 0" aria-label="Choose color">
-        <h2 class="option-title">Color</h2>
+        <h2 class="option-title">
+          Color
+          <span class="option-required" *ngIf="!selectedColor">— please select</span>
+        </h2>
         <div class="option-grid">
-          <button class="opt" type="button" *ngFor="let c of colors" (click)="selectColor(c)" [class.is-active]="selectedColor?.id === c.id">
+          <button
+            class="opt"
+            type="button"
+            *ngFor="let c of colors"
+            (click)="selectColor(c)"
+            [class.is-active]="selectedColor?.id === c.id">
             {{ c.name }}
           </button>
         </div>
       </section>
 
+      <!-- QUANTITY -->
+      <section class="option" aria-label="Quantity">
+        <h2 class="option-title">Quantity</h2>
+        <div class="qty-control">
+          <button class="qty-btn" type="button" (click)="decreaseQty()" [disabled]="quantity <= 1">−</button>
+          <span class="qty-value">{{ quantity }}</span>
+          <button class="qty-btn" type="button" (click)="increaseQty()">+</button>
+        </div>
+      </section>
+
+      <!-- DESCRIPTION -->
       <section class="desc" *ngIf="product.description" aria-label="Description">
         <h2 class="option-title">Description</h2>
         <p class="desc-text">{{ product.description }}</p>
       </section>
 
+      <!-- CTA -->
       <div class="cta">
-        <button class="btn btn-primary" type="button">Add to Cart</button>
+        <button
+          class="btn btn-primary btn-add-cart"
+          type="button"
+          (click)="addToCart()"
+          [disabled]="addingToCart">
+          <span *ngIf="!addingToCart">🛒 Add to Cart</span>
+          <span *ngIf="addingToCart">Adding...</span>
+        </button>
         <a class="btn btn-ghost" [routerLink]="['/products']">Browse more</a>
       </div>
+
     </article>
   </section>
 

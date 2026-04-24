@@ -2,6 +2,7 @@ import { Component, OnInit, ChangeDetectorRef } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { ProductTypeService, ProductType } from '../services/product-type.service';
+import { ProductService } from '../services/product.service';
 import { of } from 'rxjs';
 import { catchError } from 'rxjs/operators';
 
@@ -10,15 +11,14 @@ import { catchError } from 'rxjs/operators';
   standalone: true,
   imports: [CommonModule, FormsModule],
   templateUrl: './product-type.component.html',
-  styleUrls: ['./product-type.component.css']
+  styleUrls: ['./product-type.component.css'],
 })
 export class ProductTypeComponent implements OnInit {
-
   productTypes: ProductType[] = [];
 
   form: ProductType = {
     id: '',
-    typeName: ''
+    typeName: '',
   };
 
   errors: any = {};
@@ -27,16 +27,23 @@ export class ProductTypeComponent implements OnInit {
   loading = false;
   errorMsg = '';
 
+  // ================= DELETE CONFIRM =================
+  showDeleteConfirm = false;
+  deleteTarget: ProductType | null = null;
+  deleteBlocked = false;
+  deleteCheckLoading = false;
+
   constructor(
     private service: ProductTypeService,
-    private cdr: ChangeDetectorRef
+    private productService: ProductService,
+    private cdr: ChangeDetectorRef,
   ) {}
 
   ngOnInit(): void {
     this.loadData();
   }
 
-
+  // ================= VALIDATE ID =================
   onIdChange() {
     this.errors.id = '';
     this.idExists = false;
@@ -55,17 +62,16 @@ export class ProductTypeComponent implements OnInit {
 
     if (this.isEdit) return;
 
-    this.service.getById(id).pipe(
-      catchError(err => of(null))
-    ).subscribe(res => {
-      if (res) {
-        this.idExists = true;
-      }
-      this.cdr.detectChanges();
-    });
+    this.service
+      .getById(id)
+      .pipe(catchError(() => of(null)))
+      .subscribe((res) => {
+        if (res) this.idExists = true;
+        this.cdr.detectChanges();
+      });
   }
 
-
+  // ================= VALIDATE NAME =================
   onNameChange() {
     this.errors.typeName = '';
 
@@ -81,18 +87,12 @@ export class ProductTypeComponent implements OnInit {
     }
   }
 
+  // ================= SUBMIT =================
   submit() {
-
     this.onIdChange();
     this.onNameChange();
 
-    if (
-      this.errors.id ||
-      this.errors.typeName ||
-      this.idExists
-    ) {
-      return;
-    }
+    if (this.errors.id || this.errors.typeName || this.idExists) return;
 
     const req = this.isEdit
       ? this.service.update(this.form.id, this.form)
@@ -106,11 +106,11 @@ export class ProductTypeComponent implements OnInit {
       error: () => {
         this.errorMsg = 'Save failed';
         this.cdr.detectChanges();
-      }
+      },
     });
   }
 
-
+  // ================= LOAD =================
   loadData() {
     this.loading = true;
     this.errorMsg = '';
@@ -125,25 +125,63 @@ export class ProductTypeComponent implements OnInit {
         this.errorMsg = 'Cannot load data';
         this.loading = false;
         this.cdr.detectChanges();
-      }
+      },
     });
   }
 
+  // ================= EDIT =================
   edit(item: ProductType) {
     this.form = { ...item };
     this.isEdit = true;
     this.idExists = false;
     this.errors = {};
+    this.closeDeleteConfirm();
   }
 
-  delete(id: string) {
-    if (confirm('Delete this item?')) {
-      this.service.delete(id).subscribe(() => {
-        this.loadData();
+  // ================= DELETE FLOW =================
+  requestDelete(item: ProductType) {
+    this.deleteTarget = item;
+    this.deleteBlocked = false;
+    this.deleteCheckLoading = true;
+    this.showDeleteConfirm = true;
+    this.cdr.detectChanges();
+
+    // kiểm tra có sản phẩm nào thuộc loại này không
+    this.productService
+      .existsByProductType(item.id)
+      .pipe(catchError(() => of(false)))
+      .subscribe((exists) => {
+        this.deleteBlocked = exists;
+        this.deleteCheckLoading = false;
+        this.cdr.detectChanges();
       });
-    }
   }
 
+  confirmDelete() {
+    if (!this.deleteTarget || this.deleteBlocked) return;
+
+    this.service.delete(this.deleteTarget.id).subscribe({
+      next: () => {
+        this.closeDeleteConfirm();
+        this.loadData();
+      },
+      error: () => {
+        this.errorMsg = 'Delete failed. Please try again.';
+        this.closeDeleteConfirm();
+        this.cdr.detectChanges();
+      },
+    });
+  }
+
+  closeDeleteConfirm() {
+    this.showDeleteConfirm = false;
+    this.deleteTarget = null;
+    this.deleteBlocked = false;
+    this.deleteCheckLoading = false;
+    this.cdr.detectChanges();
+  }
+
+  // ================= RESET =================
   resetForm() {
     this.form = { id: '', typeName: '' };
     this.errors = {};
@@ -151,6 +189,4 @@ export class ProductTypeComponent implements OnInit {
     this.isEdit = false;
     this.cdr.detectChanges();
   }
-
-  
 }

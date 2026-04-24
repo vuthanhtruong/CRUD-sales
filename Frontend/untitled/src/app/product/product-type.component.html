@@ -8,6 +8,7 @@
   <p class="muted" *ngIf="loading">Loading...</p>
   <p class="form-hint error" *ngIf="errorMsg">{{ errorMsg }}</p>
 
+  <!-- ================= FORM ================= -->
   <section class="panel" aria-label="Product type form">
     <div class="panel-head">
       <h2 class="panel-title">{{ isEdit ? 'Edit type' : 'Create type' }}</h2>
@@ -17,24 +18,36 @@
     <div class="form-grid">
       <label class="field">
         <span class="field-label">ID</span>
-        <input class="input" [(ngModel)]="form.id" (input)="onIdChange()" [disabled]="isEdit" placeholder="e.g. SHOES">
+        <input
+          class="input"
+          [(ngModel)]="form.id"
+          (input)="onIdChange()"
+          [disabled]="isEdit"
+          placeholder="e.g. SHOES">
         <p class="form-hint error" *ngIf="errors.id">{{ errors.id }}</p>
         <p class="form-hint warn" *ngIf="idExists && !isEdit">ID already exists</p>
       </label>
 
       <label class="field">
         <span class="field-label">Type name</span>
-        <input class="input" [(ngModel)]="form.typeName" (input)="onNameChange()" placeholder="e.g. Shoes">
+        <input
+          class="input"
+          [(ngModel)]="form.typeName"
+          (input)="onNameChange()"
+          placeholder="e.g. Shoes">
         <p class="form-hint error" *ngIf="errors.typeName">{{ errors.typeName }}</p>
       </label>
     </div>
 
     <div class="actions">
-      <button class="btn btn-primary" type="button" (click)="submit()">{{ isEdit ? 'Update' : 'Create' }}</button>
+      <button class="btn btn-primary" type="button" (click)="submit()">
+        {{ isEdit ? 'Update' : 'Create' }}
+      </button>
       <button class="btn btn-ghost" type="button" (click)="resetForm()">Reset</button>
     </div>
   </section>
 
+  <!-- ================= LIST ================= -->
   <section class="panel" aria-label="Product types list">
     <header class="panel-head list-head">
       <h2 class="panel-title">Product types</h2>
@@ -53,11 +66,56 @@
         <div class="td" role="cell">{{ item.typeName }}</div>
         <div class="td actions-col" role="cell">
           <button class="btn btn-ghost btn-small" type="button" (click)="edit(item)">Edit</button>
-          <button class="btn btn-ghost btn-small danger" type="button" (click)="delete(item.id)">Delete</button>
+          <button class="btn btn-ghost btn-small danger" type="button" (click)="requestDelete(item)">Delete</button>
         </div>
       </div>
 
       <div class="empty" *ngIf="productTypes.length === 0">No product types yet.</div>
     </div>
   </section>
+
+  <!-- ================= DELETE CONFIRM POPUP ================= -->
+  <div class="modal" *ngIf="showDeleteConfirm" role="dialog" aria-modal="true">
+    <div class="modal-backdrop" (click)="closeDeleteConfirm()" aria-hidden="true"></div>
+    <div class="modal-card confirm-card">
+
+      <!-- Loading check -->
+      <div class="confirm-checking" *ngIf="deleteCheckLoading">
+        <p class="muted">Checking dependencies...</p>
+      </div>
+
+      <!-- BLOCKED — có sản phẩm dùng loại này -->
+      <ng-container *ngIf="!deleteCheckLoading && deleteBlocked">
+        <div class="confirm-icon blocked-icon">⚠️</div>
+        <h2 class="confirm-title">Cannot delete</h2>
+        <p class="confirm-body">
+          The type <strong>{{ deleteTarget?.typeName }}</strong>
+          (<span class="mono">{{ deleteTarget?.id }}</span>) is linked to one or more products.
+        </p>
+        <p class="confirm-body">
+          Please <strong>delete or reassign all products</strong> under this type before removing it.
+        </p>
+        <div class="confirm-actions">
+          <button class="btn btn-primary" type="button" (click)="closeDeleteConfirm()">Got it</button>
+        </div>
+      </ng-container>
+
+      <!-- OK — có thể xóa -->
+      <ng-container *ngIf="!deleteCheckLoading && !deleteBlocked">
+        <div class="confirm-icon">🗑️</div>
+        <h2 class="confirm-title">Delete product type?</h2>
+        <p class="confirm-body">
+          Are you sure you want to delete <strong>{{ deleteTarget?.typeName }}</strong>
+          (<span class="mono">{{ deleteTarget?.id }}</span>)?
+          This action cannot be undone.
+        </p>
+        <div class="confirm-actions">
+          <button class="btn btn-ghost" type="button" (click)="closeDeleteConfirm()">Cancel</button>
+          <button class="btn btn-danger" type="button" (click)="confirmDelete()">Yes, delete</button>
+        </div>
+      </ng-container>
+
+    </div>
+  </div>
+
 </div>

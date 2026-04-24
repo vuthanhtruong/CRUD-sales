@@ -32,4 +32,8 @@ public interface ProductDAO {
             String productTypeId,
             ProductStatus status
     );
+    boolean existsByProductType(String productTypeId);
+    boolean existsByColorId(String colorId);
+    boolean existsBySizeId(String sizeId);
+
 }

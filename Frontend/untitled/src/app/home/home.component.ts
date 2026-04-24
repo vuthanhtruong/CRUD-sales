@@ -1,14 +1,10 @@
 import { Component, OnInit, ChangeDetectorRef } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import {
-  ReactiveFormsModule,
-  FormBuilder,
-  Validators,
-  FormsModule
-} from '@angular/forms';
+import { ReactiveFormsModule, FormBuilder, Validators, FormsModule } from '@angular/forms';
 import { AccountService } from '../services/account.service';
 import { RouterModule } from '@angular/router';
 import { ProductUserService, ProductUserDTO } from '../services/product-user.service';
+import { CartService, CartItemDTO } from '../services/cart.service';
 import { Subject } from 'rxjs';
 import { debounceTime } from 'rxjs/operators';
 
@@ -53,13 +49,19 @@ export class HomeComponent implements OnInit {
     { label: 'Above 500K', min: 500000, max: null },
   ];
 
+  // ================= CART =================
+  showCart = false;
+  cartItems: CartItemDTO[] = [];
+  cartLoading = false;
+  cartError: string | null = null;
+
   constructor(
     private fb: FormBuilder,
     private accountService: AccountService,
     private productUserService: ProductUserService,
+    private cartService: CartService,
     private cdr: ChangeDetectorRef,
   ) {
-    // ================= REGISTER FORM =================
     this.registerForm = this.fb.group({
       firstName: ['', Validators.required],
       lastName: ['', Validators.required],
@@ -72,7 +74,6 @@ export class HomeComponent implements OnInit {
       birthday: [''],
     });
 
-    // ================= LOGIN FORM =================
     this.loginForm = this.fb.group({
       username: ['', Validators.required],
       password: ['', Validators.required],
@@ -90,12 +91,10 @@ export class HomeComponent implements OnInit {
       this.loadRole();
     }
 
-    // debounce search
     this.searchSubject.pipe(debounceTime(400)).subscribe(() => {
       this.loadProducts();
     });
 
-    // load lần đầu
     this.loadProducts();
   }
 
@@ -156,13 +155,120 @@ export class HomeComponent implements OnInit {
     return `data:image/jpeg;base64,${image}`;
   }
 
-  // ================= ACTION =================
-  buyNow(product: ProductUserDTO) {
-    alert(`Buy now: ${product.productName}`);
+  // ================= CART =================
+  get cartTotal(): number {
+    return this.cartItems.reduce((sum, item) => sum + item.subtotal, 0);
+  }
+
+  get cartCount(): number {
+    return this.cartItems.reduce((sum, item) => sum + item.quantity, 0);
+  }
+
+  openCart() {
+    if (!this.currentUser) {
+      alert('Please login to view your cart.');
+      return;
+    }
+    this.showCart = true;
+    this.loadMyCart();
+  }
+
+  closeCart() {
+    this.showCart = false;
+    this.cartError = null;
+  }
+
+  // ✅ dùng /me thay vì cartId
+  loadMyCart() {
+    this.cartLoading = true;
+    this.cartError = null;
+    this.cartService.getMyCart().subscribe({
+      next: (items) => {
+        this.cartItems = items;
+        this.cartLoading = false;
+        this.cdr.detectChanges();
+      },
+      error: () => {
+        this.cartError = 'Failed to load cart.';
+        this.cartLoading = false;
+        this.cdr.detectChanges();
+      },
+    });
+  }
+
+  increaseQty(item: CartItemDTO) {
+    const prev = item.quantity;
+    item.quantity += 1;
+    item.subtotal = item.quantity * item.price;
+    this.cartService.updateCartItem(item).subscribe({
+      error: () => {
+        item.quantity = prev;
+        item.subtotal = item.quantity * item.price;
+        this.cdr.detectChanges();
+      },
+    });
+    this.cdr.detectChanges();
+  }
+
+  decreaseQty(item: CartItemDTO) {
+    if (item.quantity <= 1) {
+      this.removeItem(item);
+      return;
+    }
+    const prev = item.quantity;
+    item.quantity -= 1;
+    item.subtotal = item.quantity * item.price;
+    this.cartService.updateCartItem(item).subscribe({
+      error: () => {
+        item.quantity = prev;
+        item.subtotal = item.quantity * item.price;
+        this.cdr.detectChanges();
+      },
+    });
+    this.cdr.detectChanges();
+  }
+
+  removeItem(item: CartItemDTO) {
+    this.cartService.deleteCartItem(item.cartItemId).subscribe({
+      next: () => {
+        this.cartItems = this.cartItems.filter((i) => i.cartItemId !== item.cartItemId);
+        this.cdr.detectChanges();
+      },
+      error: () => alert('Failed to remove item.'),
+    });
+  }
+
+  clearCart() {
+    if (!confirm('Clear all items from cart?')) return;
+    // gọi /me nếu backend có, hoặc dùng cartId từ item đầu tiên
+    const firstItem = this.cartItems[0];
+    if (!firstItem) return;
+    // clear bằng cách xóa từng item vì dùng /me
+    const deletes = this.cartItems.map((i) =>
+      this.cartService.deleteCartItem(i.cartItemId).toPromise(),
+    );
+    Promise.all(deletes)
+      .then(() => {
+        this.cartItems = [];
+        this.cdr.detectChanges();
+      })
+      .catch(() => alert('Failed to clear cart.'));
   }
 
   addToCart(product: ProductUserDTO) {
-    alert(`Added to cart: ${product.productName}`);
+    if (!this.currentUser) {
+      alert('Please login to add items to cart.');
+      return;
+    }
+    alert('Please go to product detail to select size & color before adding to cart.');
+  }
+
+  buyNow(product: ProductUserDTO) {
+    if (!this.currentUser) {
+      alert('Please login first.');
+      return;
+    }
+    alert(`Redirecting to checkout for: ${product.productName}`);
   }
 
   // ================= AUTH =================
@@ -206,7 +312,7 @@ export class HomeComponent implements OnInit {
         this.closePopup();
         this.registerForm.reset({ gender: 'MALE' });
       },
-      error: (err) => alert(JSON.stringify(err.error)),
+      error: (err: any) => alert(JSON.stringify(err.error)),
     });
   }
 
@@ -228,6 +334,7 @@ export class HomeComponent implements OnInit {
           this.loadRole();
         }
 
+        this.loadCurrentUser();
         this.cdr.detectChanges();
         this.closePopup();
         alert('Login success');
@@ -240,6 +347,7 @@ export class HomeComponent implements OnInit {
     this.currentUser = null;
     this.role = null;
     this.token = null;
+    this.cartItems = [];
     localStorage.removeItem('token');
     localStorage.removeItem('username');
     localStorage.removeItem('role');
@@ -248,6 +356,7 @@ export class HomeComponent implements OnInit {
   isAdmin(): boolean {
     return this.role === 'ROLE_ADMIN' || this.role === 'ADMIN';
   }
+
   isAdminOrUser(): boolean {
     return (
       this.role === 'ROLE_ADMIN' ||

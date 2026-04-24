@@ -2,6 +2,7 @@ package com.example.demo.repository;
 
 import com.example.demo.model.Account;
 import com.example.demo.model.Person;
+import com.example.demo.model.User;
 
 public interface AccountDAO {
     void register(Account account);
@@ -14,4 +15,5 @@ public interface AccountDAO {
     String getCurrentAccountRole(String username);
     Account getProfileByUsername(String username);
     void updateProfile(String username, Person updatedPerson);
+    User getCurrentUser();
 }

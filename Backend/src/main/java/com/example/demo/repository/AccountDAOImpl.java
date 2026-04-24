@@ -1,9 +1,6 @@
 package com.example.demo.repository;
 
-import com.example.demo.model.Account;
-import com.example.demo.model.Admin;
-import com.example.demo.model.Person;
-import com.example.demo.model.User;
+import com.example.demo.model.*;
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.PersistenceContext;
 import jakarta.persistence.TypedQuery;
@@ -21,6 +18,16 @@ import java.util.UUID;
 @Repository
 @Transactional
 public class AccountDAOImpl implements AccountDAO {
+    @Override
+    public User getCurrentUser() {
+        return (User) getAccountByUsername(getCurrentAccountUsername()).getUser();
+    }
+
+    private final CartDAO cartDAO;
+
+    public AccountDAOImpl(CartDAO cartDAO) {
+        this.cartDAO = cartDAO;
+    }
 
     @Override
     public Account getProfileByUsername(String username) {
@@ -84,9 +91,11 @@ public class AccountDAOImpl implements AccountDAO {
 
     @Override
     public void register(Account account) {
+
         if (account.getUser() == null) {
             throw new RuntimeException("User must not be null");
         }
+
         if (account.getUsername() == null || account.getPassword() == null) {
             throw new RuntimeException("Username and password are required");
         }
@@ -95,10 +104,29 @@ public class AccountDAOImpl implements AccountDAO {
             throw new RuntimeException("Username already exists");
         }
 
-        // Mã hóa password trước khi lưu
-        account.setPassword(account.getPassword());
+        Person user = account.getUser();
 
-        createUser(account);
+        if (user.getId() == null) {
+            user.setId(UUID.randomUUID().toString());
+        }
+
+        // 1. save user
+        entityManager.persist(user);
+
+        // 2. setup account
+        account.setId(user.getId());
+        account.setCreatedTime(LocalDate.now());
+
+        // account.setPassword(passwordEncoder.encode(account.getPassword())); // nếu có encoder
+
+        // 3. save account
+        entityManager.persist(account);
+
+        // 4. AUTO CREATE CART
+        Cart cart = new Cart();
+        cart.setUser((User) user); // cast vì Cart dùng User
+
+        cartDAO.create(cart);
     }
 
     @Override
