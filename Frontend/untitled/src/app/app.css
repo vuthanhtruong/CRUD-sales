@@ -12,7 +12,7 @@
 
 .main {
   flex: 1;
-  padding: 24px 0;
+  padding: 28px 0 36px;
 }
 
 /* =========================
@@ -24,7 +24,8 @@
   top: 0;
   z-index: 40;
   border-bottom: 1px solid var(--border);
-  background: var(--surface);
+  background: rgba(255, 255, 255, 0.82);
+  backdrop-filter: blur(12px);
 }
 
 .header-inner {
@@ -43,9 +44,15 @@
   color: var(--text);
 }
 
+.brand .bi {
+  font-size: 20px;
+  color: #425ecf;
+}
+
 .brand-name {
-  font-weight: 650;
-  letter-spacing: -0.02em;
+  font-weight: 700;
+  letter-spacing: -0.03em;
+  font-size: 20px;
 }
 
 .nav {
@@ -55,22 +62,27 @@
 }
 
 .nav-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
   color: var(--muted);
   text-decoration: none;
-  padding: 10px 10px;
+  padding: 10px 12px;
   border-radius: 999px;
-  transition: background .2s ease, color .2s ease;
+  border: 1px solid transparent;
+  transition: background .2s ease, color .2s ease, border-color .2s ease;
 }
 
 .nav-link:hover {
-  background: var(--surface);
+  background: var(--surface-2);
   color: var(--text);
+  border-color: var(--border);
 }
 
 .nav-link.is-active {
-  background: var(--surface);
-  color: var(--text);
-  border: 1px solid var(--border);
+  background: linear-gradient(180deg, #ffffff, #f1f5ff);
+  color: #1e2d61;
+  border: 1px solid #ccd7f0;
 }
 
 .header-actions {
@@ -84,7 +96,7 @@
   height: 40px;
   border-radius: 12px;
   border: 1px solid var(--border);
-  background: var(--surface);
+  background: var(--surface-2);
   color: var(--text);
   cursor: pointer;
   transition: transform .15s ease, background .2s ease, box-shadow .2s ease;
@@ -121,11 +133,13 @@
 }
 
 .mobile-link {
-  display: block;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
   padding: 12px 12px;
   border-radius: 12px;
   border: 1px solid var(--border);
-  background: var(--surface);
+  background: linear-gradient(180deg, #ffffff, #f5f8ff);
   text-decoration: none;
   color: var(--text);
 }
@@ -142,7 +156,7 @@
 
 .site-footer {
   border-top: 1px solid var(--border);
-  background: var(--bg);
+  background: rgba(255, 255, 255, 0.8);
 }
 
 .footer-grid {
@@ -177,11 +191,12 @@
   color: var(--muted);
   text-decoration: none;
   width: max-content;
-  transition: color .2s ease;
+  transition: color .2s ease, transform .2s ease;
 }
 
 .footer-link:hover {
   color: var(--text);
+  transform: translateX(2px);
 }
 
 .footer-bottom {

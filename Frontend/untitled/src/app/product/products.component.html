@@ -5,9 +5,18 @@
       <p class="page-sub">Search, filter, export and manage your catalog.</p>
     </div>
     <div class="page-actions">
-      <button class="btn btn-primary btn-small" type="button" (click)="openCreateModal()">Create</button>
-      <button class="btn btn-ghost btn-small" type="button" (click)="openExportModal()">Export</button>
-      <button class="btn btn-ghost btn-small" type="button" (click)="openCart()">Cart ({{ cartCount }})</button>
+      <button class="btn btn-primary btn-small" type="button" (click)="openCreateModal()">
+        <i class="bi bi-plus-lg" aria-hidden="true"></i>
+        <span>Create</span>
+      </button>
+      <button class="btn btn-ghost btn-small" type="button" (click)="openExportModal()">
+        <i class="bi bi-download" aria-hidden="true"></i>
+        <span>Export</span>
+      </button>
+      <button class="btn btn-ghost btn-small" type="button" (click)="openCart()">
+        <i class="bi bi-bag-check" aria-hidden="true"></i>
+        <span>Cart ({{ cartCount }})</span>
+      </button>
     </div>
   </header>
 
@@ -41,8 +50,14 @@
         </select>
       </label>
       <div class="filters-actions">
-        <button class="btn btn-primary btn-small" type="button" (click)="doSearch()">Search</button>
-        <button class="btn btn-ghost btn-small" type="button" (click)="resetSearch()">Reset</button>
+        <button class="btn btn-primary btn-small" type="button" (click)="doSearch()">
+          <i class="bi bi-search" aria-hidden="true"></i>
+          <span>Search</span>
+        </button>
+        <button class="btn btn-ghost btn-small" type="button" (click)="resetSearch()">
+          <i class="bi bi-arrow-counterclockwise" aria-hidden="true"></i>
+          <span>Reset</span>
+        </button>
       </div>
     </div>
     <p class="form-hint error" *ngIf="searchError">{{ searchError }}</p>
@@ -72,10 +87,22 @@
               <span class="price-currency">USD</span>
             </div>
             <div class="row-actions">
-              <button class="btn btn-ghost btn-small" type="button" (click)="openEditModal(p)">Edit</button>
-              <button class="btn btn-ghost btn-small danger" type="button" (click)="delete(p.productId)">Delete</button>
-              <button class="btn btn-ghost btn-small" type="button" (click)="openImageModal(p.productId)">Images</button>
-              <button class="btn btn-ghost btn-small" type="button" (click)="openVariantModal(p.productId)">Variants</button>
+              <button class="btn btn-ghost btn-small" type="button" (click)="openEditModal(p)">
+                <i class="bi bi-pencil-square" aria-hidden="true"></i>
+                <span>Edit</span>
+              </button>
+              <button class="btn btn-ghost btn-small danger" type="button" (click)="delete(p.productId)">
+                <i class="bi bi-trash3" aria-hidden="true"></i>
+                <span>Delete</span>
+              </button>
+              <button class="btn btn-ghost btn-small" type="button" (click)="openImageModal(p.productId)">
+                <i class="bi bi-images" aria-hidden="true"></i>
+                <span>Images</span>
+              </button>
+              <button class="btn btn-ghost btn-small" type="button" (click)="openVariantModal(p.productId)">
+                <i class="bi bi-grid-3x3-gap" aria-hidden="true"></i>
+                <span>Variants</span>
+              </button>
             </div>
           </div>
         </div>
@@ -83,11 +110,23 @@
     </div>
 
     <div class="pager" *ngIf="!isSearchMode">
-      <button class="btn btn-ghost btn-small" type="button" (click)="goToPage(1)" [disabled]="currentPage === 1">First</button>
-      <button class="btn btn-ghost btn-small" type="button" (click)="goToPage(currentPage - 1)" [disabled]="currentPage === 1">Prev</button>
+      <button class="btn btn-ghost btn-small" type="button" (click)="goToPage(1)" [disabled]="currentPage === 1">
+        <i class="bi bi-chevron-double-left" aria-hidden="true"></i>
+        <span>First</span>
+      </button>
+      <button class="btn btn-ghost btn-small" type="button" (click)="goToPage(currentPage - 1)" [disabled]="currentPage === 1">
+        <i class="bi bi-chevron-left" aria-hidden="true"></i>
+        <span>Prev</span>
+      </button>
       <span class="pager-text">Page {{ currentPage }} / {{ totalPages }}</span>
-      <button class="btn btn-ghost btn-small" type="button" (click)="goToPage(currentPage + 1)" [disabled]="currentPage === totalPages">Next</button>
-      <button class="btn btn-ghost btn-small" type="button" (click)="goToPage(totalPages)" [disabled]="currentPage === totalPages">Last</button>
+      <button class="btn btn-ghost btn-small" type="button" (click)="goToPage(currentPage + 1)" [disabled]="currentPage === totalPages">
+        <span>Next</span>
+        <i class="bi bi-chevron-right" aria-hidden="true"></i>
+      </button>
+      <button class="btn btn-ghost btn-small" type="button" (click)="goToPage(totalPages)" [disabled]="currentPage === totalPages">
+        <span>Last</span>
+        <i class="bi bi-chevron-double-right" aria-hidden="true"></i>
+      </button>
       <select class="input pager-size" [(ngModel)]="pageSize" (change)="changePageSize(+$any($event.target).value)">
         <option [value]="5">5 / page</option>
         <option [value]="10">10 / page</option>
@@ -105,7 +144,9 @@
 
     <div class="modal-head">
       <h3 class="modal-title">Export products</h3>
-      <button class="icon-btn" type="button" (click)="closeExportModal()" aria-label="Close">✕</button>
+      <button class="icon-btn" type="button" (click)="closeExportModal()" aria-label="Close">
+        <i class="bi bi-x-lg" aria-hidden="true"></i>
+      </button>
     </div>
 
     <!-- FORMAT -->
@@ -114,17 +155,17 @@
       <div class="export-format-row">
         <label class="format-opt" [class.is-active]="exportFormat === 'excel'">
           <input type="radio" name="exportFormat" value="excel" [(ngModel)]="exportFormat">
-          <span class="format-icon">📊</span>
+          <i class="bi bi-file-earmark-spreadsheet format-icon" aria-hidden="true"></i>
           <span>Excel</span>
         </label>
         <label class="format-opt" [class.is-active]="exportFormat === 'word'">
           <input type="radio" name="exportFormat" value="word" [(ngModel)]="exportFormat">
-          <span class="format-icon">📝</span>
+          <i class="bi bi-file-earmark-word format-icon" aria-hidden="true"></i>
           <span>Word</span>
         </label>
         <label class="format-opt" [class.is-active]="exportFormat === 'pdf'">
           <input type="radio" name="exportFormat" value="pdf" [(ngModel)]="exportFormat">
-          <span class="format-icon">📄</span>
+          <i class="bi bi-file-earmark-pdf format-icon" aria-hidden="true"></i>
           <span>PDF</span>
         </label>
       </div>
@@ -156,8 +197,14 @@
       <div class="page-picker-head">
         <p class="export-label">Select pages <span class="muted">({{ selectedPages.size }} selected)</span></p>
         <div class="page-picker-actions">
-          <button class="btn btn-ghost btn-small" type="button" (click)="selectAllPages()">All</button>
-          <button class="btn btn-ghost btn-small" type="button" (click)="clearPageSelection()">Clear</button>
+          <button class="btn btn-ghost btn-small" type="button" (click)="selectAllPages()">
+            <i class="bi bi-check2-square" aria-hidden="true"></i>
+            <span>All</span>
+          </button>
+          <button class="btn btn-ghost btn-small" type="button" (click)="clearPageSelection()">
+            <i class="bi bi-eraser" aria-hidden="true"></i>
+            <span>Clear</span>
+          </button>
         </div>
       </div>
       <div class="page-chips">
@@ -175,8 +222,12 @@
     <p class="form-hint error" *ngIf="exportError">{{ exportError }}</p>
 
     <div class="export-actions">
-      <button class="btn btn-ghost" type="button" (click)="closeExportModal()">Cancel</button>
+      <button class="btn btn-ghost" type="button" (click)="closeExportModal()">
+        <i class="bi bi-x-circle" aria-hidden="true"></i>
+        <span>Cancel</span>
+      </button>
       <button class="btn btn-primary" type="button" (click)="doExport()" [disabled]="exportLoading">
+        <i class="bi bi-download" aria-hidden="true"></i>
         {{ exportLoading ? 'Exporting...' : 'Export' }}
       </button>
     </div>
@@ -283,11 +334,18 @@
       </button>
     </div>
     <p class="muted" *ngIf="imageModalLoading">Loading images...</p>
-    <div class="toolbar" *ngIf="!imageModalLoading && productImages.length > 0">
-      <button class="btn btn-ghost btn-small" type="button" (click)="selectAllImages()">Select all</button>
-      <button class="btn btn-ghost btn-small" type="button" (click)="clearSelection()">Clear</button>
+  <div class="toolbar" *ngIf="!imageModalLoading && productImages.length > 0">
+      <button class="btn btn-ghost btn-small" type="button" (click)="selectAllImages()">
+        <i class="bi bi-check2-all" aria-hidden="true"></i>
+        <span>Select all</span>
+      </button>
+      <button class="btn btn-ghost btn-small" type="button" (click)="clearSelection()">
+        <i class="bi bi-slash-circle" aria-hidden="true"></i>
+        <span>Clear</span>
+      </button>
       <button class="btn btn-ghost btn-small danger" type="button" (click)="deleteSelectedImages()" [disabled]="selectedImageIds.size === 0">
-        Delete selected ({{ selectedImageIds.size }})
+        <i class="bi bi-trash3" aria-hidden="true"></i>
+        <span>Delete selected ({{ selectedImageIds.size }})</span>
       </button>
     </div>
     <p class="muted" *ngIf="!imageModalLoading && productImages.length === 0">No images found for this product.</p>
@@ -295,8 +353,13 @@
       <button class="thumb-card" type="button" *ngFor="let img of productImages"
               (click)="toggleSelectImage(img.id)"
               [class.is-selected]="img.id && selectedImageIds.has(img.id)">
-        <span class="check" aria-hidden="true">{{ img.id && selectedImageIds.has(img.id) ? '✓' : '' }}</span>
-        <span class="primary" *ngIf="img.isPrimary">PRIMARY</span>
+        <span class="check" aria-hidden="true">
+          <i class="bi bi-check2" *ngIf="img.id && selectedImageIds.has(img.id)"></i>
+        </span>
+        <span class="primary" *ngIf="img.isPrimary">
+          <i class="bi bi-star-fill" aria-hidden="true"></i>
+          <span>PRIMARY</span>
+        </span>
         <span class="thumb-img">
           <img *ngIf="img.imageData" [src]="buildImageSrc(img)" alt="Product image">
           <span *ngIf="!img.imageData" class="muted">No image</span>
@@ -326,9 +389,13 @@
       </button>
     </div>
     <div class="toolbar">
-      <button class="btn btn-ghost btn-small" type="button" (click)="addModalImageRow()">Add image</button>
+      <button class="btn btn-ghost btn-small" type="button" (click)="addModalImageRow()">
+        <i class="bi bi-plus-lg" aria-hidden="true"></i>
+        <span>Add image</span>
+      </button>
       <button class="btn btn-primary btn-small" *ngIf="modalImageRows.length > 0" type="button"
               (click)="submitModalImages()" [disabled]="modalUploadSubmitting">
+        <i class="bi bi-upload" aria-hidden="true"></i>
         {{ modalUploadSubmitting ? 'Uploading...' : 'Save images' }}
       </button>
     </div>
@@ -364,7 +431,10 @@
     <hr class="divider">
     <h4 class="subhead">Add new variants</h4>
     <div class="toolbar">
-      <button class="btn btn-ghost btn-small" type="button" (click)="addRow()">Add row</button>
+      <button class="btn btn-ghost btn-small" type="button" (click)="addRow()">
+        <i class="bi bi-plus-lg" aria-hidden="true"></i>
+        <span>Add row</span>
+      </button>
     </div>
     <div class="variant-table" *ngIf="newVariantRows.length > 0">
       <div class="vrow vhead">
@@ -392,8 +462,14 @@
       </div>
     </div>
     <div class="toolbar bottom-actions">
-      <button class="btn btn-primary" type="button" (click)="submitVariants()">Save new variants</button>
-      <button class="btn btn-ghost" type="button" (click)="closeModal()">Close</button>
+      <button class="btn btn-primary" type="button" (click)="submitVariants()">
+        <i class="bi bi-check2-circle" aria-hidden="true"></i>
+        <span>Save new variants</span>
+      </button>
+      <button class="btn btn-ghost" type="button" (click)="closeModal()">
+        <i class="bi bi-x-circle" aria-hidden="true"></i>
+        <span>Close</span>
+      </button>
     </div>
   </div>
 </div>

@@ -1,10 +1,10 @@
 <div class="wrap">
   <div class="profile-top">
-    <a class="btn btn-ghost btn-small" [routerLink]="['/home']">Back</a>
+    <a class="btn btn-ghost btn-small" [routerLink]="['/home']"><i class="bi bi-arrow-left"></i> Back</a>
   </div>
 
   <header class="profile-head">
-    <p class="eyebrow">Account</p>
+    <p class="eyebrow"><i class="bi bi-person-vcard"></i> Account</p>
     <h1 class="profile-title">My profile</h1>
     <p class="profile-sub">Keep your details up to date for faster checkout.</p>
   </header>
@@ -73,15 +73,15 @@
 
       <div class="actions">
         <button *ngIf="!isEdit" class="btn btn-primary" type="button" (click)="enableEdit()">
-          Edit
+          <i class="bi bi-pencil-square"></i> Edit
         </button>
 
         <button *ngIf="isEdit" class="btn btn-primary" type="submit" [disabled]="profileForm.invalid || submitting">
-          {{ submitting ? 'Saving...' : 'Save changes' }}
+          <i class="bi bi-floppy"></i> {{ submitting ? 'Saving...' : 'Save changes' }}
         </button>
 
         <button *ngIf="isEdit" class="btn btn-ghost" type="button" (click)="cancelEdit()">
-          Cancel
+          <i class="bi bi-x-circle"></i> Cancel
         </button>
       </div>
     </form>

@@ -22,10 +22,10 @@
         <p><strong>{{ currentUser }}</strong> <span class="muted">({{ role || '—' }})</span></p>
         <div class="hero-links">
           <button class="btn btn-primary btn-small cart-btn" type="button" (click)="openCart()">
-            🛒 Cart
+            <i class="bi bi-cart3"></i> Cart
             <span class="cart-badge" *ngIf="cartCount > 0">{{ cartCount }}</span>
           </button>
-          <button class="btn btn-ghost btn-small" type="button" (click)="logout()">Logout</button>
+          <button class="btn btn-ghost btn-small" type="button" (click)="logout()"><i class="bi bi-box-arrow-right"></i> Logout</button>
         </div>
       </ng-template>
     </div>
@@ -38,7 +38,7 @@
         <span class="field-label">Search</span>
         <input class="input" type="text" [(ngModel)]="keyword" (input)="onSearchInput()" placeholder="Search products by name...">
       </label>
-      <button class="btn btn-primary search-btn" type="button" (click)="onSearchClick()">Search</button>
+      <button class="btn btn-primary search-btn" type="button" (click)="onSearchClick()"><i class="bi bi-search"></i> Search</button>
     </div>
     <div class="filters" aria-label="Price filters">
       <button
@@ -107,13 +107,13 @@
           </div>
 
           <div class="product-actions">
-            <a class="btn btn-ghost btn-small" [routerLink]="['/product', p.productId]">View detail</a>
+            <a class="btn btn-ghost btn-small" [routerLink]="['/product', p.productId]"><i class="bi bi-eye"></i> View detail</a>
             <button
               class="btn btn-primary btn-small"
               type="button"
               (click)="openQuickAdd(p)"
               [disabled]="isOutOfStock(p.productId)">
-              🛒 Add to Cart
+              <i class="bi bi-cart-plus"></i> Add to Cart
             </button>
           </div>
         </div>
@@ -135,8 +135,10 @@
     <div class="modal-card quick-add-card">
 
       <div class="modal-head">
-        <h2 class="modal-title">🛒 Thêm vào giỏ hàng</h2>
-        <button class="icon-btn" type="button" (click)="closeQuickAdd()" aria-label="Close">✕</button>
+        <h2 class="modal-title"><i class="bi bi-cart-plus"></i> Thêm vào giỏ hàng</h2>
+        <button class="icon-btn" type="button" (click)="closeQuickAdd()" aria-label="Close">
+          <i class="bi bi-x-lg" aria-hidden="true"></i>
+        </button>
       </div>
 
       <!-- Loading -->
@@ -205,13 +207,13 @@
         <!-- STOCK INFO -->
         <div class="qa-stock" *ngIf="quickAddSelectedSize && quickAddSelectedColor">
           <ng-container *ngIf="quickAddCurrentStock === 0">
-            <span class="stock stock-out">⚠ Hết hàng cho lựa chọn này</span>
+            <span class="stock stock-out"><i class="bi bi-exclamation-triangle-fill" aria-hidden="true"></i> Hết hàng cho lựa chọn này</span>
           </ng-container>
           <ng-container *ngIf="quickAddCurrentStock !== null && quickAddCurrentStock! > 0 && quickAddCurrentStock! <= 5">
-            <span class="stock stock-low">⚡ Chỉ còn {{ quickAddCurrentStock }} sản phẩm</span>
+            <span class="stock stock-low"><i class="bi bi-lightning-charge-fill" aria-hidden="true"></i> Chỉ còn {{ quickAddCurrentStock }} sản phẩm</span>
           </ng-container>
           <ng-container *ngIf="quickAddCurrentStock !== null && quickAddCurrentStock! > 5">
-            <span class="stock stock-ok">✓ Còn hàng ({{ quickAddCurrentStock }})</span>
+            <span class="stock stock-ok"><i class="bi bi-check-circle-fill" aria-hidden="true"></i> Còn hàng ({{ quickAddCurrentStock }})</span>
           </ng-container>
         </div>
 
@@ -242,7 +244,7 @@
           (click)="submitQuickAdd()"
           [disabled]="quickAddAdding || quickAddIsOutOfStock || !quickAddSelectedSize || !quickAddSelectedColor">
           <span *ngIf="quickAddAdding">Đang thêm...</span>
-          <span *ngIf="!quickAddAdding && !quickAddIsOutOfStock">🛒 Thêm vào giỏ</span>
+          <span *ngIf="!quickAddAdding && !quickAddIsOutOfStock"><i class="bi bi-cart-plus"></i> Thêm vào giỏ</span>
           <span *ngIf="!quickAddAdding && quickAddIsOutOfStock">Hết hàng</span>
         </button>
         <a class="btn btn-ghost" [routerLink]="['/product', quickAddProduct?.productId]" (click)="closeQuickAdd()">
@@ -260,7 +262,9 @@
     <div class="modal-card">
       <div class="modal-head">
         <h2 class="modal-title">{{ showRegister ? 'Create account' : 'Welcome back' }}</h2>
-        <button class="icon-btn" type="button" (click)="closePopup()" aria-label="Close">✕</button>
+        <button class="icon-btn" type="button" (click)="closePopup()" aria-label="Close">
+          <i class="bi bi-x-lg" aria-hidden="true"></i>
+        </button>
       </div>
 
       <form *ngIf="showRegister" class="modal-form" [formGroup]="registerForm" (ngSubmit)="submitRegister()">
@@ -336,14 +340,16 @@
     <div class="modal-card cart-card">
 
       <div class="modal-head">
-        <h2 class="modal-title">🛒 Your Cart</h2>
-        <button class="icon-btn" type="button" (click)="closeCart()" aria-label="Close cart">✕</button>
+        <h2 class="modal-title"><i class="bi bi-cart3"></i> Your Cart</h2>
+        <button class="icon-btn" type="button" (click)="closeCart()" aria-label="Close cart">
+          <i class="bi bi-x-lg" aria-hidden="true"></i>
+        </button>
       </div>
 
       <div class="cart-loading" *ngIf="cartLoading"><span>Loading cart...</span></div>
       <div class="cart-error" *ngIf="cartError && !cartLoading"><span>{{ cartError }}</span></div>
       <div class="cart-empty" *ngIf="!cartLoading && !cartError && cartItems.length === 0">
-        <p>🛍️ Your cart is empty.</p>
+        <p><i class="bi bi-bag-heart" aria-hidden="true"></i> Your cart is empty.</p>
       </div>
 
       <div class="cart-items" *ngIf="!cartLoading && cartItems.length > 0">
@@ -377,7 +383,9 @@
             <button class="qty-btn" type="button" (click)="decreaseQty(item)" [disabled]="cartLoading">−</button>
             <span class="qty-value">{{ item.quantity }}</span>
             <button class="qty-btn" type="button" (click)="increaseQty(item)" [disabled]="cartLoading">+</button>
-            <button class="remove-btn" type="button" (click)="removeItem(item)" [disabled]="cartLoading" title="Remove">🗑</button>
+            <button class="remove-btn" type="button" (click)="removeItem(item)" [disabled]="cartLoading" title="Remove">
+              <i class="bi bi-trash3" aria-hidden="true"></i>
+            </button>
           </div>
         </div>
       </div>

@@ -114,10 +114,10 @@
           type="button"
           (click)="addToCart()"
           [disabled]="addingToCart">
-          <span *ngIf="!addingToCart">🛒 Add to Cart</span>
+          <span *ngIf="!addingToCart"><i class="bi bi-cart-plus"></i> Add to Cart</span>
           <span *ngIf="addingToCart">Adding...</span>
         </button>
-        <a class="btn btn-ghost" [routerLink]="['/products']">Browse more</a>
+        <a class="btn btn-ghost" [routerLink]="['/products']"><i class="bi bi-grid"></i> Browse more</a>
       </div>
 
     </article>

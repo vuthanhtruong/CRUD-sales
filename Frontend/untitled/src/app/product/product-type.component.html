@@ -1,6 +1,6 @@
 <div class="wrap">
   <header class="page-head">
-    <p class="eyebrow">Catalog organization</p>
+    <p class="eyebrow"><i class="bi bi-diagram-3"></i> Catalog organization</p>
     <h1 class="title">Category (product type) management</h1>
     <p class="subtitle">Keep your catalog clean with consistent product types.</p>
   </header>
@@ -41,9 +41,9 @@
 
     <div class="actions">
       <button class="btn btn-primary" type="button" (click)="submit()">
-        {{ isEdit ? 'Update' : 'Create' }}
+        <i class="bi bi-check2-circle"></i> {{ isEdit ? 'Update' : 'Create' }}
       </button>
-      <button class="btn btn-ghost" type="button" (click)="resetForm()">Reset</button>
+      <button class="btn btn-ghost" type="button" (click)="resetForm()"><i class="bi bi-arrow-clockwise"></i> Reset</button>
     </div>
   </section>
 
@@ -65,8 +65,8 @@
         <div class="td mono" role="cell">{{ item.id }}</div>
         <div class="td" role="cell">{{ item.typeName }}</div>
         <div class="td actions-col" role="cell">
-          <button class="btn btn-ghost btn-small" type="button" (click)="edit(item)">Edit</button>
-          <button class="btn btn-ghost btn-small danger" type="button" (click)="requestDelete(item)">Delete</button>
+          <button class="btn btn-ghost btn-small" type="button" (click)="edit(item)"><i class="bi bi-pencil-square"></i> Edit</button>
+          <button class="btn btn-ghost btn-small danger" type="button" (click)="requestDelete(item)"><i class="bi bi-trash3"></i> Delete</button>
         </div>
       </div>
 
@@ -86,7 +86,7 @@
 
       <!-- BLOCKED — có sản phẩm dùng loại này -->
       <ng-container *ngIf="!deleteCheckLoading && deleteBlocked">
-        <div class="confirm-icon blocked-icon">⚠️</div>
+        <div class="confirm-icon blocked-icon"><i class="bi bi-exclamation-triangle"></i></div>
         <h2 class="confirm-title">Cannot delete</h2>
         <p class="confirm-body">
           The type <strong>{{ deleteTarget?.typeName }}</strong>
@@ -102,7 +102,7 @@
 
       <!-- OK — có thể xóa -->
       <ng-container *ngIf="!deleteCheckLoading && !deleteBlocked">
-        <div class="confirm-icon">🗑️</div>
+        <div class="confirm-icon"><i class="bi bi-trash3"></i></div>
         <h2 class="confirm-title">Delete product type?</h2>
         <p class="confirm-body">
           Are you sure you want to delete <strong>{{ deleteTarget?.typeName }}</strong>

@@ -1,6 +1,6 @@
 <div class="wrap">
   <header class="page-head">
-    <p class="eyebrow">Catalog attributes</p>
+    <p class="eyebrow"><i class="bi bi-palette2"></i> Catalog attributes</p>
     <h1 class="title">Color management</h1>
     <p class="subtitle">Create and maintain product colors used in variants.</p>
   </header>
@@ -28,8 +28,8 @@
     </div>
 
     <div class="actions">
-      <button class="btn btn-primary" type="button" (click)="save()">{{ isEdit ? 'Update' : 'Create' }}</button>
-      <button class="btn btn-ghost" type="button" (click)="reset()">Reset</button>
+      <button class="btn btn-primary" type="button" (click)="save()"><i class="bi bi-check2-circle"></i> {{ isEdit ? 'Update' : 'Create' }}</button>
+      <button class="btn btn-ghost" type="button" (click)="reset()"><i class="bi bi-arrow-clockwise"></i> Reset</button>
     </div>
   </section>
 
@@ -51,8 +51,8 @@
         <div class="td mono" role="cell">{{ c.id }}</div>
         <div class="td" role="cell">{{ c.name }}</div>
         <div class="td actions-col" role="cell">
-          <button class="btn btn-ghost btn-small" type="button" (click)="edit(c)">Edit</button>
-          <button class="btn btn-ghost btn-small danger" type="button" (click)="requestDelete(c)">Delete</button>
+          <button class="btn btn-ghost btn-small" type="button" (click)="edit(c)"><i class="bi bi-pencil-square"></i> Edit</button>
+          <button class="btn btn-ghost btn-small danger" type="button" (click)="requestDelete(c)"><i class="bi bi-trash3"></i> Delete</button>
         </div>
       </div>
 
@@ -71,7 +71,7 @@
 
       <!-- BLOCKED -->
       <ng-container *ngIf="!deleteCheckLoading && deleteBlocked">
-        <div class="confirm-icon">⚠️</div>
+        <div class="confirm-icon"><i class="bi bi-exclamation-triangle"></i></div>
         <h2 class="confirm-title">Cannot delete</h2>
         <p class="confirm-body">
           Color <strong>{{ deleteTarget?.name }}</strong>
@@ -87,7 +87,7 @@
 
       <!-- OK -->
       <ng-container *ngIf="!deleteCheckLoading && !deleteBlocked">
-        <div class="confirm-icon">🗑️</div>
+        <div class="confirm-icon"><i class="bi bi-trash3"></i></div>
         <h2 class="confirm-title">Delete color?</h2>
         <p class="confirm-body">
           Are you sure you want to delete <strong>{{ deleteTarget?.name }}</strong>
