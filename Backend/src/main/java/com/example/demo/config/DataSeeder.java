@@ -38,6 +38,7 @@ public class DataSeeder implements CommandLineRunner {
         seedSizes();
         seedColors();
         seedProductsAndVariants();
+        seedCart();
 
         System.out.println("===== SEEDING DONE =====");
     }
@@ -100,6 +101,27 @@ public class DataSeeder implements CommandLineRunner {
             em.persist(new Color("black", "Black"));
 
             System.out.println("Color seeded");
+        }
+    }
+
+    private void seedCart() {
+
+        // tạo cart cho admin
+        Admin admin = em.find(Admin.class, "admin01");
+        if (admin == null) return;
+
+        Long count = em.createQuery(
+                        "SELECT COUNT(c) FROM Cart c WHERE c.user.id = :id", Long.class)
+                .setParameter("id", admin.getId())
+                .getSingleResult();
+
+        if (count == 0) {
+            Cart cart = new Cart();
+            cart.setUser(admin);
+
+            em.persist(cart);
+
+            System.out.println("Cart created for admin");
         }
     }
 

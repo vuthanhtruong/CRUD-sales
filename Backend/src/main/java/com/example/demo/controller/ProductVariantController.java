@@ -13,6 +13,42 @@ import java.util.List;
 @CrossOrigin(origins = "http://localhost:4200")
 public class ProductVariantController {
 
+    @GetMapping("/quantity")
+    public ResponseEntity<?> getQuantity(
+            @RequestParam String productId,
+            @RequestParam String sizeId,
+            @RequestParam String colorId
+    ) {
+
+        try {
+            int quantity = service.getQuantity(productId, sizeId, colorId);
+            return ResponseEntity.ok(quantity);
+
+        } catch (RuntimeException e) {
+            return ResponseEntity.status(404).body(e.getMessage());
+        }
+    }
+
+    @PatchMapping("/decrease")
+    public ResponseEntity<?> decreaseStock(
+            @RequestParam String productId,
+            @RequestParam String sizeId,
+            @RequestParam String colorId,
+            @RequestParam int amount
+    ) {
+
+        try {
+            service.decreaseQuantity(productId, sizeId, colorId, amount);
+            return ResponseEntity.ok("Stock decreased successfully");
+
+        } catch (IllegalArgumentException e) {
+            return ResponseEntity.badRequest().body(e.getMessage());
+
+        } catch (RuntimeException e) {
+            return ResponseEntity.status(409).body(e.getMessage());
+        }
+    }
+
     @Autowired
     private ProductVariantService service;
 

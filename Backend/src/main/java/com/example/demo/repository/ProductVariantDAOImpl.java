@@ -16,6 +16,46 @@ import java.util.List;
 public class ProductVariantDAOImpl implements ProductVariantDAO {
 
     @Override
+    public int getQuantity(String productId, String sizeId, String colorId) {
+
+        String jpql = """
+        SELECT v.quantity
+        FROM ProductVariant v
+        WHERE v.id.productId = :productId
+        AND v.id.sizeId = :sizeId
+        AND v.id.colorId = :colorId
+    """;
+
+        List<Integer> result = entityManager.createQuery(jpql, Integer.class)
+                .setParameter("productId", productId)
+                .setParameter("sizeId", sizeId)
+                .setParameter("colorId", colorId)
+                .getResultList();
+
+        return result.isEmpty() ? 0 : result.get(0);
+    }
+
+    @Override
+    public int decreaseQuantity(String productId, String sizeId, String colorId, int amount) {
+
+        String jpql = """
+        UPDATE ProductVariant v
+        SET v.quantity = v.quantity - :amount
+        WHERE v.id.productId = :productId
+        AND v.id.sizeId = :sizeId
+        AND v.id.colorId = :colorId
+        AND v.quantity >= :amount
+    """;
+
+        return entityManager.createQuery(jpql)
+                .setParameter("amount", amount)
+                .setParameter("productId", productId)
+                .setParameter("sizeId", sizeId)
+                .setParameter("colorId", colorId)
+                .executeUpdate();
+    }
+
+    @Override
     public List<Size> findSizesByProductId(String productId) {
 
         String jpql = """

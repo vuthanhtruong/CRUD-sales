@@ -15,5 +15,5 @@ public interface AccountDAO {
     String getCurrentAccountRole(String username);
     Account getProfileByUsername(String username);
     void updateProfile(String username, Person updatedPerson);
-    User getCurrentUser();
+    Person getCurrentUser();
 }

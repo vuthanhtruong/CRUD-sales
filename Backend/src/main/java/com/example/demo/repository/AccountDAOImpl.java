@@ -19,8 +19,8 @@ import java.util.UUID;
 @Transactional
 public class AccountDAOImpl implements AccountDAO {
     @Override
-    public User getCurrentUser() {
-        return (User) getAccountByUsername(getCurrentAccountUsername()).getUser();
+    public Person getCurrentUser() {
+        return getAccountByUsername(getCurrentAccountUsername()).getUser();
     }
 
     private final CartDAO cartDAO;
@@ -124,7 +124,7 @@ public class AccountDAOImpl implements AccountDAO {
 
         // 4. AUTO CREATE CART
         Cart cart = new Cart();
-        cart.setUser((User) user); // cast vì Cart dùng User
+        cart.setUser(user); // cast vì Cart dùng User
 
         cartDAO.create(cart);
     }

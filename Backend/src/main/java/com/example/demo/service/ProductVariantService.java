@@ -30,4 +30,8 @@ public interface ProductVariantService {
     List<SizeDTO> findSizesByProductId(String productId);
 
     List<ColorDTO> findColorsByProductId(String productId);
+
+    boolean decreaseQuantity(String productId, String sizeId, String colorId, int amount);
+
+    int getQuantity(String productId, String sizeId, String colorId);
 }

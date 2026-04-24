@@ -15,6 +15,26 @@ import java.util.stream.Collectors;
 @Service
 @Transactional
 public class ProductVariantServiceImpl implements ProductVariantService {
+    @Override
+    public int getQuantity(String productId, String sizeId, String colorId) {
+        return variantDAO.getQuantity(productId, sizeId, colorId);
+    }
+
+    @Override
+    public boolean decreaseQuantity(String productId, String sizeId, String colorId, int amount) {
+
+        if (amount <= 0) {
+            throw new IllegalArgumentException("Amount must be > 0");
+        }
+
+        int updatedRows = variantDAO.decreaseQuantity(productId, sizeId, colorId, amount);
+
+        if (updatedRows == 0) {
+            throw new RuntimeException("Not enough stock or variant not found");
+        }
+
+        return true;
+    }
 
     @Override
     public List<SizeDTO> findSizesByProductId(String productId) {

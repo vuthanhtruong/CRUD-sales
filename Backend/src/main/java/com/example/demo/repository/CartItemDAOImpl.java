@@ -17,6 +17,16 @@ public
 
 class CartItemDAOImpl implements CartItemDAO {
 
+    // CartItemDAOImpl.java - implement
+    @Override
+    public List<CartItem> findByIds(List<String> ids) {
+        if (ids == null || ids.isEmpty()) return List.of();
+        return entityManager.createQuery(
+                        "SELECT ci FROM CartItem ci WHERE ci.id IN :ids", CartItem.class)
+                .setParameter("ids", ids)
+                .getResultList();
+    }
+
     @Override
     public void increaseQuantity(String cartItemId, int amount) {
 

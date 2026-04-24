@@ -30,4 +30,8 @@ public interface ProductVariantDAO {
     List<Size> findSizesByProductId(String productId);
 
     List<Color> findColorsByProductId(String productId);
+
+    int decreaseQuantity(String productId, String sizeId, String colorId, int amount);
+
+    int getQuantity(String productId, String sizeId, String colorId);
 }

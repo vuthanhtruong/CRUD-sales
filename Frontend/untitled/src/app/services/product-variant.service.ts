@@ -38,6 +38,30 @@ export class ProductVariantService {
     };
   }
 
+  getQuantity(
+    productId: string,
+    sizeId: string,
+    colorId: string
+  ): Observable<number> {
+    return this.http.get<number>(
+      `${this.apiUrl}/quantity?productId=${productId}&sizeId=${sizeId}&colorId=${colorId}`,
+      this.getAuthHeaders()
+    );
+  }
+
+  decreaseStock(
+    productId: string,
+    sizeId: string,
+    colorId: string,
+    amount: number
+  ): Observable<string> {
+    return this.http.patch<string>(
+      `${this.apiUrl}/decrease?productId=${productId}&sizeId=${sizeId}&colorId=${colorId}&amount=${amount}`,
+      {}, // body rỗng vì dùng request param
+      this.getAuthHeaders()
+    );
+  }
+
   // =========================
   // GET ALL
   // =========================

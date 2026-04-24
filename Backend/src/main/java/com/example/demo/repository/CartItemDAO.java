@@ -28,4 +28,7 @@ public interface CartItemDAO {
 
     void increaseQuantity(String cartItemId, int amount);
 
+    // CartItemDAO.java - thêm method
+    List<CartItem> findByIds(List<String> ids);
+
 }

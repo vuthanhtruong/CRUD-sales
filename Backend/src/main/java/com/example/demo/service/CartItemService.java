@@ -27,4 +27,6 @@ public interface CartItemService {
     void increaseQuantity(String cartItemId, int amount);
 
     void decreaseQuantity(String cartItemId, int amount);
+
+    void checkout(List<String> cartItemIds);
 }
