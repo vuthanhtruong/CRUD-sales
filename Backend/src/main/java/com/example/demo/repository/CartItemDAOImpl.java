@@ -18,6 +18,40 @@ public
 class CartItemDAOImpl implements CartItemDAO {
 
     @Override
+    public void increaseQuantity(String cartItemId, int amount) {
+
+        CartItem item = entityManager.find(CartItem.class, cartItemId);
+
+        if (item == null) {
+            throw new RuntimeException("Cart item not found");
+        }
+
+        item.setQuantity(item.getQuantity() + amount);
+
+        // không cần merge vì entity đang managed
+    }
+
+    @Override
+    public void decreaseQuantity(String cartItemId, int amount) {
+
+        CartItem item = entityManager.find(CartItem.class, cartItemId);
+
+        if (item == null) {
+            throw new RuntimeException("Cart item not found");
+        }
+
+        int newQuantity = item.getQuantity() - amount;
+
+        // 🔥 nếu <= 0 → xoá luôn
+        if (newQuantity <= 0) {
+            entityManager.remove(item);
+        } else {
+            item.setQuantity(newQuantity);
+            entityManager.merge(item);
+        }
+    }
+
+    @Override
     public List<CartItem> findCurrentUserCartItems() {
 
         Authentication authentication =

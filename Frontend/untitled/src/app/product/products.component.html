@@ -6,30 +6,26 @@
     </div>
     <div class="page-actions">
       <button class="btn btn-primary btn-small" type="button" (click)="openCreateModal()">Create</button>
-      <button class="btn btn-ghost btn-small" type="button" (click)="exportExcel()">Excel</button>
-      <button class="btn btn-ghost btn-small" type="button" (click)="exportWord()">Word</button>
-      <button class="btn btn-ghost btn-small" type="button" (click)="exportPdf()">PDF</button>
+      <button class="btn btn-ghost btn-small" type="button" (click)="openExportModal()">Export</button>
       <button class="btn btn-ghost btn-small" type="button" (click)="openCart()">Cart ({{ cartCount }})</button>
     </div>
   </header>
 
+  <!-- ================= SEARCH ================= -->
   <section class="filters" aria-label="Search and filters">
     <div class="filters-row">
       <label class="field">
         <span class="field-label">Keyword</span>
         <input class="input" [(ngModel)]="searchParams.keyword" placeholder="Search by name / ID" (keyup.enter)="doSearch()">
       </label>
-
       <label class="field">
         <span class="field-label">Min</span>
         <input class="input" type="number" min="0" [(ngModel)]="searchParams.minPrice" placeholder="0">
       </label>
-
       <label class="field">
         <span class="field-label">Max</span>
         <input class="input" type="number" min="0" [(ngModel)]="searchParams.maxPrice" placeholder="∞">
       </label>
-
       <label class="field">
         <span class="field-label">Type</span>
         <select class="input" [(ngModel)]="searchParams.productTypeId">
@@ -37,7 +33,6 @@
           <option *ngFor="let t of productTypes" [value]="t.id">{{ t.typeName }}</option>
         </select>
       </label>
-
       <label class="field">
         <span class="field-label">Status</span>
         <select class="input" [(ngModel)]="searchParams.status">
@@ -45,31 +40,22 @@
           <option *ngFor="let s of statuses" [value]="s">{{ s }}</option>
         </select>
       </label>
-
       <div class="filters-actions">
         <button class="btn btn-primary btn-small" type="button" (click)="doSearch()">Search</button>
         <button class="btn btn-ghost btn-small" type="button" (click)="resetSearch()">Reset</button>
       </div>
     </div>
-
     <p class="form-hint error" *ngIf="searchError">{{ searchError }}</p>
     <p class="form-hint" *ngIf="isSearchMode">Showing search results — {{ products.length }} product(s)</p>
   </section>
 
+  <!-- ================= CATALOG GRID ================= -->
   <section class="catalog" aria-label="Catalog grid">
     <div class="product-grid" role="list">
       <article class="product-card" role="listitem" *ngFor="let p of products; trackBy: trackByProductId">
         <div class="product-media" aria-hidden="true">
-          <img
-            *ngIf="p.image"
-            [src]="buildProductImageSrc(p.image)"
-            alt="{{ p.productName }}"
-            class="media-img">
-          <div
-            *ngIf="!p.image"
-            class="media-placeholder"
-            [style.--seed]="seedFromId(p.productId)">
-          </div>
+          <img *ngIf="p.image" [src]="buildProductImageSrc(p.image)" alt="{{ p.productName }}" class="media-img">
+          <div *ngIf="!p.image" class="media-placeholder" [style.--seed]="seedFromId(p.productId)"></div>
         </div>
         <div class="product-body">
           <h3 class="product-title" [title]="p.productName">{{ p.productName || 'Untitled product' }}</h3>
@@ -102,7 +88,6 @@
       <span class="pager-text">Page {{ currentPage }} / {{ totalPages }}</span>
       <button class="btn btn-ghost btn-small" type="button" (click)="goToPage(currentPage + 1)" [disabled]="currentPage === totalPages">Next</button>
       <button class="btn btn-ghost btn-small" type="button" (click)="goToPage(totalPages)" [disabled]="currentPage === totalPages">Last</button>
-
       <select class="input pager-size" [(ngModel)]="pageSize" (change)="changePageSize(+$any($event.target).value)">
         <option [value]="5">5 / page</option>
         <option [value]="10">10 / page</option>
@@ -113,7 +98,93 @@
   </section>
 </div>
 
-<!-- CREATE / EDIT PRODUCT MODAL -->
+<!-- ================= EXPORT MODAL ================= -->
+<div class="modal" *ngIf="showExportModal" role="dialog" aria-modal="true">
+  <div class="modal-backdrop" (click)="closeExportModal()" aria-hidden="true"></div>
+  <div class="modal-card export-card">
+
+    <div class="modal-head">
+      <h3 class="modal-title">Export products</h3>
+      <button class="icon-btn" type="button" (click)="closeExportModal()" aria-label="Close">✕</button>
+    </div>
+
+    <!-- FORMAT -->
+    <div class="export-section">
+      <p class="export-label">Format</p>
+      <div class="export-format-row">
+        <label class="format-opt" [class.is-active]="exportFormat === 'excel'">
+          <input type="radio" name="exportFormat" value="excel" [(ngModel)]="exportFormat">
+          <span class="format-icon">📊</span>
+          <span>Excel</span>
+        </label>
+        <label class="format-opt" [class.is-active]="exportFormat === 'word'">
+          <input type="radio" name="exportFormat" value="word" [(ngModel)]="exportFormat">
+          <span class="format-icon">📝</span>
+          <span>Word</span>
+        </label>
+        <label class="format-opt" [class.is-active]="exportFormat === 'pdf'">
+          <input type="radio" name="exportFormat" value="pdf" [(ngModel)]="exportFormat">
+          <span class="format-icon">📄</span>
+          <span>PDF</span>
+        </label>
+      </div>
+    </div>
+
+    <hr class="divider">
+
+    <!-- SCOPE -->
+    <div class="export-section">
+      <p class="export-label">Data range</p>
+      <div class="export-scope-row">
+        <label class="scope-opt" [class.is-active]="exportScopeType === 'current'">
+          <input type="radio" name="exportScope" value="current" [(ngModel)]="exportScopeType">
+          Current page <span class="muted">(page {{ currentPage }})</span>
+        </label>
+        <label class="scope-opt" [class.is-active]="exportScopeType === 'selected'">
+          <input type="radio" name="exportScope" value="selected" [(ngModel)]="exportScopeType">
+          Select pages
+        </label>
+        <label class="scope-opt" [class.is-active]="exportScopeType === 'all'">
+          <input type="radio" name="exportScope" value="all" [(ngModel)]="exportScopeType">
+          All products
+        </label>
+      </div>
+    </div>
+
+    <!-- PAGE PICKER — chỉ hiện khi chọn "selected" -->
+    <div class="export-section page-picker" *ngIf="exportScopeType === 'selected'">
+      <div class="page-picker-head">
+        <p class="export-label">Select pages <span class="muted">({{ selectedPages.size }} selected)</span></p>
+        <div class="page-picker-actions">
+          <button class="btn btn-ghost btn-small" type="button" (click)="selectAllPages()">All</button>
+          <button class="btn btn-ghost btn-small" type="button" (click)="clearPageSelection()">Clear</button>
+        </div>
+      </div>
+      <div class="page-chips">
+        <button
+          class="page-chip"
+          type="button"
+          *ngFor="let pg of pageNumbers"
+          (click)="togglePageSelection(pg)"
+          [class.is-active]="selectedPages.has(pg)">
+          {{ pg }}
+        </button>
+      </div>
+    </div>
+
+    <p class="form-hint error" *ngIf="exportError">{{ exportError }}</p>
+
+    <div class="export-actions">
+      <button class="btn btn-ghost" type="button" (click)="closeExportModal()">Cancel</button>
+      <button class="btn btn-primary" type="button" (click)="doExport()" [disabled]="exportLoading">
+        {{ exportLoading ? 'Exporting...' : 'Export' }}
+      </button>
+    </div>
+
+  </div>
+</div>
+
+<!-- ================= CREATE / EDIT MODAL ================= -->
 <div class="modal" *ngIf="showProductModal" role="dialog" aria-modal="true">
   <div class="modal-backdrop" (click)="closeProductModal()" aria-hidden="true"></div>
   <div class="modal-card modal-wide">
@@ -131,13 +202,11 @@
         <span class="form-hint error" *ngIf="errors.productId">{{ errors.productId }}</span>
         <span class="form-hint warn" *ngIf="idExists && !isEdit">Product ID already exists</span>
       </label>
-
       <label class="field">
         <span class="field-label">Name</span>
         <input class="input" [(ngModel)]="form.productName" (input)="onNameChange()" placeholder="Product name">
         <span class="form-hint error" *ngIf="errors.productName">{{ errors.productName }}</span>
       </label>
-
       <label class="field">
         <span class="field-label">Status</span>
         <select class="input" [(ngModel)]="form.status" (change)="onStatusChange()">
@@ -146,7 +215,6 @@
         </select>
         <span class="form-hint error" *ngIf="errors.status">{{ errors.status }}</span>
       </label>
-
       <label class="field">
         <span class="field-label">Type</span>
         <select class="input" [(ngModel)]="form.productTypeId" (change)="onTypeChange()">
@@ -155,13 +223,11 @@
         </select>
         <span class="form-hint error" *ngIf="errors.productTypeId">{{ errors.productTypeId }}</span>
       </label>
-
       <label class="field">
         <span class="field-label">Price</span>
         <input class="input" type="number" min="0" step="0.01" [(ngModel)]="form.price" (input)="onPriceChange()" placeholder="0.00">
         <span class="form-hint error" *ngIf="errors.price">{{ errors.price }}</span>
       </label>
-
       <label class="field field-full">
         <span class="field-label">Description</span>
         <textarea class="input textarea" rows="4" [(ngModel)]="form.description" (input)="onDescriptionChange()" placeholder="Short description..."></textarea>
@@ -174,7 +240,6 @@
         <p class="image-title">Product images</p>
         <p class="image-sub">Max 5MB / image • JPG/PNG/WEBP</p>
       </div>
-
       <div class="image-rows">
         <div class="image-row" *ngFor="let row of imageRows; let i = index">
           <div class="image-file">
@@ -185,9 +250,7 @@
             <img *ngIf="row.preview" [src]="row.preview" alt="Preview">
             <span *ngIf="!row.preview">No image</span>
           </div>
-          <div class="image-meta">
-            <span class="muted">{{ row.contentType || '—' }}</span>
-          </div>
+          <div class="image-meta"><span class="muted">{{ row.contentType || '—' }}</span></div>
           <label class="radio">
             <input type="radio" name="primaryImage" [checked]="row.isPrimary" (change)="setPrimary(i)">
             Primary
@@ -197,7 +260,6 @@
           </button>
         </div>
       </div>
-
       <div class="image-actions">
         <button class="btn btn-ghost btn-small" type="button" (click)="addImageRow()">Add image</button>
       </div>
@@ -210,7 +272,7 @@
   </div>
 </div>
 
-<!-- IMAGE VIEW MODAL -->
+<!-- ================= IMAGE MODAL ================= -->
 <div class="modal" *ngIf="showImageModal" role="dialog" aria-modal="true">
   <div class="modal-backdrop" (click)="closeImageModal()" aria-hidden="true"></div>
   <div class="modal-card modal-wide">
@@ -220,9 +282,7 @@
         <span class="icon icon-close" aria-hidden="true"></span>
       </button>
     </div>
-
     <p class="muted" *ngIf="imageModalLoading">Loading images...</p>
-
     <div class="toolbar" *ngIf="!imageModalLoading && productImages.length > 0">
       <button class="btn btn-ghost btn-small" type="button" (click)="selectAllImages()">Select all</button>
       <button class="btn btn-ghost btn-small" type="button" (click)="clearSelection()">Clear</button>
@@ -230,18 +290,11 @@
         Delete selected ({{ selectedImageIds.size }})
       </button>
     </div>
-
-    <p class="muted" *ngIf="!imageModalLoading && productImages.length === 0">
-      No images found for this product.
-    </p>
-
+    <p class="muted" *ngIf="!imageModalLoading && productImages.length === 0">No images found for this product.</p>
     <div class="thumb-grid" *ngIf="!imageModalLoading">
-      <button
-        class="thumb-card"
-        type="button"
-        *ngFor="let img of productImages"
-        (click)="toggleSelectImage(img.id)"
-        [class.is-selected]="img.id && selectedImageIds.has(img.id)">
+      <button class="thumb-card" type="button" *ngFor="let img of productImages"
+              (click)="toggleSelectImage(img.id)"
+              [class.is-selected]="img.id && selectedImageIds.has(img.id)">
         <span class="check" aria-hidden="true">{{ img.id && selectedImageIds.has(img.id) ? '✓' : '' }}</span>
         <span class="primary" *ngIf="img.isPrimary">PRIMARY</span>
         <span class="thumb-img">
@@ -251,10 +304,8 @@
         <span class="thumb-meta">{{ img.contentType }}</span>
       </button>
     </div>
-
     <hr class="divider">
     <h4 class="subhead">Add new images</h4>
-
     <div class="upload-row" *ngFor="let row of modalImageRows; let i = index">
       <div class="upload-file">
         <input class="file" type="file" accept="image/*" (change)="onModalFileChange($event, i)">
@@ -274,17 +325,17 @@
         <span class="icon icon-close" aria-hidden="true"></span>
       </button>
     </div>
-
     <div class="toolbar">
       <button class="btn btn-ghost btn-small" type="button" (click)="addModalImageRow()">Add image</button>
-      <button class="btn btn-primary btn-small" *ngIf="modalImageRows.length > 0" type="button" (click)="submitModalImages()" [disabled]="modalUploadSubmitting">
+      <button class="btn btn-primary btn-small" *ngIf="modalImageRows.length > 0" type="button"
+              (click)="submitModalImages()" [disabled]="modalUploadSubmitting">
         {{ modalUploadSubmitting ? 'Uploading...' : 'Save images' }}
       </button>
     </div>
   </div>
 </div>
 
-<!-- VARIANT MODAL -->
+<!-- ================= VARIANT MODAL ================= -->
 <div class="modal" *ngIf="showVariantModal" role="dialog" aria-modal="true">
   <div class="modal-backdrop" (click)="closeModal()" aria-hidden="true"></div>
   <div class="modal-card">
@@ -294,10 +345,8 @@
         <span class="icon icon-close" aria-hidden="true"></span>
       </button>
     </div>
-
     <h4 class="subhead">Existing variants</h4>
     <div class="muted" *ngIf="existingVariants.length === 0">No variants yet.</div>
-
     <div class="variant-table" *ngIf="existingVariants.length > 0">
       <div class="vrow vhead">
         <div>Size</div><div>Color</div><div>Qty</div><div class="vactions">Actions</div>
@@ -312,13 +361,11 @@
         </div>
       </div>
     </div>
-
     <hr class="divider">
     <h4 class="subhead">Add new variants</h4>
     <div class="toolbar">
       <button class="btn btn-ghost btn-small" type="button" (click)="addRow()">Add row</button>
     </div>
-
     <div class="variant-table" *ngIf="newVariantRows.length > 0">
       <div class="vrow vhead">
         <div>Size</div><div>Color</div><div>Qty</div><div class="vactions">Actions</div>
@@ -344,7 +391,6 @@
         </div>
       </div>
     </div>
-
     <div class="toolbar bottom-actions">
       <button class="btn btn-primary" type="button" (click)="submitVariants()">Save new variants</button>
       <button class="btn btn-ghost" type="button" (click)="closeModal()">Close</button>

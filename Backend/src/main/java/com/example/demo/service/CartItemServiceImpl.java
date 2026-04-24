@@ -21,6 +21,45 @@ import java.util.UUID;
 @Transactional
 public class CartItemServiceImpl implements CartItemService {
 
+    // ================= INCREASE QUANTITY =================
+    @Override
+    public void increaseQuantity(String cartItemId, int amount) {
+
+        if (amount <= 0) {
+            throw new IllegalArgumentException("Amount must be > 0");
+        }
+
+        CartItem item = cartItemDAO.findById(cartItemId)
+                .orElseThrow(() -> new RuntimeException("CartItem not found"));
+
+        item.setQuantity(item.getQuantity() + amount);
+
+        cartItemDAO.update(item);
+    }
+
+
+    // ================= DECREASE QUANTITY =================
+    @Override
+    public void decreaseQuantity(String cartItemId, int amount) {
+
+        if (amount <= 0) {
+            throw new IllegalArgumentException("Amount must be > 0");
+        }
+
+        CartItem item = cartItemDAO.findById(cartItemId)
+                .orElseThrow(() -> new RuntimeException("CartItem not found"));
+
+        int newQuantity = item.getQuantity() - amount;
+
+        if (newQuantity <= 0) {
+            // 🔥 nếu <= 0 thì xoá luôn item (logic chuẩn ecommerce)
+            cartItemDAO.delete(cartItemId);
+        } else {
+            item.setQuantity(newQuantity);
+            cartItemDAO.update(item);
+        }
+    }
+
     @Override
     public List<CartItemDTO> findCurrentUserCartItems() {
 

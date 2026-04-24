@@ -23,4 +23,8 @@ public interface CartItemService {
     void deleteByCartId(String cartId);
 
     List<CartItemDTO> findCurrentUserCartItems();
+
+    void increaseQuantity(String cartItemId, int amount);
+
+    void decreaseQuantity(String cartItemId, int amount);
 }

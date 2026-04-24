@@ -21,6 +21,31 @@ public class CartController {
         this.cartService = cartService;
     }
 
+    // ================= INCREASE QUANTITY =================
+    @PutMapping("/item/increase/{id}")
+    public ResponseEntity<String> increaseQuantity(
+            @PathVariable String id,
+            @RequestParam(defaultValue = "1") int amount
+    ) {
+
+        cartItemService.increaseQuantity(id, amount);
+
+        return ResponseEntity.ok("Quantity increased");
+    }
+
+
+    // ================= DECREASE QUANTITY =================
+    @PutMapping("/item/decrease/{id}")
+    public ResponseEntity<String> decreaseQuantity(
+            @PathVariable String id,
+            @RequestParam(defaultValue = "1") int amount
+    ) {
+
+        cartItemService.decreaseQuantity(id, amount);
+
+        return ResponseEntity.ok("Quantity decreased");
+    }
+
     @GetMapping("/me")
     public ResponseEntity<List<CartItemDTO>> getMyCart() {
 

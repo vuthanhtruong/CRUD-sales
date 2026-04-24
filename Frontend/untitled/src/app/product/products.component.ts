@@ -25,11 +25,7 @@ interface ImageRow {
   styleUrls: ['./products.component.css'],
 })
 export class ProductsComponent implements OnInit {
-  // =========================
-  // UI (site-like shell)
-  // =========================
   protected readonly currentYear = new Date().getFullYear();
-  isMobileMenuOpen = false;
   cartCount = 0;
   showProductModal = false;
 
@@ -68,27 +64,26 @@ export class ProductsComponent implements OnInit {
   searchError = '';
 
   // =========================
-  // PHÂN TRANG
+  // PAGINATION
   // =========================
   currentPage = 1;
   totalPages = 1;
   pageSize = 10;
 
   // =========================
-  // IMAGE ROWS (form upload)
+  // IMAGE ROWS
   // =========================
   imageRows: ImageRow[] = [];
   imageErrors: string[] = [];
 
   // =========================
-  // IMAGE VIEW MODAL
+  // IMAGE MODAL
   // =========================
   showImageModal = false;
   imageModalProductId = '';
   productImages: ProductImageDTO[] = [];
   selectedImageIds: Set<string> = new Set();
   imageModalLoading = false;
-
   modalImageRows: ImageRow[] = [];
   modalImageErrors: string[] = [];
   modalUploadSubmitting = false;
@@ -103,6 +98,21 @@ export class ProductsComponent implements OnInit {
   sizes: Size[] = [];
   colors: ColorDTO[] = [];
 
+  // =========================
+  // EXPORT MODAL
+  // =========================
+  showExportModal = false;
+  exportFormat: 'excel' | 'word' | 'pdf' = 'excel';
+  exportScope: 'current' | 'all' | number = 'current';
+  exportLoading = false;
+  exportError = '';
+  // danh sách trang để render checkbox
+  get pageNumbers(): number[] {
+    return Array.from({ length: this.totalPages }, (_, i) => i + 1);
+  }
+  selectedPages: Set<number> = new Set();
+  exportScopeType: 'current' | 'selected' | 'all' = 'current';
+
   constructor(
     private productService: ProductService,
     private productImageService: ProductImageService,
@@ -113,12 +123,6 @@ export class ProductsComponent implements OnInit {
     private exportService: ExportService,
     private cdr: ChangeDetectorRef,
   ) {}
-
-  buildProductImageSrc(image: string | undefined): string {
-    if (!image) return '';
-    if (image.startsWith('data:')) return image;
-    return `data:image/jpeg;base64,${image}`;
-  }
 
   // =========================
   // INIT
@@ -131,26 +135,14 @@ export class ProductsComponent implements OnInit {
     this.loadColors();
   }
 
-  toggleMobileMenu() {
-    this.isMobileMenuOpen = !this.isMobileMenuOpen;
-  }
-
-  closeMobileMenu() {
-    this.isMobileMenuOpen = false;
+  buildProductImageSrc(image: string | undefined): string {
+    if (!image) return '';
+    if (image.startsWith('data:')) return image;
+    return `data:image/jpeg;base64,${image}`;
   }
 
   openCart() {
     alert(`Cart items: ${this.cartCount}`);
-  }
-
-  scrollToFeatured() {
-    const el = document.getElementById('featured');
-    el?.scrollIntoView({ behavior: 'smooth', block: 'start' });
-  }
-
-  addToCart(p: ProductDTO) {
-    this.cartCount += 1;
-    alert(`Added to cart: ${p.productName || p.productId}`);
   }
 
   trackByProductId(_: number, p: ProductDTO) {
@@ -165,20 +157,17 @@ export class ProductsComponent implements OnInit {
   }
 
   resolveTypeName(typeId: string) {
-    const found = this.productTypes.find((t) => t.id === typeId);
-    return found?.typeName || typeId;
+    return this.productTypes.find((t) => t.id === typeId)?.typeName || typeId;
   }
 
   openCreateModal() {
     this.reset();
     this.showProductModal = true;
   }
-
   openEditModal(p: ProductDTO) {
     this.edit(p);
     this.showProductModal = true;
   }
-
   closeProductModal() {
     this.showProductModal = false;
   }
@@ -202,46 +191,19 @@ export class ProductsComponent implements OnInit {
       error: (err) => console.error(err),
     });
   }
-  exportExcel() {
-    const data = this.isSearchMode ? this.products : this.products;
-    this.exportService.exportExcel(data).catch((err) => {
-      console.error(err);
-      alert('Export Excel failed');
-    });
-  }
-
-  exportWord() {
-    this.exportService.exportWord(this.products).catch((err) => {
-      console.error(err);
-      alert('Export Word failed');
-    });
-  }
-
-  exportPdf() {
-    this.exportService.exportPdf(this.products).catch((err) => {
-      console.error(err);
-      alert('Export PDF failed');
-    });
-  }
 
   goToPage(page: number) {
     if (page < 1 || page > this.totalPages) return;
     this.currentPage = page;
-    if (this.isSearchMode) {
-      this.doSearch();
-    } else {
-      this.loadProductsPaged();
-    }
+    if (this.isSearchMode) this.doSearch();
+    else this.loadProductsPaged();
   }
 
   changePageSize(size: number) {
     this.pageSize = size;
     this.currentPage = 1;
-    if (this.isSearchMode) {
-      this.doSearch();
-    } else {
-      this.loadProductsPaged();
-    }
+    if (this.isSearchMode) this.doSearch();
+    else this.loadProductsPaged();
   }
 
   loadStatuses() {
@@ -277,14 +239,12 @@ export class ProductsComponent implements OnInit {
   // =========================
   doSearch() {
     this.searchError = '';
-
     const min = this.searchParams.minPrice;
     const max = this.searchParams.maxPrice;
     if (min != null && max != null && min > max) {
       this.searchError = 'Min price cannot be greater than max price';
       return;
     }
-
     const hasAnyFilter =
       !!this.searchParams.keyword?.trim() ||
       min != null ||
@@ -305,8 +265,7 @@ export class ProductsComponent implements OnInit {
         this.currentPage = 1;
         this.cdr.detectChanges();
       },
-      error: (err) => {
-        console.error(err);
+      error: () => {
         this.searchError = 'Search failed. Please try again.';
         this.cdr.detectChanges();
       },
@@ -328,7 +287,95 @@ export class ProductsComponent implements OnInit {
   }
 
   // =========================
-  // IMAGE VIEW MODAL
+  // EXPORT MODAL
+  // =========================
+  openExportModal() {
+    this.showExportModal = true;
+    this.exportFormat = 'excel';
+    this.exportScopeType = 'current';
+    this.selectedPages = new Set([this.currentPage]);
+    this.exportError = '';
+    this.exportLoading = false;
+    this.cdr.detectChanges();
+  }
+
+  closeExportModal() {
+    this.showExportModal = false;
+    this.exportError = '';
+    this.cdr.detectChanges();
+  }
+
+  togglePageSelection(page: number) {
+    if (this.selectedPages.has(page)) this.selectedPages.delete(page);
+    else this.selectedPages.add(page);
+    this.cdr.detectChanges();
+  }
+
+  selectAllPages() {
+    this.selectedPages = new Set(this.pageNumbers);
+    this.cdr.detectChanges();
+  }
+
+  clearPageSelection() {
+    this.selectedPages = new Set();
+    this.cdr.detectChanges();
+  }
+
+  async doExport() {
+    this.exportError = '';
+
+    if (this.exportScopeType === 'selected' && this.selectedPages.size === 0) {
+      this.exportError = 'Please select at least one page.';
+      return;
+    }
+
+    this.exportLoading = true;
+    this.cdr.detectChanges();
+
+    try {
+      let data: ProductDTO[] = [];
+
+      if (this.exportScopeType === 'current') {
+        // trang hiện tại đang hiển thị
+        data = this.products;
+      } else if (this.exportScopeType === 'selected') {
+        // fetch từng trang được chọn song song
+        const pages = Array.from(this.selectedPages).sort((a, b) => a - b);
+        const results = await Promise.all(
+          pages.map((p) =>
+            this.productService
+              .findAllPaged(p, this.pageSize)
+              .toPromise()
+              .then((r) => r ?? []),
+          ),
+        );
+        data = results.flat();
+      } else {
+        // all
+        const allData = await this.productService.findAll().toPromise();
+        data = allData ?? [];
+      }
+
+      if (this.exportFormat === 'excel') {
+        await this.exportService.exportExcel(data);
+      } else if (this.exportFormat === 'word') {
+        await this.exportService.exportWord(data);
+      } else {
+        await this.exportService.exportPdf(data);
+      }
+
+      this.exportLoading = false;
+      this.closeExportModal();
+    } catch (err) {
+      console.error(err);
+      this.exportError = 'Export failed. Please try again.';
+      this.exportLoading = false;
+      this.cdr.detectChanges();
+    }
+  }
+
+  // =========================
+  // IMAGE MODAL
   // =========================
   openImageModal(productId: string) {
     this.imageModalProductId = productId;
@@ -346,8 +393,7 @@ export class ProductsComponent implements OnInit {
         this.imageModalLoading = false;
         this.cdr.detectChanges();
       },
-      error: (err) => {
-        console.error(err);
+      error: () => {
         this.imageModalLoading = false;
         this.cdr.detectChanges();
       },
@@ -389,13 +435,9 @@ export class ProductsComponent implements OnInit {
       return;
     }
     if (!confirm(`Delete ${this.selectedImageIds.size} selected image(s)?`)) return;
-    const ids = Array.from(this.selectedImageIds);
-    this.productImageService.deleteBatch(ids).subscribe({
+    this.productImageService.deleteBatch(Array.from(this.selectedImageIds)).subscribe({
       next: () => this.openImageModal(this.imageModalProductId),
-      error: (err) => {
-        console.error(err);
-        alert('Error deleting images');
-      },
+      error: () => alert('Error deleting images'),
     });
   }
 
@@ -408,9 +450,8 @@ export class ProductsComponent implements OnInit {
   addModalImageRow() {
     this.modalImageRows.push({ preview: '', imageData: '', contentType: '', isPrimary: false });
     this.modalImageErrors.push('');
-    if (this.modalImageRows.length === 1 && this.productImages.length === 0) {
+    if (this.modalImageRows.length === 1 && this.productImages.length === 0)
       this.modalImageRows[0].isPrimary = true;
-    }
     this.cdr.detectChanges();
   }
 
@@ -428,8 +469,7 @@ export class ProductsComponent implements OnInit {
   }
 
   onModalFileChange(event: Event, index: number) {
-    const input = event.target as HTMLInputElement;
-    const file = input.files?.[0];
+    const file = (event.target as HTMLInputElement).files?.[0];
     this.modalImageErrors[index] = '';
     if (!file) return;
     if (!file.type.startsWith('image/')) {
@@ -460,18 +500,13 @@ export class ProductsComponent implements OnInit {
       }
       return '';
     });
-    if (!valid) {
+    if (!valid || this.modalImageRows.length === 0) {
+      if (this.modalImageRows.length === 0) alert('Please add at least one image');
       this.cdr.detectChanges();
       return;
     }
-    if (this.modalImageRows.length === 0) {
-      alert('Please add at least one image');
-      return;
-    }
-
     this.modalUploadSubmitting = true;
     this.cdr.detectChanges();
-
     const requests = this.modalImageRows.map((row) =>
       this.productImageService.create({
         productId: this.imageModalProductId,
@@ -480,7 +515,6 @@ export class ProductsComponent implements OnInit {
         isPrimary: row.isPrimary,
       }),
     );
-
     let hasError = false;
     const sendNext = (i: number) => {
       if (i >= requests.length) {
@@ -495,8 +529,7 @@ export class ProductsComponent implements OnInit {
       }
       requests[i].subscribe({
         next: () => sendNext(i + 1),
-        error: (err) => {
-          console.error(err);
+        error: () => {
           hasError = true;
           alert(`Error uploading image ${i + 1}`);
           this.modalUploadSubmitting = false;
@@ -508,7 +541,7 @@ export class ProductsComponent implements OnInit {
   }
 
   // =========================
-  // IMAGE ROWS (form upload)
+  // IMAGE ROWS (form)
   // =========================
   addImageRow() {
     this.imageRows.push({ preview: '', imageData: '', contentType: '', isPrimary: false });
@@ -531,8 +564,7 @@ export class ProductsComponent implements OnInit {
   }
 
   onFileChange(event: Event, index: number) {
-    const input = event.target as HTMLInputElement;
-    const file = input.files?.[0];
+    const file = (event.target as HTMLInputElement).files?.[0];
     this.imageErrors[index] = '';
     if (!file) return;
     if (!file.type.startsWith('image/')) {
@@ -567,7 +599,7 @@ export class ProductsComponent implements OnInit {
   }
 
   // =========================
-  // VALIDATE FORM
+  // VALIDATE PRODUCT FORM
   // =========================
   onIdChange() {
     this.errors.productId = '';
@@ -605,16 +637,12 @@ export class ProductsComponent implements OnInit {
 
   onStatusChange() {
     this.errors.status = '';
-    if (!this.form.status?.trim()) {
-      this.errors.status = 'Status cannot be empty';
-    }
+    if (!this.form.status?.trim()) this.errors.status = 'Status cannot be empty';
   }
 
   onTypeChange() {
     this.errors.productTypeId = '';
-    if (!this.form.productTypeId?.trim()) {
-      this.errors.productTypeId = 'Product type is required';
-    }
+    if (!this.form.productTypeId?.trim()) this.errors.productTypeId = 'Product type is required';
   }
 
   onPriceChange() {
@@ -624,16 +652,13 @@ export class ProductsComponent implements OnInit {
       this.errors.price = 'Price is required';
       return;
     }
-    if (Number(price) <= 0) {
-      this.errors.price = 'Price must be greater than 0';
-    }
+    if (Number(price) <= 0) this.errors.price = 'Price must be greater than 0';
   }
 
   onDescriptionChange() {
     this.errors.description = '';
-    if ((this.form.description ?? '').length > 2000) {
+    if ((this.form.description ?? '').length > 2000)
       this.errors.description = 'Description must be under 2000 characters';
-    }
   }
 
   validate(): boolean {
@@ -643,19 +668,20 @@ export class ProductsComponent implements OnInit {
     this.onTypeChange();
     this.onPriceChange();
     this.onDescriptionChange();
-    const formValid =
+    return (
       !this.errors.productId &&
       !this.errors.productName &&
       !this.errors.status &&
       !this.errors.productTypeId &&
       !this.errors.price &&
       !this.errors.description &&
-      !this.idExists;
-    return formValid && (this.imageRows.length === 0 || this.validateImages());
+      !this.idExists &&
+      (this.imageRows.length === 0 || this.validateImages())
+    );
   }
 
   // =========================
-  // SUBMIT
+  // SUBMIT PRODUCT
   // =========================
   submit() {
     if (!this.validate()) return;
@@ -664,10 +690,10 @@ export class ProductsComponent implements OnInit {
       contentType: row.contentType,
       isPrimary: row.isPrimary,
     }));
-    const request$ = this.isEdit
+    const req$ = this.isEdit
       ? this.productService.edit(this.form.productId, this.form)
       : this.productService.create(this.form);
-    request$.subscribe({
+    req$.subscribe({
       next: () => {
         this.loadProductsPaged();
         this.reset();
@@ -677,9 +703,6 @@ export class ProductsComponent implements OnInit {
     });
   }
 
-  // =========================
-  // EDIT / DELETE / RESET
-  // =========================
   edit(p: ProductDTO) {
     this.form = { ...p, images: [] };
     this.imageRows = [];
@@ -767,24 +790,23 @@ export class ProductsComponent implements OnInit {
       alert('No new variants to save');
       return;
     }
-    const payload: ProductVariantDTO[] = this.newVariantRows.map((v) => ({
-      productId: this.selectedProductId,
-      sizeId: v.sizeId,
-      colorId: v.colorId,
-      quantity: v.quantity,
-    }));
-    this.variantService.createBatch(payload).subscribe({
-      next: () => {
-        alert('Variants saved successfully');
-        this.newVariantRows = [];
-        this.loadVariants(this.selectedProductId);
-        this.cdr.detectChanges();
-      },
-      error: (err) => {
-        console.error(err);
-        alert('Error saving variants');
-      },
-    });
+    this.variantService
+      .createBatch(
+        this.newVariantRows.map((v) => ({
+          productId: this.selectedProductId,
+          sizeId: v.sizeId,
+          colorId: v.colorId,
+          quantity: v.quantity,
+        })),
+      )
+      .subscribe({
+        next: () => {
+          alert('Variants saved successfully');
+          this.newVariantRows = [];
+          this.loadVariants(this.selectedProductId);
+        },
+        error: () => alert('Error saving variants'),
+      });
   }
 
   updateVariant(v: ProductVariantDTO) {

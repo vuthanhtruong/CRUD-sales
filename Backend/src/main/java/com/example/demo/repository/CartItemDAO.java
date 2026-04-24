@@ -1,6 +1,7 @@
 package com.example.demo.repository;
 
 import com.example.demo.model.CartItem;
+import com.example.demo.model.ProductVariantId;
 
 import java.util.List;
 import java.util.Optional;
@@ -22,4 +23,9 @@ public interface CartItemDAO {
     void deleteByCartId(String cartId);
 
     List<CartItem> findCurrentUserCartItems();
+
+    void decreaseQuantity(String cartItemId, int amount);
+
+    void increaseQuantity(String cartItemId, int amount);
+
 }
