@@ -15,6 +15,17 @@ import java.util.stream.Collectors;
 @Service
 @Transactional
 public class ProductVariantServiceImpl implements ProductVariantService {
+
+    @Override
+    public int getTotalQuantityByProductId(String productId) {
+        return variantDAO.getTotalQuantityByProductId(productId);
+    }
+
+    @Override
+    public boolean existsAvailableStockByProductId(String productId) {
+        return variantDAO.existsAvailableStockByProductId(productId);
+    }
+
     @Override
     public int getQuantity(String productId, String sizeId, String colorId) {
         return variantDAO.getQuantity(productId, sizeId, colorId);

@@ -34,4 +34,8 @@ public interface ProductVariantService {
     boolean decreaseQuantity(String productId, String sizeId, String colorId, int amount);
 
     int getQuantity(String productId, String sizeId, String colorId);
+
+    boolean existsAvailableStockByProductId(String productId);
+
+    int getTotalQuantityByProductId(String productId);
 }

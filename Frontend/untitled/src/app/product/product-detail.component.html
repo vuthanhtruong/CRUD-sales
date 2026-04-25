@@ -1,9 +1,16 @@
 <!-- product-detail.component.html -->
 <div class="wrap">
 
-  <!-- Toast -->
-  <div class="toast" *ngIf="toastMessage" [class.toast-success]="toastType === 'success'" [class.toast-error]="toastType === 'error'" role="alert">
-    <span class="toast-icon">{{ toastType === 'success' ? '✓' : '✕' }}</span>
+  <!-- Toast / Popup -->
+  <div
+    class="toast"
+    *ngIf="toastMessage"
+    [class.toast-success]="toastType === 'success'"
+    [class.toast-error]="toastType === 'error'"
+    role="alert">
+    <span class="toast-icon">
+      {{ toastType === 'success' ? '✓' : '✕' }}
+    </span>
     {{ toastMessage }}
   </div>
 
@@ -18,9 +25,22 @@
     <!-- GALLERY -->
     <div class="gallery">
       <div class="hero-image">
-        <img *ngIf="selectedImage && selectedImage.imageData" [src]="buildImageSrc(selectedImage)" alt="Product image">
-        <div class="hero-fallback" *ngIf="!selectedImage || !selectedImage.imageData" aria-hidden="true"></div>
+        <img
+          *ngIf="selectedImage && selectedImage.imageData"
+          [src]="buildImageSrc(selectedImage)"
+          alt="Product image">
+
+        <div
+          class="hero-fallback"
+          *ngIf="!selectedImage || !selectedImage.imageData"
+          aria-hidden="true">
+        </div>
+
+        <div class="stock-overlay" *ngIf="isProductOutOfStock">
+          <span>Hết hàng</span>
+        </div>
       </div>
+
       <div class="thumbs" *ngIf="images.length > 1" aria-label="Product images">
         <button
           class="thumb"
@@ -37,6 +57,7 @@
     <!-- INFO -->
     <article class="info">
       <p class="eyebrow">Premium item</p>
+
       <h1 class="title">{{ product.productName }}</h1>
 
       <div class="price-line">
@@ -44,11 +65,33 @@
         <span class="currency">đ</span>
       </div>
 
+      <!-- STOCK SUMMARY -->
+      <div class="stock-summary">
+        <ng-container *ngIf="stockLoading">
+          <span class="stock-badge stock-loading">
+            Đang kiểm tra tồn kho...
+          </span>
+        </ng-container>
+
+        <ng-container *ngIf="!stockLoading && totalQuantity !== null && totalQuantity > 0">
+          <span class="stock-badge stock-ok">
+            Còn {{ totalQuantity }} sản phẩm
+          </span>
+        </ng-container>
+
+        <ng-container *ngIf="!stockLoading && totalQuantity !== null && totalQuantity <= 0">
+          <span class="stock-badge stock-out">
+            Hết hàng
+          </span>
+        </ng-container>
+      </div>
+
       <div class="meta">
         <div class="meta-row">
           <span class="meta-label">Status</span>
           <span class="meta-value">{{ product.status || '—' }}</span>
         </div>
+
         <div class="meta-row">
           <span class="meta-label">Type</span>
           <span class="meta-value">{{ product.productTypeId || '—' }}</span>
@@ -61,13 +104,15 @@
           Size
           <span class="option-required" *ngIf="!selectedSize">— please select</span>
         </h2>
+
         <div class="option-grid">
           <button
             class="opt"
             type="button"
             *ngFor="let s of sizes"
             (click)="selectSize(s)"
-            [class.is-active]="selectedSize?.id === s.id">
+            [class.is-active]="selectedSize?.id === s.id"
+            [disabled]="isProductOutOfStock">
             {{ s.name }}
           </button>
         </div>
@@ -79,26 +124,70 @@
           Color
           <span class="option-required" *ngIf="!selectedColor">— please select</span>
         </h2>
+
         <div class="option-grid">
           <button
             class="opt"
             type="button"
             *ngFor="let c of colors"
             (click)="selectColor(c)"
-            [class.is-active]="selectedColor?.id === c.id">
+            [class.is-active]="selectedColor?.id === c.id"
+            [disabled]="isProductOutOfStock">
             {{ c.name }}
           </button>
         </div>
       </section>
 
-      <!-- QUANTITY -->
-      <section class="option" aria-label="Quantity">
-        <h2 class="option-title">Quantity</h2>
-        <div class="qty-control">
-          <button class="qty-btn" type="button" (click)="decreaseQty()" [disabled]="quantity <= 1">−</button>
-          <span class="qty-value">{{ quantity }}</span>
-          <button class="qty-btn" type="button" (click)="increaseQty()">+</button>
+      <!-- SELECTED VARIANT STOCK -->
+      <section class="option" *ngIf="selectedSize && selectedColor" aria-label="Variant stock">
+        <h2 class="option-title">Selected variant</h2>
+
+        <div class="variant-stock">
+          <ng-container *ngIf="selectedVariantQuantity !== null && selectedVariantQuantity > 0">
+            <span class="stock-badge stock-ok" *ngIf="selectedVariantQuantity > 5">
+              Còn {{ selectedVariantQuantity }} sản phẩm cho lựa chọn này
+            </span>
+
+            <span class="stock-badge stock-low" *ngIf="selectedVariantQuantity <= 5">
+              Chỉ còn {{ selectedVariantQuantity }} sản phẩm cho lựa chọn này
+            </span>
+          </ng-container>
+
+          <ng-container *ngIf="selectedVariantQuantity !== null && selectedVariantQuantity <= 0">
+            <span class="stock-badge stock-out">
+              Biến thể này đã hết hàng
+            </span>
+          </ng-container>
         </div>
+      </section>
+
+      <!-- QUANTITY -->
+      <section class="option" aria-label="Quantity" *ngIf="!isProductOutOfStock">
+        <h2 class="option-title">Quantity</h2>
+
+        <div class="qty-control">
+          <button
+            class="qty-btn"
+            type="button"
+            (click)="decreaseQty()"
+            [disabled]="quantity <= 1">
+            −
+          </button>
+
+          <span class="qty-value">{{ quantity }}</span>
+
+          <button
+            class="qty-btn"
+            type="button"
+            (click)="increaseQty()"
+            [disabled]="selectedVariantQuantity !== null && quantity >= selectedVariantQuantity">
+            +
+          </button>
+        </div>
+
+        <p class="qty-hint muted" *ngIf="selectedVariantQuantity !== null && selectedVariantQuantity > 0">
+          Tối đa {{ selectedVariantQuantity }} sản phẩm cho biến thể này.
+        </p>
       </section>
 
       <!-- DESCRIPTION -->
@@ -113,11 +202,24 @@
           class="btn btn-primary btn-add-cart"
           type="button"
           (click)="addToCart()"
-          [disabled]="addingToCart">
-          <span *ngIf="!addingToCart"><i class="bi bi-cart-plus"></i> Add to Cart</span>
-          <span *ngIf="addingToCart">Adding...</span>
+          [disabled]="!canAddToCart">
+
+          <span *ngIf="!addingToCart && !isProductOutOfStock">
+            <i class="bi bi-cart-plus"></i> Add to Cart
+          </span>
+
+          <span *ngIf="addingToCart">
+            Adding...
+          </span>
+
+          <span *ngIf="!addingToCart && isProductOutOfStock">
+            Hết hàng
+          </span>
         </button>
-        <a class="btn btn-ghost" [routerLink]="['/products']"><i class="bi bi-grid"></i> Browse more</a>
+
+        <a class="btn btn-ghost" [routerLink]="['/products']">
+          <i class="bi bi-grid"></i> Browse more
+        </a>
       </div>
 
     </article>

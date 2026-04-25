@@ -38,6 +38,27 @@ export class ProductVariantService {
     };
   }
 
+
+  // =========================
+// CHECK PRODUCT AVAILABLE STOCK
+// =========================
+  existsAvailableStockByProductId(productId: string): Observable<boolean> {
+    return this.http.get<boolean>(
+      `${this.apiUrl}/product/${productId}/available-stock`,
+      this.getAuthHeaders()
+    );
+  }
+
+// =========================
+// GET TOTAL PRODUCT QUANTITY
+// =========================
+  getTotalQuantityByProductId(productId: string): Observable<number> {
+    return this.http.get<number>(
+      `${this.apiUrl}/product/${productId}/total-quantity`,
+      this.getAuthHeaders()
+    );
+  }
+
   getQuantity(
     productId: string,
     sizeId: string,

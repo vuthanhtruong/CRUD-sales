@@ -16,6 +16,39 @@ import java.util.List;
 public class ProductVariantDAOImpl implements ProductVariantDAO {
 
     @Override
+    public int getTotalQuantityByProductId(String productId) {
+
+        String jpql = """
+        SELECT COALESCE(SUM(v.quantity), 0)
+        FROM ProductVariant v
+        WHERE v.product.productId = :productId
+    """;
+
+        Long total = entityManager.createQuery(jpql, Long.class)
+                .setParameter("productId", productId)
+                .getSingleResult();
+
+        return total.intValue();
+    }
+
+    @Override
+    public boolean existsAvailableStockByProductId(String productId) {
+
+        String jpql = """
+        SELECT COUNT(v)
+        FROM ProductVariant v
+        WHERE v.product.productId = :productId
+        AND v.quantity > 0
+    """;
+
+        Long count = entityManager.createQuery(jpql, Long.class)
+                .setParameter("productId", productId)
+                .getSingleResult();
+
+        return count > 0;
+    }
+
+    @Override
     public int getQuantity(String productId, String sizeId, String colorId) {
 
         String jpql = """

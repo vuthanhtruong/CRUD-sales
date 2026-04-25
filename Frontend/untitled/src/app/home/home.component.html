@@ -24,9 +24,13 @@
     <div class="modal-backdrop" (click)="onConfirmNo()" aria-hidden="true"></div>
     <div class="modal-card confirm-card">
       <div class="modal-head">
-        <h2 class="modal-title"><i class="bi bi-question-circle"></i> {{ confirmDialog.title }}</h2>
+        <h2 class="modal-title">
+          <i class="bi bi-question-circle"></i> {{ confirmDialog.title }}
+        </h2>
       </div>
+
       <p class="confirm-message">{{ confirmDialog.message }}</p>
+
       <div class="modal-actions">
         <button class="btn btn-primary" type="button" (click)="onConfirmYes()">
           {{ confirmDialog.confirmLabel || 'Confirm' }}
@@ -43,12 +47,14 @@
     <div>
       <h1 class="hero-title">Find products.</h1>
       <p class="hero-sub">Simple catalog browsing with search and price filters.</p>
+
       <div class="hero-links">
         <a *ngIf="isAdmin()" class="btn btn-primary" routerLink="/products">Open products</a>
         <a *ngIf="isAdminOrUser()" class="btn btn-ghost" routerLink="/profile">My account</a>
         <a *ngIf="isAdmin()" class="btn btn-ghost" routerLink="/admin" routerLinkActive="is-active">Admin</a>
       </div>
     </div>
+
     <div class="hero-auth">
       <ng-container *ngIf="!currentUser; else signedIn">
         <p class="muted">Not logged in.</p>
@@ -57,13 +63,19 @@
           <button class="btn btn-primary btn-small" type="button" (click)="openLogin()">Login</button>
         </div>
       </ng-container>
+
       <ng-template #signedIn>
-        <p><strong>{{ currentUser }}</strong> <span class="muted">({{ role || '—' }})</span></p>
+        <p>
+          <strong>{{ currentUser }}</strong>
+          <span class="muted">({{ role || '—' }})</span>
+        </p>
+
         <div class="hero-links">
           <button *ngIf="isUser()" class="btn btn-primary btn-small cart-btn" type="button" (click)="openCart()">
             <i class="bi bi-cart3"></i> Cart
             <span class="cart-badge" *ngIf="cartCount > 0">{{ cartCount }}</span>
           </button>
+
           <button class="btn btn-ghost btn-small" type="button" (click)="logout()">
             <i class="bi bi-box-arrow-right"></i> Logout
           </button>
@@ -77,12 +89,19 @@
     <div class="search-row">
       <label class="field search-field">
         <span class="field-label">Search</span>
-        <input class="input" type="text" [(ngModel)]="keyword" (input)="onSearchInput()" placeholder="Search products by name…">
+        <input
+          class="input"
+          type="text"
+          [(ngModel)]="keyword"
+          (input)="onSearchInput()"
+          placeholder="Search products by name…">
       </label>
+
       <button class="btn btn-primary search-btn" type="button" (click)="onSearchClick()">
         <i class="bi bi-search"></i> Search
       </button>
     </div>
+
     <div class="filters" aria-label="Price filters">
       <button
         class="chip"
@@ -102,6 +121,7 @@
         <h2 class="section-title">Products</h2>
         <p class="section-subtitle">Browse items from the current page.</p>
       </div>
+
       <div class="section-actions">
         <span class="muted">{{ products.length }} item(s)</span>
       </div>
@@ -120,31 +140,38 @@
           <img
             [src]="p.image ? buildImageSrc(p.image) : 'https://images.unsplash.com/photo-1523275335684-37898b6baf30?auto=format&fit=crop&w=400&q=80'"
             [alt]="p.productName">
+
           <div class="oos-overlay" *ngIf="isOutOfStock(p.productId)" aria-label="Out of stock">
             <span>Out of stock</span>
           </div>
         </a>
 
         <div class="product-body">
-          <h3 class="product-title" [title]="p.productName">{{ p.productName }}</h3>
+          <h3 class="product-title" [title]="p.productName">
+            {{ p.productName }}
+          </h3>
 
           <div class="product-row">
             <div class="price">
               <span class="price-value">{{ p.price | number:'1.0-0' }}</span>
               <span class="price-currency">đ</span>
             </div>
+
             <div class="stock-badge">
               <ng-container *ngIf="getStock(p.productId) === null && stockLoading.has(p.productId)">
-                <span class="stock stock-loading">…</span>
+                <span class="stock stock-loading">Checking…</span>
               </ng-container>
+
               <ng-container *ngIf="getStock(p.productId) !== null && getStock(p.productId) === 0">
-                <span class="stock stock-out">Out of stock</span>
+                <span class="stock stock-out">Hết hàng</span>
               </ng-container>
+
               <ng-container *ngIf="getStock(p.productId) !== null && getStock(p.productId)! > 0 && getStock(p.productId)! <= 5">
-                <span class="stock stock-low">{{ getStock(p.productId) }} left</span>
+                <span class="stock stock-low">Còn {{ getStock(p.productId) }} sản phẩm</span>
               </ng-container>
+
               <ng-container *ngIf="getStock(p.productId) !== null && getStock(p.productId)! > 5">
-                <span class="stock stock-ok">In stock ({{ getStock(p.productId) }})</span>
+                <span class="stock stock-ok">Còn {{ getStock(p.productId) }} sản phẩm</span>
               </ng-container>
             </div>
           </div>
@@ -153,6 +180,7 @@
             <a class="btn btn-ghost btn-small" [routerLink]="['/product', p.productId]">
               <i class="bi bi-eye"></i> View detail
             </a>
+
             <button
               class="btn btn-primary btn-small"
               type="button"
@@ -166,27 +194,60 @@
     </div>
 
     <nav class="pager" *ngIf="totalPages > 1" aria-label="Pagination">
-      <button class="btn btn-ghost btn-small" type="button" (click)="goToPage(1)"              [disabled]="currentPage === 1">First</button>
-      <button class="btn btn-ghost btn-small" type="button" (click)="goToPage(currentPage - 1)" [disabled]="currentPage === 1">Prev</button>
+      <button
+        class="btn btn-ghost btn-small"
+        type="button"
+        (click)="goToPage(1)"
+        [disabled]="currentPage === 1">
+        First
+      </button>
+
+      <button
+        class="btn btn-ghost btn-small"
+        type="button"
+        (click)="goToPage(currentPage - 1)"
+        [disabled]="currentPage === 1">
+        Prev
+      </button>
+
       <span class="pager-text">Page {{ currentPage }} / {{ totalPages }}</span>
-      <button class="btn btn-ghost btn-small" type="button" (click)="goToPage(currentPage + 1)" [disabled]="currentPage === totalPages">Next</button>
-      <button class="btn btn-ghost btn-small" type="button" (click)="goToPage(totalPages)"      [disabled]="currentPage === totalPages">Last</button>
+
+      <button
+        class="btn btn-ghost btn-small"
+        type="button"
+        (click)="goToPage(currentPage + 1)"
+        [disabled]="currentPage === totalPages">
+        Next
+      </button>
+
+      <button
+        class="btn btn-ghost btn-small"
+        type="button"
+        (click)="goToPage(totalPages)"
+        [disabled]="currentPage === totalPages">
+        Last
+      </button>
     </nav>
   </section>
 
   <!-- ═══════════════════════════ QUICK-ADD MODAL ════════════════════════════ -->
   <div class="modal quick-add-modal" *ngIf="showQuickAdd" role="dialog" aria-modal="true" aria-label="Add to cart">
     <div class="modal-backdrop" (click)="closeQuickAdd()" aria-hidden="true"></div>
-    <div class="modal-card quick-add-card">
 
+    <div class="modal-card quick-add-card">
       <div class="modal-head">
-        <h2 class="modal-title"><i class="bi bi-cart-plus"></i> Add to Cart</h2>
+        <h2 class="modal-title">
+          <i class="bi bi-cart-plus"></i> Add to Cart
+        </h2>
+
         <button class="icon-btn" type="button" (click)="closeQuickAdd()" aria-label="Close">
           <i class="bi bi-x-lg" aria-hidden="true"></i>
         </button>
       </div>
 
-      <div class="qa-loading" *ngIf="quickAddLoading"><span>Loading…</span></div>
+      <div class="qa-loading" *ngIf="quickAddLoading">
+        <span>Loading…</span>
+      </div>
 
       <div class="qa-body" *ngIf="!quickAddLoading && quickAddProduct">
 
@@ -196,16 +257,18 @@
               [src]="quickAddProduct.image ? buildImageSrc(quickAddProduct.image) : 'https://images.unsplash.com/photo-1505740420928-5e560c06d30e?auto=format&fit=crop&w=200&q=80'"
               alt="Product">
           </div>
+
           <div class="qa-product-text">
             <p class="qa-name">{{ quickAddProduct.productName }}</p>
             <p class="qa-price">{{ quickAddProduct.price | number:'1.0-0' }}đ</p>
           </div>
         </div>
 
-        <div class="qa-toast"
-             *ngIf="quickAddToastMsg"
-             [class.qa-toast-success]="quickAddToastType === 'success'"
-             [class.qa-toast-error]="quickAddToastType === 'error'">
+        <div
+          class="qa-toast"
+          *ngIf="quickAddToastMsg"
+          [class.qa-toast-success]="quickAddToastType === 'success'"
+          [class.qa-toast-error]="quickAddToastType === 'error'">
           {{ quickAddToastMsg }}
         </div>
 
@@ -214,6 +277,7 @@
             Size
             <span class="qa-required" *ngIf="!quickAddSelectedSize">— please select</span>
           </p>
+
           <div class="qa-options">
             <button
               class="qa-opt"
@@ -231,6 +295,7 @@
             Color
             <span class="qa-required" *ngIf="!quickAddSelectedColor">— please select</span>
           </p>
+
           <div class="qa-options">
             <button
               class="qa-opt"
@@ -245,32 +310,54 @@
 
         <div class="qa-stock" *ngIf="quickAddSelectedSize && quickAddSelectedColor">
           <ng-container *ngIf="quickAddCurrentStock === 0">
-            <span class="stock stock-out"><i class="bi bi-exclamation-triangle-fill"></i> Out of stock for this combination</span>
+            <span class="stock stock-out">
+              <i class="bi bi-exclamation-triangle-fill"></i>
+              Hết hàng cho biến thể này
+            </span>
           </ng-container>
+
           <ng-container *ngIf="quickAddCurrentStock !== null && quickAddCurrentStock! > 0 && quickAddCurrentStock! <= 5">
-            <span class="stock stock-low"><i class="bi bi-lightning-charge-fill"></i> Only {{ quickAddCurrentStock }} left</span>
+            <span class="stock stock-low">
+              <i class="bi bi-lightning-charge-fill"></i>
+              Chỉ còn {{ quickAddCurrentStock }} sản phẩm
+            </span>
           </ng-container>
+
           <ng-container *ngIf="quickAddCurrentStock !== null && quickAddCurrentStock! > 5">
-            <span class="stock stock-ok"><i class="bi bi-check-circle-fill"></i> In stock ({{ quickAddCurrentStock }})</span>
+            <span class="stock stock-ok">
+              <i class="bi bi-check-circle-fill"></i>
+              Còn {{ quickAddCurrentStock }} sản phẩm
+            </span>
           </ng-container>
         </div>
 
         <div class="qa-section" *ngIf="!quickAddIsOutOfStock">
           <p class="qa-label">Quantity</p>
+
           <div class="qty-control">
-            <button class="qty-btn" type="button" (click)="quickDecreaseQty()" [disabled]="quickAddQuantity <= 1">−</button>
+            <button
+              class="qty-btn"
+              type="button"
+              (click)="quickDecreaseQty()"
+              [disabled]="quickAddQuantity <= 1">
+              −
+            </button>
+
             <span class="qty-value">{{ quickAddQuantity }}</span>
+
             <button
               class="qty-btn"
               type="button"
               (click)="quickIncreaseQty()"
-              [disabled]="quickAddCurrentStock !== null && quickAddQuantity >= quickAddCurrentStock!">+</button>
+              [disabled]="quickAddCurrentStock !== null && quickAddQuantity >= quickAddCurrentStock!">
+              +
+            </button>
           </div>
+
           <span class="qty-hint muted" *ngIf="quickAddCurrentStock !== null && quickAddCurrentStock! > 0">
             Max {{ quickAddCurrentStock }}
           </span>
         </div>
-
       </div>
 
       <div class="modal-actions qa-footer" *ngIf="!quickAddLoading">
@@ -279,31 +366,42 @@
           type="button"
           (click)="submitQuickAdd()"
           [disabled]="quickAddAdding || quickAddIsOutOfStock || !quickAddSelectedSize || !quickAddSelectedColor">
-          <span *ngIf="quickAddAdding"><i class="bi bi-arrow-repeat spin"></i> Adding…</span>
-          <span *ngIf="!quickAddAdding && !quickAddIsOutOfStock"><i class="bi bi-cart-plus"></i> Add to Cart</span>
-          <span *ngIf="!quickAddAdding && quickAddIsOutOfStock">Out of stock</span>
+          <span *ngIf="quickAddAdding">
+            <i class="bi bi-arrow-repeat spin"></i> Adding…
+          </span>
+
+          <span *ngIf="!quickAddAdding && !quickAddIsOutOfStock">
+            <i class="bi bi-cart-plus"></i> Add to Cart
+          </span>
+
+          <span *ngIf="!quickAddAdding && quickAddIsOutOfStock">
+            Out of stock
+          </span>
         </button>
+
         <a class="btn btn-ghost" [routerLink]="['/product', quickAddProduct?.productId]" (click)="closeQuickAdd()">
           View detail →
         </a>
+
         <button class="btn btn-ghost" type="button" (click)="closeQuickAdd()">Close</button>
       </div>
-
     </div>
   </div>
 
   <!-- ═══════════════════════════ AUTH MODALS ════════════════════════════════ -->
   <div class="modal" *ngIf="showRegister || showLogin" role="dialog" aria-modal="true">
     <div class="modal-backdrop" (click)="closePopup()" aria-hidden="true"></div>
+
     <div class="modal-card">
       <div class="modal-head">
         <h2 class="modal-title">{{ showRegister ? 'Create account' : 'Welcome back' }}</h2>
+
         <button class="icon-btn" type="button" (click)="closePopup()" aria-label="Close">
           <i class="bi bi-x-lg" aria-hidden="true"></i>
         </button>
       </div>
 
-      <!-- ─── REGISTER FORM ─────────────────────────────────────────────── -->
+      <!-- REGISTER FORM -->
       <form *ngIf="showRegister" class="modal-form" [formGroup]="registerForm" (ngSubmit)="submitRegister()" novalidate>
         <div class="form-grid">
 
@@ -369,51 +467,67 @@
           </label>
 
         </div>
+
         <div class="modal-actions">
           <button class="btn btn-primary" type="submit">Register</button>
           <button class="btn btn-ghost" type="button" (click)="closePopup()">Cancel</button>
         </div>
       </form>
 
-      <!-- ─── LOGIN FORM ──────────────────────────────────────────────────── -->
+      <!-- LOGIN FORM -->
       <form *ngIf="showLogin" class="modal-form" [formGroup]="loginForm" (ngSubmit)="submitLogin()">
         <div class="form-grid">
           <label class="field field-full">
             <span class="field-label">Username</span>
             <input class="input" formControlName="username" placeholder="Username">
           </label>
+
           <label class="field field-full">
             <span class="field-label">Password</span>
             <input class="input" type="password" formControlName="password" placeholder="Password">
           </label>
         </div>
+
         <div class="modal-actions">
           <button class="btn btn-primary" type="submit">Login</button>
           <button class="btn btn-ghost" type="button" (click)="closePopup()">Cancel</button>
         </div>
       </form>
-
     </div>
   </div>
 
   <!-- ═══════════════════════════ CART MODAL ════════════════════════════════ -->
   <div class="modal cart-modal" *ngIf="showCart" role="dialog" aria-modal="true" aria-label="Shopping Cart">
     <div class="modal-backdrop" (click)="closeCart()" aria-hidden="true"></div>
-    <div class="modal-card cart-card">
 
+    <div class="modal-card cart-card">
       <div class="modal-head">
-        <h2 class="modal-title"><i class="bi bi-cart3"></i> Your Cart</h2>
+        <h2 class="modal-title">
+          <i class="bi bi-cart3"></i> Your Cart
+        </h2>
+
         <button class="icon-btn" type="button" (click)="closeCart()" aria-label="Close cart">
           <i class="bi bi-x-lg" aria-hidden="true"></i>
         </button>
       </div>
 
-      <div class="cart-loading" *ngIf="cartLoading"><span>Loading cart…</span></div>
-      <div class="cart-error"   *ngIf="cartError && !cartLoading"><span>{{ cartError }}</span></div>
+      <div class="cart-loading" *ngIf="cartLoading">
+        <span>Loading cart…</span>
+      </div>
+
+      <div class="cart-error" *ngIf="cartError && !cartLoading">
+        <span>{{ cartError }}</span>
+      </div>
 
       <div class="cart-empty" *ngIf="!cartLoading && !cartError && cartItems.length === 0">
-        <img src="https://cdni.iconscout.com/illustration/premium/thumb/empty-cart-2130356-1800917.png" alt="Empty Cart" style="width:150px;margin-bottom:1rem;opacity:.7">
-        <p><i class="bi bi-bag-heart"></i> Your cart is empty.</p>
+        <img
+          src="https://cdni.iconscout.com/illustration/premium/thumb/empty-cart-2130356-1800917.png"
+          alt="Empty Cart"
+          style="width:150px;margin-bottom:1rem;opacity:.7">
+
+        <p>
+          <i class="bi bi-bag-heart"></i> Your cart is empty.
+        </p>
       </div>
 
       <div class="cart-items" *ngIf="!cartLoading && cartItems.length > 0">
@@ -429,24 +543,28 @@
             type="checkbox"
             class="item-checkbox"
             [checked]="isSelected(item.cartItemId)"
-            (change)="toggleSelect(item.cartItemId)"
-          />
+            (change)="toggleSelect(item.cartItemId)" />
+
           <div class="cart-item-info">
             <p class="cart-item-name">{{ item.productName }}</p>
+
             <p class="cart-item-meta">
               Size: <strong>{{ item.sizeName }}</strong>
               &nbsp;|&nbsp;
               Color: <strong>{{ item.colorName }}</strong>
             </p>
+
             <p class="cart-item-price">
               {{ item.price | number:'1.0-0' }}đ × {{ item.quantity }}
               = <strong>{{ item.subtotal | number:'1.0-0' }}đ</strong>
             </p>
           </div>
+
           <div class="cart-item-actions">
             <button class="qty-btn" type="button" (click)="decreaseQty(item)" [disabled]="cartLoading">−</button>
             <span class="qty-value">{{ item.quantity }}</span>
             <button class="qty-btn" type="button" (click)="increaseQty(item)" [disabled]="cartLoading">+</button>
+
             <button class="remove-btn" type="button" (click)="removeItem(item)" [disabled]="cartLoading" title="Remove">
               <i class="bi bi-trash3" aria-hidden="true"></i>
             </button>
@@ -459,18 +577,21 @@
           <span>Selected <strong>{{ selectedCount }}</strong> / {{ cartItems.length }} item(s)</span>
           <strong>{{ selectedTotal | number:'1.0-0' }}đ</strong>
         </div>
+
         <div class="cart-footer-actions">
           <button class="btn btn-ghost btn-small" type="button" (click)="clearCart()" [disabled]="cartLoading">
             Clear all
           </button>
-          <button class="btn btn-primary" type="button"
-                  [disabled]="selectedCount === 0 || cartLoading"
-                  (click)="checkout()">
+
+          <button
+            class="btn btn-primary"
+            type="button"
+            [disabled]="selectedCount === 0 || cartLoading"
+            (click)="checkout()">
             Checkout ({{ selectedCount }})
           </button>
         </div>
       </div>
-
     </div>
   </div>
 

@@ -13,6 +13,24 @@ import java.util.List;
 @CrossOrigin(origins = "http://localhost:4200")
 public class ProductVariantController {
 
+    @GetMapping("/product/{productId}/total-quantity")
+    public ResponseEntity<Integer> getTotalQuantityByProductId(
+            @PathVariable String productId
+    ) {
+        return ResponseEntity.ok(
+                service.getTotalQuantityByProductId(productId)
+        );
+    }
+
+    @GetMapping("/product/{productId}/available-stock")
+    public ResponseEntity<Boolean> existsAvailableStockByProductId(
+            @PathVariable String productId
+    ) {
+        return ResponseEntity.ok(
+                service.existsAvailableStockByProductId(productId)
+        );
+    }
+
     @GetMapping("/quantity")
     public ResponseEntity<?> getQuantity(
             @RequestParam String productId,

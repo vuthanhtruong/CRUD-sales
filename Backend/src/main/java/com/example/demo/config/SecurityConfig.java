@@ -29,6 +29,7 @@ public class SecurityConfig {
                 .sessionManagement(sm -> sm.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers("/api/accounts/login", "/api/accounts/register").permitAll()
+                        .requestMatchers("/api/variants/**").permitAll()
                         .requestMatchers("/api/products/user/**").permitAll()
                         .requestMatchers("/api/product-types/**").hasRole("ADMIN")
                         .requestMatchers("/api/colors/**").hasRole("ADMIN")
