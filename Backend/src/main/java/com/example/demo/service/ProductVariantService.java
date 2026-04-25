@@ -3,8 +3,6 @@ package com.example.demo.service;
 import com.example.demo.dto.ColorDTO;
 import com.example.demo.dto.ProductVariantDTO;
 import com.example.demo.dto.SizeDTO;
-import com.example.demo.model.Color;
-import com.example.demo.model.Size;
 
 import java.util.List;
 
@@ -34,4 +32,6 @@ public interface ProductVariantService {
     boolean decreaseQuantity(String productId, String sizeId, String colorId, int amount);
 
     int getQuantity(String productId, String sizeId, String colorId);
+
+    boolean existsAvailableStockByProductId(String productId);
 }
