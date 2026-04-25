@@ -146,7 +146,7 @@ export class ProductTypeComponent implements OnInit {
     this.showDeleteConfirm = true;
     this.cdr.detectChanges();
 
-    // kiểm tra có sản phẩm nào thuộc loại này không
+    // check whether any product still uses this type
     this.productService
       .existsByProductType(item.id)
       .pipe(catchError(() => of(false)))

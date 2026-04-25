@@ -22,25 +22,28 @@ public class OrderServiceImpl implements OrderService {
     private final OrderDAO orderDAO;
     private final CouponService couponService;
     private final NotificationService notificationService;
+    private final WalletService walletService;
 
     public OrderServiceImpl(AccountDAO accountDAO,
                             CartItemDAO cartItemDAO,
                             ProductVariantDAO productVariantDAO,
                             OrderDAO orderDAO,
                             CouponService couponService,
-                            NotificationService notificationService) {
+                            NotificationService notificationService,
+                            WalletService walletService) {
         this.accountDAO = accountDAO;
         this.cartItemDAO = cartItemDAO;
         this.productVariantDAO = productVariantDAO;
         this.orderDAO = orderDAO;
         this.couponService = couponService;
         this.notificationService = notificationService;
+        this.walletService = walletService;
     }
 
     @Override
     public OrderDTO checkout(CheckoutRequestDTO request) {
         if (request.getCartItemIds() == null || request.getCartItemIds().isEmpty()) {
-            throw new IllegalArgumentException("Không có sản phẩm nào được chọn");
+            throw new IllegalArgumentException("No cart items selected");
         }
 
         Account account = accountDAO.getAccountByUsername(accountDAO.getCurrentAccountUsername());
@@ -51,7 +54,7 @@ public class OrderServiceImpl implements OrderService {
         Person user = account.getUser();
         List<CartItem> items = cartItemDAO.findByIds(request.getCartItemIds());
         if (items.size() != request.getCartItemIds().size()) {
-            throw new RuntimeException("Một số sản phẩm không tồn tại trong giỏ hàng");
+            throw new RuntimeException("Some cart items were not found");
         }
 
         for (CartItem item : items) {
@@ -73,7 +76,7 @@ public class OrderServiceImpl implements OrderService {
             ProductVariant variant = item.getProductVariant();
             int quantity = item.getQuantity() == null ? 0 : item.getQuantity();
             if (quantity <= 0) {
-                throw new IllegalArgumentException("Số lượng sản phẩm không hợp lệ");
+                throw new IllegalArgumentException("Invalid product quantity");
             }
 
             int updated = productVariantDAO.decreaseQuantity(
@@ -85,9 +88,9 @@ public class OrderServiceImpl implements OrderService {
 
             if (updated == 0) {
                 throw new RuntimeException(
-                        "Sản phẩm \"" + variant.getProduct().getProductName() +
+                        "Product \"" + variant.getProduct().getProductName() +
                                 "\" (" + variant.getSize().getName() + " / " + variant.getColor().getName() +
-                                ") không đủ hàng trong kho"
+                                ") is out of stock"
                 );
             }
 
@@ -115,15 +118,21 @@ public class OrderServiceImpl implements OrderService {
         order.setSubtotalAmount(subtotal);
         order.setDiscountAmount(discount);
         order.setTotalAmount(subtotal.subtract(discount));
-        order.addTimeline(timeline(OrderStatus.PENDING, "Đơn hàng đã được tạo và đang chờ xác nhận."));
+        order.addTimeline(timeline(OrderStatus.PENDING, "Order created and waiting for confirmation."));
 
         SalesOrder saved = orderDAO.save(order);
+
+        if (saved.getPaymentMethod() == PaymentMethod.WALLET) {
+            walletService.pay(user, saved.getTotalAmount(), saved.getId(), "Payment for order " + saved.getId());
+            saved.addTimeline(timeline(OrderStatus.PENDING, "Wallet payment completed."));
+            saved = orderDAO.save(saved);
+        }
 
         for (String id : request.getCartItemIds()) {
             cartItemDAO.delete(id);
         }
 
-        notificationService.notifyUser(user, "Đặt hàng thành công", "Đơn hàng " + saved.getId() + " đã được tạo.", "ORDER", "/orders");
+        notificationService.notifyUser(user, "Order created", "Order " + saved.getId() + " has been created.", "ORDER", "/orders");
         return toDTO(saved);
     }
 
@@ -142,7 +151,7 @@ public class OrderServiceImpl implements OrderService {
         if (!"ADMIN".equals(role)) {
             Person user = accountDAO.getCurrentUser();
             if (order.getUser() == null || !user.getId().equals(order.getUser().getId())) {
-                throw new RuntimeException("Bạn không có quyền xem đơn hàng này");
+                throw new RuntimeException("You cannot access this order");
             }
         }
         return toDTO(order);
@@ -177,10 +186,14 @@ public class OrderServiceImpl implements OrderService {
             }
         }
 
+        if (status == OrderStatus.CANCELLED && current.getPaymentMethod() == PaymentMethod.WALLET && current.getTotalAmount() != null && current.getTotalAmount().compareTo(java.math.BigDecimal.ZERO) > 0) {
+            walletService.refund(current.getUser(), current.getTotalAmount(), current.getId(), "Refund for cancelled order " + current.getId());
+        }
+
         current.setStatus(status);
         current.addTimeline(timeline(status, statusMessage(status)));
         SalesOrder saved = orderDAO.save(current);
-        notificationService.notifyUser(saved.getUser(), "Cập nhật đơn hàng", "Đơn hàng " + saved.getId() + " chuyển sang trạng thái " + status + ".", "ORDER", "/orders");
+        notificationService.notifyUser(saved.getUser(), "Order update", "Order " + saved.getId() + " changed to status " + status + ".", "ORDER", "/orders");
         return toDTO(saved);
     }
 
@@ -193,17 +206,17 @@ public class OrderServiceImpl implements OrderService {
 
     private String statusMessage(OrderStatus status) {
         return switch (status) {
-            case PENDING -> "Đơn hàng đang chờ xác nhận.";
-            case CONFIRMED -> "Admin đã xác nhận đơn hàng.";
-            case SHIPPING -> "Đơn hàng đang được giao.";
-            case COMPLETED -> "Đơn hàng đã hoàn tất.";
-            case CANCELLED -> "Đơn hàng đã bị huỷ và tồn kho đã được hoàn lại nếu cần.";
+            case PENDING -> "Order is waiting for confirmation.";
+            case CONFIRMED -> "The order has been confirmed.";
+            case SHIPPING -> "The order is being shipped.";
+            case COMPLETED -> "The order has been completed.";
+            case CANCELLED -> "The order was cancelled and stock was restored when needed.";
         };
     }
 
     private void assertOwnCartItem(CartItem item, String userId) {
         if (item.getCart() == null || item.getCart().getUser() == null || !userId.equals(item.getCart().getUser().getId())) {
-            throw new RuntimeException("Bạn không có quyền thao tác sản phẩm này trong giỏ hàng");
+            throw new RuntimeException("You cannot modify this cart item");
         }
     }
 

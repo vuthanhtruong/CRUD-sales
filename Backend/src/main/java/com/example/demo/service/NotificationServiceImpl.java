@@ -44,7 +44,7 @@ public class NotificationServiceImpl implements NotificationService {
     public NotificationDTO markRead(String id) {
         Person user = currentUser();
         Notification n = notificationDAO.findById(id).orElseThrow(() -> new RuntimeException("Notification not found"));
-        if (n.getUser() == null || !user.getId().equals(n.getUser().getId())) throw new RuntimeException("Bạn không có quyền đọc thông báo này");
+        if (n.getUser() == null || !user.getId().equals(n.getUser().getId())) throw new RuntimeException("You cannot read this notification");
         n.setRead(true);
         return toDTO(notificationDAO.save(n));
     }

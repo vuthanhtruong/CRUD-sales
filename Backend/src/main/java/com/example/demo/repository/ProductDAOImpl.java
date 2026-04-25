@@ -327,19 +327,19 @@ public class ProductDAOImpl implements ProductDAO {
             throw new RuntimeException("Product not found");
         }
 
-        // 1. xóa variants trước
+        // 1. delete variants first
         entityManager.createQuery(
                         "DELETE FROM ProductVariant pv WHERE pv.product.productId = :id"
                 ).setParameter("id", managed.getProductId())
                 .executeUpdate();
 
-        // 2. xóa images nếu cần (nếu có FK)
+        // 2. delete images when foreign keys require it
         entityManager.createQuery(
                         "DELETE FROM ProductImage pi WHERE pi.product.productId = :id"
                 ).setParameter("id", managed.getProductId())
                 .executeUpdate();
 
-        // 3. xóa product
+        // 3. delete product
         entityManager.remove(managed);
     }
 }

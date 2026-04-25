@@ -19,4 +19,5 @@ public interface ProductImageService {
     void createBatch(List<ProductImageDTO> images);
 
     void deleteImagesByIds(List<String> ids);
+    void setPrimary(String imageId);
 }

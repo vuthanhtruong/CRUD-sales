@@ -1,0 +1,60 @@
+<div class="wrap support-page">
+  <section class="neo-hero support-hero">
+    <div>
+      <p class="eyebrow"><i class="bi bi-headset"></i> Customer command center</p>
+      <h1>Support tickets, replies and order help in one place.</h1>
+      <p>Open a ticket for delivery, payment, product or warranty questions. Every conversation is stored as a clean thread.</p>
+    </div>
+    <div class="hero-metric"><strong>{{ tickets.length }}</strong><span>active conversation(s)</span></div>
+  </section>
+
+  <section class="support-grid">
+    <aside class="support-panel">
+      <h2>New ticket</h2>
+      <label class="field"><span class="field-label">Subject</span><input class="input" [(ngModel)]="newTicket.subject" placeholder="Example: Need help with my order"></label>
+      <div class="support-two">
+        <label class="field"><span class="field-label">Category</span><select class="input" [(ngModel)]="newTicket.category"><option>ORDER</option><option>PAYMENT</option><option>SHIPPING</option><option>PRODUCT</option><option>WARRANTY</option></select></label>
+        <label class="field"><span class="field-label">Priority</span><select class="input" [(ngModel)]="newTicket.priority"><option>LOW</option><option>NORMAL</option><option>HIGH</option><option>URGENT</option></select></label>
+      </div>
+      <label class="field"><span class="field-label">Message</span><textarea class="textarea" rows="4" [(ngModel)]="newTicket.initialMessage" placeholder="Describe what happened..."></textarea></label>
+      <button class="btn btn-primary" type="button" (click)="createTicket()" [disabled]="creating"><i class="bi bi-send"></i> Create ticket</button>
+    </aside>
+
+    <aside class="support-list">
+      <div class="panel-head"><h2>Your tickets</h2><button class="btn btn-small btn-ghost" (click)="loadTickets()"><i class="bi bi-arrow-clockwise"></i> Refresh</button></div>
+      <p class="muted" *ngIf="loading">Loading tickets...</p>
+      <button class="ticket-row" *ngFor="let t of tickets" type="button" (click)="select(t)" [class.is-active]="selected?.id === t.id">
+        <span class="ticket-title">{{ t.subject }}</span>
+        <span class="ticket-meta"><span class="status-pill" [ngClass]="badge(t.status)">{{ t.status }}</span> {{ t.updatedAt | date:'short' }}</span>
+        <small>{{ t.lastMessage || 'No messages yet' }}</small>
+      </button>
+      <p class="muted" *ngIf="!loading && tickets.length === 0">No tickets yet.</p>
+    </aside>
+
+    <main class="conversation-card" *ngIf="selected; else noTicket">
+      <div class="conversation-head">
+        <div><p class="eyebrow"><i class="bi bi-chat-dots"></i> Conversation</p><h2>{{ selected.subject }}</h2></div>
+        <span class="status-pill" [ngClass]="badge(selected.status)">{{ selected.status }}</span>
+      </div>
+
+      <div class="message-list">
+        <article class="message" *ngFor="let m of selected.messages" [class.mine]="m.username === (selected.username || '')">
+          <div class="avatar">{{ (m.senderName || m.username || 'U').slice(0,1) }}</div>
+          <div class="message-bubble">
+            <div class="message-top"><strong>{{ m.senderName || m.username || 'Support' }}</strong><span>{{ m.createdAt | date:'short' }}</span></div>
+            <p>{{ m.message }}</p>
+          </div>
+        </article>
+      </div>
+
+      <div class="reply-box">
+        <textarea class="textarea" rows="3" [(ngModel)]="replyText" placeholder="Write a reply..."></textarea>
+        <button class="btn btn-primary" type="button" (click)="sendReply()" [disabled]="sending || !replyText.trim()"><i class="bi bi-send"></i> Reply</button>
+      </div>
+    </main>
+
+    <ng-template #noTicket><main class="conversation-card empty-conversation"><i class="bi bi-inboxes"></i><h2>Select or create a ticket</h2><p class="muted">Your support thread will appear here.</p></main></ng-template>
+  </section>
+
+  <div class="modal" *ngIf="popup"><div class="modal-backdrop" (click)="closePopup()"></div><div class="modal-card popup-card"><div class="popup-icon" [ngClass]="popup.type"><i class="bi" [ngClass]="{'bi-check2-circle': popup.type === 'success', 'bi-x-circle': popup.type === 'error', 'bi-info-circle': popup.type === 'info'}"></i></div><h2>{{ popup.title }}</h2><p>{{ popup.message }}</p><div class="modal-actions center"><button class="btn btn-primary" (click)="closePopup()">OK</button></div></div></div>
+</div>

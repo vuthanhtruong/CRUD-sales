@@ -38,7 +38,7 @@ class CartItemDAOImpl implements CartItemDAO {
 
         item.setQuantity(item.getQuantity() + amount);
 
-        // không cần merge vì entity đang managed
+        // entity is already managed, no merge required
     }
 
     @Override
@@ -52,7 +52,7 @@ class CartItemDAOImpl implements CartItemDAO {
 
         int newQuantity = item.getQuantity() - amount;
 
-        // 🔥 nếu <= 0 → xoá luôn
+        // delete the item when quantity reaches zero
         if (newQuantity <= 0) {
             entityManager.remove(item);
         } else {

@@ -70,6 +70,14 @@ public class ProductImageController {
         return ResponseEntity.ok(images);
     }
 
+    @PatchMapping("/{id}/primary")
+    public ResponseEntity<?> setPrimary(@PathVariable String id) {
+        productImageService.setPrimary(id);
+        return ResponseEntity.ok(Map.of(
+                "message", "Primary image updated successfully"
+        ));
+    }
+
     // ================= DELETE SINGLE =================
     @DeleteMapping("/{id}")
     public ResponseEntity<?> delete(@PathVariable String id) {

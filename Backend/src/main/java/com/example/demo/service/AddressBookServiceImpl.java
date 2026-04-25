@@ -70,7 +70,7 @@ public class AddressBookServiceImpl implements AddressBookService {
 
     private AddressBook getOwned(String id, String userId) {
         AddressBook address = addressBookDAO.findById(id).orElseThrow(() -> new RuntimeException("Address not found"));
-        if (address.getUser() == null || !userId.equals(address.getUser().getId())) throw new RuntimeException("Bạn không có quyền thao tác địa chỉ này");
+        if (address.getUser() == null || !userId.equals(address.getUser().getId())) throw new RuntimeException("You cannot modify this address");
         return address;
     }
 

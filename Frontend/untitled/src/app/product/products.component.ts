@@ -18,7 +18,7 @@ interface ImageRow {
   isPrimary: boolean;
 }
 
-// Danh sách ảnh placeholder từ Picsum Photos (free, no API key needed)
+// Placeholder image list from Picsum Photos (free, no API key needed)
 const PLACEHOLDER_IMAGES = [
   'https://picsum.photos/seed/product1/400/300',
   'https://picsum.photos/seed/product2/400/300',
@@ -157,8 +157,8 @@ export class ProductsComponent implements OnInit {
   }
 
   /**
-   * Trả về URL ảnh placeholder từ Picsum dựa vào productId.
-   * Mỗi product sẽ luôn có cùng 1 ảnh placeholder (deterministic).
+   * Return a deterministic placeholder image URL from the product ID.
+   * Each product always receives the same placeholder image.
    */
   getPlaceholderImageUrl(productId: string | undefined): string {
     const id = productId || '';
@@ -471,6 +471,15 @@ export class ProductsComponent implements OnInit {
     });
   }
 
+  makePrimaryImage(img: ProductImageDTO, event?: Event) {
+    event?.stopPropagation();
+    if (!img.id) return;
+    this.productImageService.setPrimary(img.id).subscribe({
+      next: () => this.openImageModal(this.imageModalProductId),
+      error: () => alert("Could not update primary image"),
+    });
+  }
+
   buildImageSrc(img: ProductImageDTO): string {
     if (!img.imageData || !img.contentType) return '';
     if (img.imageData.startsWith('data:')) return img.imageData;
@@ -506,7 +515,7 @@ export class ProductsComponent implements OnInit {
       this.modalImageErrors[index] = 'Only image files are allowed';
       return;
     }
-    // Giới hạn 1MB
+    // 1MB limit
     if (file.size > MAX_IMAGE_SIZE_BYTES) {
       this.modalImageErrors[index] = `Image must be under ${MAX_IMAGE_SIZE_MB}MB`;
       (event.target as HTMLInputElement).value = '';
@@ -603,7 +612,7 @@ export class ProductsComponent implements OnInit {
       this.imageErrors[index] = 'Only image files are allowed';
       return;
     }
-    // Giới hạn 1MB
+    // 1MB limit
     if (file.size > MAX_IMAGE_SIZE_BYTES) {
       this.imageErrors[index] = `Image must be under ${MAX_IMAGE_SIZE_MB}MB`;
       (event.target as HTMLInputElement).value = '';

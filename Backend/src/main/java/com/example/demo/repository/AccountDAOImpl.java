@@ -60,6 +60,7 @@ public class AccountDAOImpl implements AccountDAO {
         existingPerson.setLastName(updatedPerson.getLastName());
         existingPerson.setPhone(updatedPerson.getPhone());
         existingPerson.setEmail(updatedPerson.getEmail());
+        existingPerson.setAvatarUrl(updatedPerson.getAvatarUrl());
         existingPerson.setAddress(updatedPerson.getAddress());
         existingPerson.setGender(updatedPerson.getGender());
         existingPerson.setBirthday(updatedPerson.getBirthday());
@@ -192,6 +193,16 @@ public class AccountDAOImpl implements AccountDAO {
         }
 
         return "UNKNOWN";
+    }
+
+    
+    public void updatePassword(String accountId, String encodedPassword) {
+        Account account = entityManager.find(Account.class, accountId);
+        if (account == null) {
+            throw new RuntimeException("Account not found");
+        }
+        account.setPassword(encodedPassword);
+        entityManager.merge(account);
     }
 
 }

@@ -3,7 +3,7 @@ import { HttpClient } from '@angular/common/http';
 import { Observable } from 'rxjs';
 
 export type OrderStatus = 'PENDING' | 'CONFIRMED' | 'SHIPPING' | 'COMPLETED' | 'CANCELLED';
-export type PaymentMethod = 'COD' | 'BANK_TRANSFER' | 'CARD';
+export type PaymentMethod = 'COD' | 'BANK_TRANSFER' | 'CARD' | 'WALLET';
 
 export interface CheckoutRequestDTO {
   cartItemIds: string[];

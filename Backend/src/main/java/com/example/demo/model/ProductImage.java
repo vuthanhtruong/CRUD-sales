@@ -4,7 +4,9 @@ import jakarta.persistence.*;
 import lombok.*;
 
 @Entity
-@Table(name = "product_image")
+@Table(name = "product_image", indexes = {
+        @Index(name = "idx_product_image_product_primary", columnList = "product_id, is_primary")
+})
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
@@ -19,6 +21,7 @@ public class ProductImage {
 
     private String contentType;
 
+    @Column(name = "is_primary")
     private boolean isPrimary;
 
     @ManyToOne

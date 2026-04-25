@@ -3,7 +3,7 @@
     <div>
       <p class="eyebrow"><i class="bi bi-stars"></i> Catalog & operations</p>
       <h1 class="admin-title">Admin control center</h1>
-      <p class="admin-sub">Quản lý sản phẩm, biến thể, tồn kho, đơn hàng và thống kê vận hành.</p>
+      <p class="admin-sub">Manage products, variants, inventory, orders, finance and operational analytics.</p>
     </div>
     <div class="admin-hero-badge"><i class="bi bi-shield-check"></i><span>Administrator</span></div>
   </header>
@@ -39,50 +39,56 @@
     <article class="admin-card primary-card">
       <div class="card-icon"><i class="bi bi-box-seam"></i></div>
       <h2 class="card-title">Products</h2>
-      <p class="card-sub">Quản lý productId, name, status, type, price, description, images và variants.</p>
+      <p class="card-sub">Manage product ID, name, status, type, price, description, images and variants.</p>
       <a class="btn btn-primary" routerLink="/products">Open products</a>
     </article>
 
     <article class="admin-card">
       <div class="card-icon"><i class="bi bi-clipboard-check"></i></div>
       <h2 class="card-title">Orders</h2>
-      <p class="card-sub">Xem đơn hàng, thông tin giao hàng, item và cập nhật trạng thái xử lý.</p>
+      <p class="card-sub">Review orders, delivery details, line items and fulfillment status.</p>
       <a class="btn btn-primary" routerLink="/admin/orders">Open orders</a>
     </article>
 
     <article class="admin-card">
       <div class="card-icon"><i class="bi bi-ticket-perforated"></i></div>
       <h2 class="card-title">Coupons</h2>
-      <p class="card-sub">Tạo mã giảm giá theo phần trăm hoặc số tiền cố định.</p>
+      <p class="card-sub">Create percentage or fixed-amount discount campaigns.</p>
       <a class="btn btn-primary" routerLink="/admin/coupons">Open coupons</a>
     </article>
 
     <article class="admin-card">
       <div class="card-icon"><i class="bi bi-star"></i></div>
       <h2 class="card-title">Reviews</h2>
-      <p class="card-sub">Duyệt đánh giá sản phẩm và phản hồi khách hàng.</p>
+      <p class="card-sub">Moderate product reviews and reply to customers.</p>
       <a class="btn btn-primary" routerLink="/admin/reviews">Open reviews</a>
     </article>
 
     <article class="admin-card">
       <div class="card-icon"><i class="bi bi-diagram-3"></i></div>
       <h2 class="card-title">Product types</h2>
-      <p class="card-sub">Quản lý nhóm sản phẩm: id và typeName.</p>
+      <p class="card-sub">Manage product category IDs and display names.</p>
       <a class="btn btn-primary" routerLink="/product-types">Open categories</a>
     </article>
 
     <article class="admin-card">
       <div class="card-icon"><i class="bi bi-rulers"></i></div>
       <h2 class="card-title">Sizes</h2>
-      <p class="card-sub">Quản lý size dùng trong ProductVariant.</p>
+      <p class="card-sub">Manage sizes used by product variants.</p>
       <a class="btn btn-primary" routerLink="/sizes">Open sizes</a>
     </article>
 
     <article class="admin-card">
       <div class="card-icon"><i class="bi bi-palette"></i></div>
       <h2 class="card-title">Colors</h2>
-      <p class="card-sub">Quản lý color dùng trong ProductVariant.</p>
+      <p class="card-sub">Manage colors used by product variants.</p>
       <a class="btn btn-primary" routerLink="/colors">Open colors</a>
+    </article>
+    <article class="admin-card">
+      <div class="card-icon"><i class="bi bi-wallet2"></i></div>
+      <h2 class="card-title">Wallet finance</h2>
+      <p class="card-sub">Approve top-up requests and audit wallet payments.</p>
+      <a class="btn btn-primary" routerLink="/admin/wallet">Open finance</a>
     </article>
   </section>
 </div>

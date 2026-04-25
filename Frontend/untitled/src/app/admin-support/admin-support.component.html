@@ -1,0 +1,26 @@
+<div class="wrap support-admin-page">
+  <section class="admin-hero neo-hero">
+    <div><p class="eyebrow"><i class="bi bi-headset"></i> Admin support desk</p><h1>Resolve support tickets with threaded replies.</h1><p>Filter by status, reply to customers, add internal notes and close completed cases.</p></div>
+    <div class="hero-metric"><strong>{{ tickets.length }}</strong><span>ticket(s)</span></div>
+  </section>
+
+  <section class="desk-grid">
+    <aside class="desk-list">
+      <div class="desk-filter"><select class="input" [(ngModel)]="statusFilter" (change)="loadTickets()"><option value="">All statuses</option><option *ngFor="let s of statuses" [ngValue]="s">{{ s }}</option></select><button class="btn btn-small btn-ghost" (click)="loadTickets()"><i class="bi bi-arrow-clockwise"></i></button></div>
+      <p class="muted" *ngIf="loading">Loading tickets...</p>
+      <button class="ticket-row" *ngFor="let t of tickets" type="button" (click)="select(t)" [class.is-active]="selected?.id === t.id">
+        <span class="ticket-title">{{ t.subject }}</span>
+        <span class="ticket-meta"><span class="status-pill" [ngClass]="badge(t.status)">{{ t.status }}</span> {{ t.customerName || t.username }}</span>
+        <small>{{ t.lastMessage || 'No message' }}</small>
+      </button>
+    </aside>
+
+    <main class="desk-thread" *ngIf="selected; else emptyDesk">
+      <div class="thread-head"><div><p class="eyebrow">#{{ selected.id?.slice(0, 8) }}</p><h2>{{ selected.subject }}</h2><p class="muted">{{ selected.customerName || selected.username }} · {{ selected.category }} · {{ selected.priority }}</p></div><span class="status-pill" [ngClass]="badge(selected.status)">{{ selected.status }}</span></div>
+      <div class="status-actions"><button class="btn btn-small" *ngFor="let s of statuses" (click)="updateStatus(s)" [disabled]="saving || selected.status === s">{{ s }}</button></div>
+      <div class="message-list"><article class="message" *ngFor="let m of selected.messages" [class.internal]="m.internalNote"><div class="avatar">{{ (m.senderName || m.username || 'A').slice(0,1) }}</div><div class="message-bubble"><div class="message-top"><strong>{{ m.senderName || m.username }}</strong><span>{{ m.createdAt | date:'short' }}</span></div><p>{{ m.message }}</p><span class="internal-chip" *ngIf="m.internalNote">Internal note</span></div></article></div>
+      <div class="reply-box"><textarea class="textarea" rows="3" [(ngModel)]="replyText" placeholder="Reply to customer or add internal note..."></textarea><label class="note-check"><input type="checkbox" [(ngModel)]="internalNote"> Internal note</label><button class="btn btn-primary" (click)="sendReply()" [disabled]="saving || !replyText.trim()"><i class="bi bi-send"></i> Send</button></div>
+    </main>
+    <ng-template #emptyDesk><main class="desk-thread empty-thread"><i class="bi bi-chat-square-text"></i><h2>Select a ticket</h2></main></ng-template>
+  </section>
+</div>

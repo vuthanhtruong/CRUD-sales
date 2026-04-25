@@ -1,0 +1,13 @@
+<div class="wrap comment-admin-page">
+  <section class="neo-hero comment-hero"><div><p class="eyebrow"><i class="bi bi-chat-quote"></i> Community moderation</p><h1>Product comments and discussion control.</h1><p>Hide abusive comments, approve pending messages, and keep product discussion useful.</p></div><div class="hero-metric"><strong>{{ comments.length }}</strong><span>comment(s)</span></div></section>
+  <section class="comment-toolbar"><select class="input" [(ngModel)]="statusFilter" (change)="loadComments()"><option value="">All statuses</option><option *ngFor="let s of statuses" [ngValue]="s">{{ s }}</option></select><button class="btn btn-primary" (click)="loadComments()"><i class="bi bi-arrow-clockwise"></i> Refresh</button></section>
+  <section class="comment-grid">
+    <article class="comment-card" *ngFor="let c of comments">
+      <div class="comment-top"><div><h2>{{ c.productName || c.productId }}</h2><p class="muted">{{ c.customerName || c.username }} · {{ c.createdAt | date:'medium' }}</p></div><span class="status-chip" [ngClass]="c.status?.toLowerCase()">{{ c.status }}</span></div>
+      <p class="comment-body">{{ c.content }}</p>
+      <p class="muted" *ngIf="c.parentId">Reply to: {{ c.parentId }}</p>
+      <div class="comment-actions"><button class="btn btn-small" (click)="moderate(c, 'PUBLISHED')">Publish</button><button class="btn btn-small" (click)="moderate(c, 'HIDDEN')">Hide</button><button class="btn btn-small" (click)="moderate(c, 'PENDING')">Pending</button><button class="btn btn-small danger" (click)="remove(c)">Delete</button></div>
+    </article>
+    <p class="muted empty" *ngIf="!loading && comments.length === 0">No comments found.</p>
+  </section>
+</div>

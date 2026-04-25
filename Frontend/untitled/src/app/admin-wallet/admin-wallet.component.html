@@ -1,0 +1,11 @@
+<div class="commerce-page">
+  <section class="commerce-hero compact"><div><p class="eyebrow">Admin finance</p><h1>Wallet top-up approvals</h1><p>Approve verified bank transfers and keep every wallet movement auditable.</p></div></section>
+  <section class="commerce-card">
+    <div class="toolbar"><select class="input compact-input" [(ngModel)]="status" (change)="load()"><option value="PENDING">Pending</option><option value="APPROVED">Approved</option><option value="REJECTED">Rejected</option></select><button class="btn btn-ghost" (click)="load()">Refresh</button></div>
+    <div class="table-modern">
+      <div class="table-head"><span>User</span><span>Amount</span><span>Note</span><span>Created</span><span>Action</span></div>
+      <div class="table-row" *ngFor="let r of rows"><span><strong>{{ r.username }}</strong><small>{{ r.customerName }}</small></span><span>{{ r.amount | number:'1.0-0' }}đ</span><span>{{ r.description }}</span><span>{{ r.createdAt | date:'short' }}</span><span><button class="btn btn-primary btn-small" *ngIf="r.topUpStatus === 'PENDING'" (click)="approve(r.id)">Approve</button><button class="btn btn-ghost btn-small danger" *ngIf="r.topUpStatus === 'PENDING'" (click)="reject(r.id)">Reject</button><em *ngIf="r.topUpStatus !== 'PENDING'">{{ r.topUpStatus }}</em></span></div>
+    </div>
+    <p class="muted" *ngIf="!loading && rows.length === 0">No top-up requests for this status.</p>
+  </section>
+</div>

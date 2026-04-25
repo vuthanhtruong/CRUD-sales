@@ -34,6 +34,7 @@ export class ProfileComponent implements OnInit {
       address: ['', [Validators.required, Validators.maxLength(255)]],
       gender: ['MALE', Validators.required],
       birthday: ['', Validators.required],
+      avatarUrl: [''],
     });
   }
 
@@ -79,6 +80,7 @@ export class ProfileComponent implements OnInit {
           address: res.address,
           gender: res.gender,
           birthday: res.birthday,
+          avatarUrl: res.avatarUrl || "",
         });
         this.loading = false;
         this.setFormDisabled();
@@ -93,13 +95,13 @@ export class ProfileComponent implements OnInit {
   }
 
   setFormDisabled() {
-    ['firstName', 'lastName', 'phone', 'email', 'address', 'gender', 'birthday'].forEach((f) =>
+    ['firstName', 'lastName', 'phone', 'email', 'address', 'gender', 'birthday', 'avatarUrl'].forEach((f) =>
       this.profileForm.get(f)?.disable(),
     );
   }
 
   setFormEnabled() {
-    ['firstName', 'lastName', 'phone', 'email', 'address', 'gender', 'birthday'].forEach((f) =>
+    ['firstName', 'lastName', 'phone', 'email', 'address', 'gender', 'birthday', 'avatarUrl'].forEach((f) =>
       this.profileForm.get(f)?.enable(),
     );
   }
@@ -123,6 +125,18 @@ export class ProfileComponent implements OnInit {
     this.setFormDisabled();
     this.loadProfile();
   }
+
+  onAvatarFile(event: Event) {
+    const file = (event.target as HTMLInputElement).files?.[0];
+    if (!file) return;
+    if (!file.type.startsWith("image/")) { this.errorMessage = "Please choose an image file."; return; }
+    if (file.size > 1024 * 1024) { this.errorMessage = "Avatar must be under 1MB."; return; }
+    const reader = new FileReader();
+    reader.onload = () => { this.profileForm.patchValue({ avatarUrl: reader.result as string }); this.cdr.detectChanges(); };
+    reader.readAsDataURL(file);
+  }
+
+  clearAvatar() { this.profileForm.patchValue({ avatarUrl: "" }); }
 
   submit() {
     this.submitted = true;
@@ -150,6 +164,7 @@ export class ProfileComponent implements OnInit {
       address: raw.address,
       gender: raw.gender,
       birthday: raw.birthday,
+      avatarUrl: raw.avatarUrl,
     };
 
     this.detailAccountService.updateAccount(dto).subscribe({

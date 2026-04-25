@@ -22,6 +22,10 @@
     </div>
 
     <form class="form" [formGroup]="profileForm" (ngSubmit)="submit()">
+      <section class="avatar-editor">
+        <div class="profile-avatar"><img *ngIf="profileForm.getRawValue().avatarUrl" [src]="profileForm.getRawValue().avatarUrl" alt="Avatar"><span *ngIf="!profileForm.getRawValue().avatarUrl">{{ (profileForm.getRawValue().username || "U").slice(0, 2).toUpperCase() }}</span></div>
+        <div><h2>Avatar</h2><p class="muted">Upload a square image under 1MB. It is stored with your profile and works for user and admin accounts.</p><input class="file" type="file" accept="image/*" (change)="onAvatarFile($event)" [disabled]="!isEdit"><button class="btn btn-ghost btn-small" type="button" (click)="clearAvatar()" [disabled]="!isEdit">Remove avatar</button></div>
+      </section>
       <div class="grid">
 
         <!-- Username (readonly) -->

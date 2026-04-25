@@ -32,6 +32,9 @@ public class ProfileDTO {
     @Size(max = 120, message = "Email too long")
     private String email;
 
+    @Size(max = 1500000, message = "Avatar is too large")
+    private String avatarUrl;
+
     @NotBlank(message = "Address must not be blank")
     @Size(max = 255, message = "Address too long")
     private String address;

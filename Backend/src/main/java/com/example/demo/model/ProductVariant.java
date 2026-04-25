@@ -4,7 +4,10 @@ import jakarta.persistence.*;
 import lombok.*;
 
 @Entity
-@Table(name = "product_variant")
+@Table(name = "product_variant", indexes = {
+        @Index(name = "idx_variant_product_quantity", columnList = "product_id, quantity"),
+        @Index(name = "idx_variant_size_color", columnList = "size_id, color_id")
+})
 @Data
 @NoArgsConstructor
 @AllArgsConstructor

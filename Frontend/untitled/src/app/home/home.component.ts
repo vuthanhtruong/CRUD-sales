@@ -15,6 +15,7 @@ import { ProductVariantService, ProductVariantDTO } from '../services/product-va
 import { DetailAccountService } from '../services/detail-account.service';
 import { CheckoutRequestDTO, PaymentMethod } from '../services/order.service';
 import { CouponPreviewDTO, CouponService } from '../services/coupon.service';
+import { ProductInsightService, ProductMetricDTO } from '../services/product-insight.service';
 
 export interface ConfirmDialog {
   title: string;
@@ -39,6 +40,7 @@ export class HomeComponent implements OnInit {
   token: string | null = null;
 
   products: ProductUserDTO[] = [];
+  trendingProducts: ProductMetricDTO[] = [];
   pagedProducts: ProductUserDTO[] = [];
   currentPage = 1;
   totalPages = 1;
@@ -99,6 +101,7 @@ export class HomeComponent implements OnInit {
     private detailAccountService: DetailAccountService,
     private couponService: CouponService,
     private cdr: ChangeDetectorRef,
+    private productInsightService: ProductInsightService,
   ) {}
 
   ngOnInit() {
@@ -109,8 +112,11 @@ export class HomeComponent implements OnInit {
       this.cdr.detectChanges();
     });
 
+
     this.searchSubject.pipe(debounceTime(400)).subscribe(() => this.loadProducts());
+
     this.loadProducts();
+    this.loadTrending();
   }
 
   refreshAuthState() {
@@ -153,6 +159,14 @@ export class HomeComponent implements OnInit {
     this.cdr.detectChanges();
   }
 
+
+  loadTrending() {
+    this.productInsightService.trending(6).subscribe({
+      next: (res) => { this.trendingProducts = res; this.cdr.detectChanges(); },
+      error: () => undefined,
+    });
+  }
+
   loadProducts() {
     this.productUserService
       .searchProducts(
@@ -183,13 +197,17 @@ export class HomeComponent implements OnInit {
   }
 
   onSearchClick() {
+
     this.loadProducts();
+    this.loadTrending();
   }
 
   selectPriceRange(range: any) {
     this.selectedMinPrice = range.min;
     this.selectedMaxPrice = range.max;
+
     this.loadProducts();
+    this.loadTrending();
   }
 
   updatePagedProducts() {
@@ -713,7 +731,7 @@ export class HomeComponent implements OnInit {
   }
 
   isUser(): boolean {
-    return this.role === 'ROLE_USER' || this.role === 'USER';
+    return this.isLoggedIn();
   }
 
   isAdmin(): boolean {

@@ -69,7 +69,7 @@
     <div class="product-grid" role="list">
       <article class="product-card" role="listitem" *ngFor="let p of products; trackBy: trackByProductId">
         <div class="product-media" aria-hidden="true">
-          <!-- Nếu có ảnh từ DB thì dùng, không thì dùng ảnh placeholder từ Picsum -->
+          <!-- Use DB image first, otherwise fallback to Picsum placeholder -->
           <img
             *ngIf="p.image"
             [src]="buildProductImageSrc(p.image)"
@@ -301,7 +301,7 @@
     <section class="image-uploader" *ngIf="!isEdit" aria-label="Product images">
       <div class="image-head">
         <p class="image-title">Product images</p>
-        <!-- Đã cập nhật: giới hạn 1MB thay vì 5MB -->
+        <!-- Updated: 1MB limit -->
         <p class="image-sub">Max 1MB / image • JPG/PNG/WEBP</p>
       </div>
       <div class="image-rows">
@@ -363,7 +363,7 @@
     </div>
     <p class="muted" *ngIf="!imageModalLoading && productImages.length === 0">No images found for this product.</p>
     <div class="thumb-grid" *ngIf="!imageModalLoading">
-      <button class="thumb-card" type="button" *ngFor="let img of productImages"
+      <div class="thumb-card" *ngFor="let img of productImages"
               (click)="toggleSelectImage(img.id)"
               [class.is-selected]="img.id && selectedImageIds.has(img.id)">
         <span class="check" aria-hidden="true">
@@ -378,11 +378,12 @@
           <span *ngIf="!img.imageData" class="muted">No image</span>
         </span>
         <span class="thumb-meta">{{ img.contentType }}</span>
-      </button>
+        <button class="btn btn-ghost btn-small" type="button" (click)="makePrimaryImage(img, $event)" *ngIf="!img.isPrimary">Make primary</button>
+      </div>
     </div>
     <hr class="divider">
     <h4 class="subhead">Add new images</h4>
-    <!-- Đã cập nhật: giới hạn 1MB -->
+    <!-- Updated: 1MB limit -->
     <p class="form-hint">Max 1MB / image • JPG/PNG/WEBP</p>
     <div class="upload-row" *ngFor="let row of modalImageRows; let i = index">
       <div class="upload-file">

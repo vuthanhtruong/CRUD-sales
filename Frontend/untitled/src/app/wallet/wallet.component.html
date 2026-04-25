@@ -1,0 +1,38 @@
+<div class="commerce-page">
+  <section class="commerce-hero compact">
+    <div>
+      <p class="eyebrow">Wallet</p>
+      <h1>Fast checkout balance</h1>
+      <p>Top up your internal wallet, pay orders instantly, and keep a transparent transaction history.</p>
+    </div>
+    <div class="hero-stat">
+      <span>Available balance</span>
+      <strong>{{ wallet?.balance || 0 | number:'1.0-0' }}đ</strong>
+    </div>
+  </section>
+
+  <div class="commerce-grid two">
+    <section class="commerce-card">
+      <h2>Request top-up</h2>
+      <p class="muted">For real payment gateway handoff, connect a bank/VNPay/MoMo merchant adapter. This ledger is ready for verified balance approval.</p>
+      <label class="field"><span class="field-label">Amount</span><input class="input" type="number" min="1000" [(ngModel)]="amount"></label>
+      <label class="field"><span class="field-label">Transfer note</span><textarea class="input textarea" rows="3" [(ngModel)]="note" placeholder="Bank transfer reference, note, or admin instruction"></textarea></label>
+      <button class="btn btn-primary" type="button" (click)="requestTopUp()" [disabled]="submitting">{{ submitting ? 'Submitting...' : 'Submit top-up request' }}</button>
+      <p class="banner success" *ngIf="message">{{ message }}</p>
+      <p class="banner error" *ngIf="error">{{ error }}</p>
+    </section>
+
+    <section class="commerce-card">
+      <h2>Recent transactions</h2>
+      <p class="muted" *ngIf="loading">Loading wallet...</p>
+      <div class="transaction-list" *ngIf="!loading">
+        <article class="transaction-row" *ngFor="let tx of wallet?.transactions">
+          <div><strong>{{ tx.type }}</strong><span>{{ tx.description }}</span><small>{{ tx.createdAt | date:'medium' }}</small></div>
+          <div class="tx-amount" [class.negative]="tx.amount < 0">{{ tx.amount | number:'1.0-0' }}đ</div>
+          <span class="pill">{{ tx.topUpStatus }}</span>
+        </article>
+        <p class="muted" *ngIf="!wallet?.transactions?.length">No wallet activity yet.</p>
+      </div>
+    </section>
+  </div>
+</div>

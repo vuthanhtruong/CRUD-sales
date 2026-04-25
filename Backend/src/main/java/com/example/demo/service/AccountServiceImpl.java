@@ -73,6 +73,7 @@ public class AccountServiceImpl implements AccountService {
                 user.getLastName(),
                 user.getPhone(),
                 user.getEmail(),
+                user.getAvatarUrl(),
                 user.getAddress(),
                 user.getGender(),
                 user.getBirthday()
@@ -91,6 +92,7 @@ public class AccountServiceImpl implements AccountService {
         person.setLastName(profile.getLastName());
         person.setPhone(profile.getPhone());
         person.setEmail(profile.getEmail());
+        person.setAvatarUrl(profile.getAvatarUrl());
         person.setAddress(profile.getAddress());
         person.setGender(profile.getGender());
         person.setBirthday(profile.getBirthday());
@@ -103,6 +105,7 @@ public class AccountServiceImpl implements AccountService {
         user.setLastName(dto.getLastName());
         user.setPhone(dto.getPhone());
         user.setEmail(dto.getEmail());
+        user.setAvatarUrl(dto.getAvatarUrl());
         user.setAddress(dto.getAddress());
         user.setGender(dto.getGender());
         user.setBirthday(dto.getBirthday());
@@ -122,6 +125,7 @@ public class AccountServiceImpl implements AccountService {
                 user.getLastName(),
                 user.getPhone(),
                 user.getEmail(),
+                user.getAvatarUrl(),
                 user.getAddress(),
                 account.getUsername(),
                 null,
@@ -132,7 +136,7 @@ public class AccountServiceImpl implements AccountService {
 
     private void validateUnique(AccountDTO dto, String currentId) {
         if (accountDAO.getAccountByUsername(dto.getUsername()) != null) throw new RuntimeException("Username already exists");
-        validateProfileUnique(new ProfileDTO(dto.getUsername(), dto.getFirstName(), dto.getLastName(), dto.getPhone(), dto.getEmail(), dto.getAddress(), dto.getGender(), dto.getBirthday()), currentId);
+        validateProfileUnique(new ProfileDTO(dto.getUsername(), dto.getFirstName(), dto.getLastName(), dto.getPhone(), dto.getEmail(), dto.getAvatarUrl(), dto.getAddress(), dto.getGender(), dto.getBirthday()), currentId);
     }
 
     private void validateProfileUnique(ProfileDTO dto, String currentId) {

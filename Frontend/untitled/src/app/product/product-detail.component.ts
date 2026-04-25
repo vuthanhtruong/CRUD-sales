@@ -10,6 +10,8 @@ import { CartService, AddToCartRequestDTO } from '../services/cart.service';
 import { ProductVariantService, ProductVariantDTO } from '../services/product-variant.service';
 import { WishlistService } from '../services/wishlist.service';
 import { ProductReviewDTO, ReviewService, ReviewSummaryDTO } from '../services/review.service';
+import { ProductCommentDTO, ProductCommentService } from '../services/product-comment.service';
+import { ProductInsightService } from '../services/product-insight.service';
 
 type PopupType = 'success' | 'error' | 'info' | 'warning';
 
@@ -43,6 +45,10 @@ export class ProductDetailComponent implements OnInit {
   reviewSummary: ReviewSummaryDTO | null = null;
   reviewForm = { rating: 5, title: '', comment: '' };
   submittingReview = false;
+  comments: ProductCommentDTO[] = [];
+  commentForm = { content: '', parentId: null as string | null };
+  submittingComment = false;
+  viewCount: number | null = null;
 
   popup: { type: PopupType; title: string; message: string } | null = null;
 
@@ -53,6 +59,8 @@ export class ProductDetailComponent implements OnInit {
     private cartService: CartService,
     private wishlistService: WishlistService,
     private reviewService: ReviewService,
+    private commentService: ProductCommentService,
+    private insightService: ProductInsightService,
     private cdr: ChangeDetectorRef,
   ) {}
 
@@ -74,6 +82,7 @@ export class ProductDetailComponent implements OnInit {
       totalQuantity: this.productVariantService.getTotalQuantityByProductId(productId),
       reviews: this.reviewService.productReviews(productId),
       reviewSummary: this.reviewService.summary(productId),
+      comments: this.commentService.productThread(productId),
     }).subscribe({
       next: (res) => {
         this.product = res.product;
@@ -84,6 +93,8 @@ export class ProductDetailComponent implements OnInit {
         this.totalQuantity = res.totalQuantity ?? 0;
         this.reviews = res.reviews;
         this.reviewSummary = res.reviewSummary;
+        this.comments = res.comments;
+        this.insightService.recordView(productId).subscribe({ next: (m) => { this.viewCount = m.viewCount; this.cdr.detectChanges(); }, error: () => undefined });
         this.selectedImage = this.images.find((img) => img.isPrimary) ?? this.images[0] ?? null;
         this.loadWishlistStatus(productId);
         this.loading = false;
@@ -212,14 +223,27 @@ export class ProductDetailComponent implements OnInit {
       return;
     }
     const productId = this.product.productId;
-    const req = this.liked ? this.wishlistService.remove(productId) : this.wishlistService.add(productId);
-    req.subscribe({
-      next: () => {
-        this.liked = !this.liked;
-        this.wishlistCount += this.liked ? 1 : -1;
-        this.showPopup('success', this.liked ? 'Saved' : 'Removed', this.liked ? 'Product saved to wishlist.' : 'Product removed from wishlist.');
-        this.cdr.detectChanges();
-      },
+    const updateUi = (liked: boolean) => {
+      this.liked = liked;
+      this.wishlistCount = Math.max(0, this.wishlistCount + (liked ? 1 : -1));
+      this.showPopup(
+        'success',
+        liked ? 'Saved' : 'Removed',
+        liked ? 'Product saved to wishlist.' : 'Product removed from wishlist.'
+      );
+      this.cdr.detectChanges();
+    };
+
+    if (this.liked) {
+      this.wishlistService.remove(productId).subscribe({
+        next: () => updateUi(false),
+        error: () => this.showPopup('error', 'Wishlist failed', 'Could not update wishlist.'),
+      });
+      return;
+    }
+
+    this.wishlistService.add(productId).subscribe({
+      next: () => updateUi(true),
       error: () => this.showPopup('error', 'Wishlist failed', 'Could not update wishlist.'),
     });
   }
@@ -256,6 +280,54 @@ export class ProductDetailComponent implements OnInit {
     });
   }
 
+  submitComment(parentId: string | null = null) {
+    if (!this.product) return;
+    if (!this.isLoggedIn()) {
+      this.showPopup('warning', 'Login required', 'Please log in to join the product discussion.');
+      return;
+    }
+    const content = this.commentForm.content.trim();
+    if (!content) {
+      this.showPopup('warning', 'Comment required', 'Please write a comment.');
+      return;
+    }
+    this.submittingComment = true;
+    this.commentService.create({ productId: this.product.productId, parentId, content }).subscribe({
+      next: () => {
+        this.submittingComment = false;
+        this.commentForm = { content: '', parentId: null };
+        this.loadComments();
+        this.showPopup('success', 'Comment posted', 'Your comment is now visible in the discussion.');
+      },
+      error: () => {
+        this.submittingComment = false;
+        this.showPopup('error', 'Comment failed', 'Could not publish your comment.');
+      },
+    });
+  }
+
+  loadComments() {
+    if (!this.product) return;
+    this.commentService.productThread(this.product.productId).subscribe({
+      next: (comments) => { this.comments = comments; this.cdr.detectChanges(); },
+      error: () => undefined,
+    });
+  }
+
+  markHelpful(comment: ProductCommentDTO) {
+    if (!comment.id) return;
+    this.commentService.helpful(comment.id).subscribe({
+      next: (updated) => { comment.helpfulCount = updated.helpfulCount; this.cdr.detectChanges(); },
+      error: () => undefined,
+    });
+  }
+
+  setReplyTarget(comment: ProductCommentDTO | null) {
+    this.commentForm.parentId = comment?.id || null;
+    this.cdr.detectChanges();
+  }
+
+
   stars(n: number) {
     return '★'.repeat(n) + '☆'.repeat(5 - n);
   }
@@ -270,10 +342,14 @@ export class ProductDetailComponent implements OnInit {
       totalQuantity: this.productVariantService.getTotalQuantityByProductId(productId),
       reviews: this.reviewService.productReviews(productId),
       reviewSummary: this.reviewService.summary(productId),
+      comments: this.commentService.productThread(productId),
     }).subscribe({
       next: (res) => {
         this.variants = res.variants;
         this.totalQuantity = res.totalQuantity ?? 0;
+        this.reviews = res.reviews;
+        this.reviewSummary = res.reviewSummary;
+        this.comments = res.comments;
 
         const currentStock = this.selectedVariantQuantity;
         if (currentStock !== null && this.quantity > currentStock) {

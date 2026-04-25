@@ -8,7 +8,11 @@ import java.time.LocalDateTime;
 import java.util.List;
 
 @Entity
-@Table(name = "product")
+@Table(name = "product", indexes = {
+        @Index(name = "idx_product_status_created", columnList = "status, created_date"),
+        @Index(name = "idx_product_type_price", columnList = "product_type_id, price"),
+        @Index(name = "idx_product_name", columnList = "product_name")
+})
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
@@ -19,6 +23,7 @@ public class Product {
     @Id
     private String productId;
 
+    @Column(name = "product_name")
     private String productName;
 
     @Enumerated(EnumType.STRING)

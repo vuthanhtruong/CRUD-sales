@@ -344,3 +344,113 @@
 .review-card h3 { margin: 4px 0 6px; }
 .stars { color: #b45309; font-weight: 950; letter-spacing: .08em; }
 .admin-reply { margin-top: 10px; padding: 10px; border-radius: 12px; background: var(--primary-soft); color: var(--primary-2); }
+
+.discussion {
+  margin-top: 24px;
+  border: 1px solid var(--glass-border);
+  background: var(--glass);
+  border-radius: 30px;
+  box-shadow: var(--shadow);
+  padding: 22px;
+  backdrop-filter: blur(18px);
+}
+
+.comment-form {
+  display: grid;
+  grid-template-columns: 1fr auto;
+  gap: 12px;
+  align-items: end;
+  margin: 16px 0;
+  border: 1px solid var(--border);
+  background: rgba(255,255,255,.72);
+  border-radius: 22px;
+  padding: 14px;
+}
+
+.replying {
+  grid-column: 1 / -1;
+  margin: 0;
+  color: var(--muted);
+  font-weight: 850;
+}
+
+.comment-thread { display: grid; gap: 14px; }
+
+.comment-card {
+  border: 1px solid var(--border);
+  border-radius: 22px;
+  background: rgba(255,255,255,.78);
+  padding: 14px;
+}
+
+.comment-main {
+  display: grid;
+  grid-template-columns: 42px 1fr;
+  gap: 12px;
+  align-items: start;
+}
+
+.comment-main.reply {
+  grid-template-columns: 34px 1fr;
+}
+
+.comment-avatar {
+  width: 42px;
+  height: 42px;
+  border-radius: 15px;
+  display: grid;
+  place-items: center;
+  color: #fff;
+  background: linear-gradient(135deg, #4f46e5, #06b6d4);
+  font-weight: 950;
+  box-shadow: 0 10px 24px rgba(79,70,229,.25);
+}
+
+.comment-avatar.small {
+  width: 34px;
+  height: 34px;
+  border-radius: 12px;
+}
+
+.comment-content p {
+  margin: 8px 0 0;
+  white-space: pre-wrap;
+}
+
+.comment-meta {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  color: var(--muted);
+  font-size: 12px;
+}
+
+.comment-meta strong { color: var(--text); }
+
+.comment-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  margin-top: 10px;
+}
+
+.link-btn {
+  border: 0;
+  background: transparent;
+  color: var(--primary);
+  font-weight: 900;
+  padding: 0;
+}
+
+.comment-replies {
+  display: grid;
+  gap: 12px;
+  margin: 14px 0 0 54px;
+  padding-left: 14px;
+  border-left: 2px solid rgba(79,70,229,.18);
+}
+
+@media (max-width: 720px) {
+  .comment-form { grid-template-columns: 1fr; }
+  .comment-replies { margin-left: 0; }
+}

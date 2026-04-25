@@ -35,6 +35,16 @@
     </div>
   </header>
 
+
+  <section class="trending-strip" *ngIf="trendingProducts.length > 0" aria-label="Trending products">
+    <div class="strip-head"><p class="eyebrow"><i class="bi bi-graph-up-arrow"></i> Live demand</p><h2>Trending now</h2></div>
+    <div class="trend-list">
+      <a class="trend-card" *ngFor="let t of trendingProducts" [routerLink]="['/product', t.productId]">
+        <div class="trend-img"><img *ngIf="t.image" [src]="buildImageSrc(t.image)" alt="Trending product"><span *ngIf="!t.image"><i class="bi bi-box-seam"></i></span></div>
+        <div><strong>{{ t.productName }}</strong><p>{{ t.price | number:'1.0-0' }}đ · {{ t.viewCount }} view(s)</p></div>
+      </a>
+    </div>
+  </section>
   <section class="search" aria-label="Search products">
     <div class="search-row">
       <label class="field search-field">
@@ -331,6 +341,7 @@
               <option value="COD">COD</option>
               <option value="BANK_TRANSFER">Bank transfer</option>
               <option value="CARD">Card</option>
+              <option value="WALLET">Wallet balance</option>
             </select>
           </label>
           <label class="field">

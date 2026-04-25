@@ -10,6 +10,7 @@ export interface ProfileDTO {
   lastName: string;
   phone: string;
   email: string;
+  avatarUrl?: string;
   address: string;
   gender: Gender;
   birthday: string;

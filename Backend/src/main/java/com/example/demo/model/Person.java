@@ -23,6 +23,10 @@ public class Person {
     private String address;
     private String email;
 
+    @Lob
+    @Column(name = "avatar_url", columnDefinition = "LONGTEXT")
+    private String avatarUrl;
+
     @Enumerated(EnumType.STRING)
     private Gender gender;
 

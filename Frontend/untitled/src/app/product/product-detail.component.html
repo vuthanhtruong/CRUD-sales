@@ -213,6 +213,53 @@
     <p class="muted not-found" *ngIf="reviews.length === 0">No approved reviews yet.</p>
   </section>
 
+
+  <section class="discussion" *ngIf="!loading && product">
+    <div class="reviews-head">
+      <div>
+        <p class="eyebrow"><i class="bi bi-chat-heart"></i> Product discussion</p>
+        <h2>Comments, replies and community Q&A</h2>
+        <p class="muted">Ask questions, reply to other shoppers, and mark useful comments.</p>
+      </div>
+      <div class="review-score" *ngIf="viewCount !== null">
+        <strong>{{ viewCount }}</strong>
+        <span>view(s)</span>
+      </div>
+    </div>
+
+    <div class="comment-form">
+      <p class="replying" *ngIf="commentForm.parentId">Replying to a comment <button class="link-btn" type="button" (click)="setReplyTarget(null)">Cancel reply</button></p>
+      <textarea class="textarea" rows="3" [(ngModel)]="commentForm.content" placeholder="Ask about fit, material, shipping, or share a quick tip..."></textarea>
+      <button class="btn btn-primary" type="button" (click)="submitComment(commentForm.parentId)" [disabled]="submittingComment"><i class="bi bi-chat-dots"></i> Post comment</button>
+    </div>
+
+    <div class="comment-thread" *ngIf="comments.length > 0">
+      <article class="comment-card" *ngFor="let c of comments">
+        <div class="comment-main">
+          <div class="comment-avatar">{{ (c.customerName || c.username || 'U').slice(0,1) }}</div>
+          <div class="comment-content">
+            <div class="comment-meta"><strong>{{ c.customerName || c.username || 'Customer' }}</strong><span>{{ c.createdAt | date:'medium' }}</span></div>
+            <p>{{ c.content }}</p>
+            <div class="comment-actions">
+              <button class="link-btn" type="button" (click)="setReplyTarget(c)"><i class="bi bi-reply"></i> Reply</button>
+              <button class="link-btn" type="button" (click)="markHelpful(c)"><i class="bi bi-hand-thumbs-up"></i> Helpful {{ c.helpfulCount || 0 }}</button>
+            </div>
+          </div>
+        </div>
+        <div class="comment-replies" *ngIf="c.replies && c.replies.length > 0">
+          <article class="comment-main reply" *ngFor="let r of c.replies">
+            <div class="comment-avatar small">{{ (r.customerName || r.username || 'U').slice(0,1) }}</div>
+            <div class="comment-content">
+              <div class="comment-meta"><strong>{{ r.customerName || r.username || 'Customer' }}</strong><span>{{ r.createdAt | date:'medium' }}</span></div>
+              <p>{{ r.content }}</p>
+              <div class="comment-actions"><button class="link-btn" type="button" (click)="markHelpful(r)"><i class="bi bi-hand-thumbs-up"></i> Helpful {{ r.helpfulCount || 0 }}</button></div>
+            </div>
+          </article>
+        </div>
+      </article>
+    </div>
+    <p class="muted not-found" *ngIf="comments.length === 0">No discussion yet. Be the first to comment.</p>
+  </section>
   <p class="muted not-found" *ngIf="!loading && !product">Product not found.</p>
 
   <div class="modal" *ngIf="popup" role="dialog" aria-modal="true">

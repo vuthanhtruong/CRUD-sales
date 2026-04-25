@@ -12,40 +12,29 @@ import java.util.List;
 @Transactional
 public class ProductImageDAOImpl implements ProductImageDAO {
 
+    @PersistenceContext
+    private EntityManager entityManager;
+
     @Override
     public void deleteImagesByIds(List<String> ids) {
-
-        if (ids == null || ids.isEmpty()) {
-            return;
-        }
-
-        String jpql = "DELETE FROM ProductImage i WHERE i.id IN :ids";
-
-        entityManager.createQuery(jpql)
+        if (ids == null || ids.isEmpty()) return;
+        entityManager.createQuery("DELETE FROM ProductImage i WHERE i.id IN :ids")
                 .setParameter("ids", ids)
                 .executeUpdate();
     }
 
     @Override
     public void createBatch(List<ProductImage> images) {
-
         if (images == null || images.isEmpty()) return;
-
-        int batchSize = 20; // tối ưu performance
-
+        int batchSize = 20;
         for (int i = 0; i < images.size(); i++) {
             entityManager.persist(images.get(i));
-
-            // batch insert để tránh memory overflow
             if (i > 0 && i % batchSize == 0) {
                 entityManager.flush();
                 entityManager.clear();
             }
         }
     }
-
-    @PersistenceContext
-    private EntityManager entityManager;
 
     @Override
     public void create(ProductImage image) {
@@ -54,10 +43,7 @@ public class ProductImageDAOImpl implements ProductImageDAO {
 
     @Override
     public void delete(ProductImage image) {
-        ProductImage managed = entityManager.contains(image)
-                ? image
-                : entityManager.merge(image);
-
+        ProductImage managed = entityManager.contains(image) ? image : entityManager.merge(image);
         entityManager.remove(managed);
     }
 
@@ -68,18 +54,32 @@ public class ProductImageDAOImpl implements ProductImageDAO {
 
     @Override
     public List<ProductImage> findByProductId(String productId) {
-        String jpql = "SELECT i FROM ProductImage i WHERE i.product.productId = :productId";
-
-        return entityManager.createQuery(jpql, ProductImage.class)
+        return entityManager.createQuery(
+                        "SELECT i FROM ProductImage i WHERE i.product.productId = :productId ORDER BY i.isPrimary DESC, i.id ASC",
+                        ProductImage.class)
                 .setParameter("productId", productId)
                 .getResultList();
     }
 
     @Override
     public void deleteByProductId(String productId) {
-        String jpql = "DELETE FROM ProductImage i WHERE i.product.productId = :productId";
+        entityManager.createQuery("DELETE FROM ProductImage i WHERE i.product.productId = :productId")
+                .setParameter("productId", productId)
+                .executeUpdate();
+    }
 
-        entityManager.createQuery(jpql)
+    @Override
+    public void setPrimary(String imageId) {
+        ProductImage image = findById(imageId);
+        if (image == null || image.getProduct() == null) throw new RuntimeException("Image not found");
+        clearPrimary(image.getProduct().getProductId());
+        image.setPrimary(true);
+        entityManager.merge(image);
+    }
+
+    @Override
+    public void clearPrimary(String productId) {
+        entityManager.createQuery("UPDATE ProductImage i SET i.isPrimary = false WHERE i.product.productId = :productId")
                 .setParameter("productId", productId)
                 .executeUpdate();
     }

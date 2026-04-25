@@ -16,4 +16,5 @@ public interface AccountDAO {
     Account getProfileByUsername(String username);
     void updateProfile(String username, Person updatedPerson);
     Person getCurrentUser();
+    void updatePassword(String accountId, String encodedPassword);
 }

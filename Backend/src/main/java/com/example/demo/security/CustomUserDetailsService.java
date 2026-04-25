@@ -1,11 +1,14 @@
 package com.example.demo.security;
 
 import com.example.demo.model.Account;
+import com.example.demo.model.Admin;
+import com.example.demo.model.User;
 import com.example.demo.repository.AccountDAO;
+import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.*;
 import org.springframework.stereotype.Service;
 
-import java.util.Collections;
+import java.util.List;
 
 @Service
 public class CustomUserDetailsService implements UserDetailsService {
@@ -28,10 +31,22 @@ public class CustomUserDetailsService implements UserDetailsService {
     }
 
     public UserDetails toUserDetails(Account acc) {
+        if (acc == null) {
+            throw new UsernameNotFoundException("User not found");
+        }
+
+        String role = "ROLE_USER";
+
+        if (acc.getUser() instanceof Admin) {
+            role = "ROLE_ADMIN";
+        } else if (acc.getUser() instanceof User) {
+            role = "ROLE_USER";
+        }
+
         return new org.springframework.security.core.userdetails.User(
                 acc.getUsername(),
                 acc.getPassword(),
-                Collections.emptyList()
+                List.of(new SimpleGrantedAuthority(role))
         );
     }
 

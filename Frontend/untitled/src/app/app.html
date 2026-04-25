@@ -1,101 +1,80 @@
-<div class="root">
-  <header class="site-header" role="banner">
-    <div class="wrap header-inner">
-      <a class="brand" routerLink="/home" aria-label="Go to homepage">
-        <i class="bi bi-bag-heart-fill" aria-hidden="true"></i>
-        <span class="brand-name">CRUD Sales</span>
-      </a>
+<div class="app-shell">
+  <header class="topbar">
+    <a class="brand-mark" routerLink="/home" aria-label="Aster Store home">
+      <span class="brand-orb">A</span>
+      <span><strong>Aster Store</strong><small>Premium commerce suite</small></span>
+    </a>
 
-      <nav class="nav" aria-label="Primary navigation">
-        <a class="nav-link" routerLink="/home" routerLinkActive="is-active"><i class="bi bi-house-door"></i> Home</a>
-        <a class="nav-link" *ngIf="isLoggedIn()" routerLink="/profile" routerLinkActive="is-active"><i class="bi bi-person-circle"></i> Profile</a>
-        <a class="nav-link" *ngIf="isUser()" routerLink="/orders" routerLinkActive="is-active"><i class="bi bi-receipt"></i> My orders</a>
-        <a class="nav-link" *ngIf="isUser()" routerLink="/wishlist" routerLinkActive="is-active"><i class="bi bi-heart"></i> Wishlist</a>
-        <a class="nav-link" *ngIf="isUser()" routerLink="/addresses" routerLinkActive="is-active"><i class="bi bi-geo-alt"></i> Addresses</a>
-        <a class="nav-link" *ngIf="isUser()" routerLink="/notifications" routerLinkActive="is-active"><i class="bi bi-bell"></i> Alerts</a>
-        <a class="nav-link" *ngIf="isAdmin()" routerLink="/admin" routerLinkActive="is-active"><i class="bi bi-speedometer2"></i> Admin</a>
-        <a class="nav-link" *ngIf="isAdmin()" routerLink="/admin/orders" routerLinkActive="is-active"><i class="bi bi-clipboard-check"></i> Orders</a>
-        <a class="nav-link" *ngIf="isAdmin()" routerLink="/admin/coupons" routerLinkActive="is-active"><i class="bi bi-ticket-perforated"></i> Coupons</a>
-        <a class="nav-link" *ngIf="isAdmin()" routerLink="/admin/reviews" routerLinkActive="is-active"><i class="bi bi-star"></i> Reviews</a>
-        <a class="nav-link" *ngIf="isAdmin()" routerLink="/products" routerLinkActive="is-active"><i class="bi bi-box-seam"></i> Products</a>
-        <a class="nav-link" *ngIf="isAdmin()" routerLink="/product-types" routerLinkActive="is-active"><i class="bi bi-diagram-3"></i> Types</a>
-        <a class="nav-link" *ngIf="isAdmin()" routerLink="/sizes" routerLinkActive="is-active"><i class="bi bi-rulers"></i> Sizes</a>
-        <a class="nav-link" *ngIf="isAdmin()" routerLink="/colors" routerLinkActive="is-active"><i class="bi bi-palette"></i> Colors</a>
-      </nav>
+    <button class="menu-toggle" type="button" (click)="toggleMobileMenu()" aria-label="Toggle menu">☰</button>
 
-      <div class="header-actions">
-        <ng-container *ngIf="!isLoggedIn(); else signedInHeader">
-          <button class="btn btn-ghost btn-small desktop-auth" type="button" (click)="openRegister()">Register</button>
-          <button class="btn btn-primary btn-small desktop-auth" type="button" (click)="openLogin()">Login</button>
-        </ng-container>
+    <nav class="nav-rail" [class.open]="isMobileMenuOpen">
+      <a routerLink="/home" routerLinkActive="active" (click)="closeMobileMenu()">Storefront</a>
+      <a *ngIf="isShopper()" routerLink="/orders" routerLinkActive="active" (click)="closeMobileMenu()">Orders</a>
+      <a *ngIf="isShopper()" routerLink="/wishlist" routerLinkActive="active" (click)="closeMobileMenu()">Wishlist</a>
+      <a *ngIf="isShopper()" routerLink="/wallet" routerLinkActive="active" (click)="closeMobileMenu()">Wallet</a>
+      <a *ngIf="isShopper()" routerLink="/addresses" routerLinkActive="active" (click)="closeMobileMenu()">Addresses</a>
+      <a *ngIf="isShopper()" routerLink="/support" routerLinkActive="active" (click)="closeMobileMenu()">Support</a>
+      <a *ngIf="isAdmin()" routerLink="/admin" routerLinkActive="active" (click)="closeMobileMenu()">Command</a>
+      <a *ngIf="isAdmin()" routerLink="/products" routerLinkActive="active" (click)="closeMobileMenu()">Products</a>
+      <a *ngIf="isAdmin()" routerLink="/admin/orders" routerLinkActive="active" (click)="closeMobileMenu()">Fulfillment</a>
+      <a *ngIf="isAdmin()" routerLink="/admin/wallet" routerLinkActive="active" (click)="closeMobileMenu()">Finance</a>
+    </nav>
 
-        <ng-template #signedInHeader>
-          <div class="user-chip desktop-auth"><i class="bi bi-person-check"></i><span>{{ currentUser }}</span></div>
-          <button class="btn btn-ghost btn-small desktop-auth" type="button" (click)="logout()">Logout</button>
-        </ng-template>
-
-        <button class="icon-btn menu-btn" type="button" (click)="toggleMobileMenu()" aria-label="Open menu">
-          <i class="bi" [class.bi-list]="!isMobileMenuOpen" [class.bi-x-lg]="isMobileMenuOpen" aria-hidden="true"></i>
-        </button>
-      </div>
-    </div>
-
-    <div class="mobile-nav" *ngIf="isMobileMenuOpen" role="navigation" aria-label="Mobile navigation">
-      <div class="wrap mobile-nav-inner">
-        <a class="mobile-link" routerLink="/home" (click)="closeMobileMenu()"><i class="bi bi-house-door"></i> Home</a>
-        <a class="mobile-link" *ngIf="isLoggedIn()" routerLink="/profile" (click)="closeMobileMenu()"><i class="bi bi-person-circle"></i> Profile</a>
-        <a class="mobile-link" *ngIf="isUser()" routerLink="/orders" (click)="closeMobileMenu()"><i class="bi bi-receipt"></i> My orders</a>
-        <a class="mobile-link" *ngIf="isUser()" routerLink="/wishlist" (click)="closeMobileMenu()"><i class="bi bi-heart"></i> Wishlist</a>
-        <a class="mobile-link" *ngIf="isUser()" routerLink="/addresses" (click)="closeMobileMenu()"><i class="bi bi-geo-alt"></i> Addresses</a>
-        <a class="mobile-link" *ngIf="isUser()" routerLink="/notifications" (click)="closeMobileMenu()"><i class="bi bi-bell"></i> Notifications</a>
-        <a class="mobile-link" *ngIf="isAdmin()" routerLink="/admin" (click)="closeMobileMenu()"><i class="bi bi-speedometer2"></i> Admin</a>
-        <a class="mobile-link" *ngIf="isAdmin()" routerLink="/admin/orders" (click)="closeMobileMenu()"><i class="bi bi-clipboard-check"></i> Orders</a>
-        <a class="mobile-link" *ngIf="isAdmin()" routerLink="/admin/coupons" (click)="closeMobileMenu()"><i class="bi bi-ticket-perforated"></i> Coupons</a>
-        <a class="mobile-link" *ngIf="isAdmin()" routerLink="/admin/reviews" (click)="closeMobileMenu()"><i class="bi bi-star"></i> Reviews</a>
-        <a class="mobile-link" *ngIf="isAdmin()" routerLink="/products" (click)="closeMobileMenu()"><i class="bi bi-box-seam"></i> Products</a>
-        <a class="mobile-link" *ngIf="isAdmin()" routerLink="/product-types" (click)="closeMobileMenu()"><i class="bi bi-diagram-3"></i> Product Types</a>
-        <a class="mobile-link" *ngIf="isAdmin()" routerLink="/sizes" (click)="closeMobileMenu()"><i class="bi bi-rulers"></i> Sizes</a>
-        <a class="mobile-link" *ngIf="isAdmin()" routerLink="/colors" (click)="closeMobileMenu()"><i class="bi bi-palette"></i> Colors</a>
-        <button class="mobile-link as-button" *ngIf="!isLoggedIn()" type="button" (click)="openRegister()"><i class="bi bi-person-plus"></i> Register</button>
-        <button class="mobile-link as-button" *ngIf="!isLoggedIn()" type="button" (click)="openLogin()"><i class="bi bi-box-arrow-in-right"></i> Login</button>
-        <button class="mobile-link as-button" *ngIf="isLoggedIn()" type="button" (click)="logout()"><i class="bi bi-box-arrow-right"></i> Logout</button>
-      </div>
+    <div class="account-zone">
+      <button *ngIf="!isLoggedIn()" class="btn btn-ghost btn-small" type="button" (click)="openRegister()">Create account</button>
+      <button *ngIf="!isLoggedIn()" class="btn btn-primary btn-small" type="button" (click)="openLogin()">Sign in</button>
+      <a *ngIf="isLoggedIn()" class="avatar-chip" routerLink="/profile" title="Profile"><span>{{ initials }}</span><strong>{{ currentUser }}</strong></a>
+      <button *ngIf="isLoggedIn()" class="btn btn-ghost btn-small" type="button" (click)="logout()">Sign out</button>
     </div>
   </header>
 
-  <main class="main" role="main"><router-outlet /></main>
+  <main class="main-stage"><router-outlet /></main>
 
-  <footer class="site-footer" role="contentinfo">
-    <div class="wrap footer-bottom"><p class="muted">© {{ currentYear }} CRUD Sales. Product, variant, inventory, cart and order workflows.</p></div>
-  </footer>
+  <footer class="footer"><span>© {{ currentYear }} Aster Store.</span><span>Commerce, wallet, reviews, comments, support and admin operations.</span></footer>
 
-  <div class="modal" *ngIf="showLogin || showRegister" role="dialog" aria-modal="true">
-    <div class="modal-backdrop" (click)="closeAuthPopup()" aria-hidden="true"></div>
+  <div class="modal" *ngIf="showLogin || showRegister || showForgot || showReset" role="dialog" aria-modal="true">
+    <div class="modal-backdrop" (click)="closeAuthPopup()"></div>
     <div class="modal-card auth-card">
       <div class="modal-head">
         <div>
-          <p class="eyebrow"><i class="bi" [ngClass]="showRegister ? 'bi-person-plus' : 'bi-shield-lock'"></i> Account access</p>
-          <h2 class="modal-title">{{ showRegister ? 'Create your account' : 'Welcome back' }}</h2>
+          <p class="eyebrow">Secure access</p>
+          <h2 *ngIf="showLogin">Sign in to continue</h2>
+          <h2 *ngIf="showRegister">Create customer account</h2>
+          <h2 *ngIf="showForgot">Recover password</h2>
+          <h2 *ngIf="showReset">Set a new password</h2>
         </div>
-        <button class="icon-btn" type="button" (click)="closeAuthPopup()" aria-label="Close"><i class="bi bi-x-lg"></i></button>
+        <button class="icon-btn" type="button" (click)="closeAuthPopup()">×</button>
       </div>
 
       <form *ngIf="showLogin" class="auth-form" [formGroup]="loginForm" (ngSubmit)="submitLogin()">
-        <label class="field"><span class="field-label">Username</span><input class="input" formControlName="username" placeholder="Username"></label>
-        <label class="field"><span class="field-label">Password</span><input class="input" type="password" formControlName="password" placeholder="Password"></label>
-        <div class="modal-actions"><button class="btn btn-ghost" type="button" (click)="closeAuthPopup()">Cancel</button><button class="btn btn-primary" type="submit">Login</button></div>
+        <label class="field"><span class="field-label">Username</span><input class="input" formControlName="username" autocomplete="username"></label>
+        <label class="field"><span class="field-label">Password</span><input class="input" type="password" formControlName="password" autocomplete="current-password"></label>
+        <button class="link-button" type="button" (click)="openForgot()">Forgot password?</button>
+        <div class="modal-actions"><button class="btn btn-ghost" type="button" (click)="closeAuthPopup()">Cancel</button><button class="btn btn-primary" type="submit">Sign in</button></div>
+      </form>
+
+      <form *ngIf="showForgot" class="auth-form" [formGroup]="forgotForm" (ngSubmit)="submitForgot()">
+        <p class="muted">Enter the email you used during registration. Gmail SMTP will send a reset link.</p>
+        <label class="field"><span class="field-label">Email</span><input class="input" formControlName="email" type="email" autocomplete="email"></label>
+        <div class="modal-actions"><button class="btn btn-ghost" type="button" (click)="openLogin()">Back</button><button class="btn btn-primary" type="submit" [disabled]="forgotSubmitting">{{ forgotSubmitting ? 'Sending...' : 'Send reset email' }}</button></div>
+      </form>
+
+      <form *ngIf="showReset" class="auth-form" [formGroup]="resetForm" (ngSubmit)="submitReset()">
+        <label class="field"><span class="field-label">Reset token</span><input class="input" formControlName="token"></label>
+        <label class="field"><span class="field-label">New password</span><input class="input" type="password" formControlName="newPassword"></label>
+        <div class="modal-actions"><button class="btn btn-ghost" type="button" (click)="closeAuthPopup()">Cancel</button><button class="btn btn-primary" type="submit" [disabled]="resetSubmitting">{{ resetSubmitting ? 'Saving...' : 'Update password' }}</button></div>
       </form>
 
       <form *ngIf="showRegister" class="auth-form" [formGroup]="registerForm" (ngSubmit)="submitRegister()" novalidate>
         <div class="auth-grid">
-          <label class="field" [class.field-error]="regFieldInvalid('firstName')"><span class="field-label">First name <span class="req">*</span></span><input class="input" formControlName="firstName" placeholder="First name"><span class="field-err-msg" *ngIf="regFieldInvalid('firstName')">{{ regFieldError('firstName') }}</span></label>
-          <label class="field" [class.field-error]="regFieldInvalid('lastName')"><span class="field-label">Last name <span class="req">*</span></span><input class="input" formControlName="lastName" placeholder="Last name"><span class="field-err-msg" *ngIf="regFieldInvalid('lastName')">{{ regFieldError('lastName') }}</span></label>
-          <label class="field" [class.field-error]="regFieldInvalid('phone')"><span class="field-label">Phone <span class="req">*</span></span><input class="input" formControlName="phone" placeholder="0xxxxxxxxx"><span class="field-err-msg" *ngIf="regFieldInvalid('phone')">{{ regFieldError('phone') }}</span></label>
-          <label class="field" [class.field-error]="regFieldInvalid('email')"><span class="field-label">Email <span class="req">*</span></span><input class="input" type="email" formControlName="email" placeholder="you@example.com"><span class="field-err-msg" *ngIf="regFieldInvalid('email')">{{ regFieldError('email') }}</span></label>
-          <label class="field field-full" [class.field-error]="regFieldInvalid('address')"><span class="field-label">Address <span class="req">*</span></span><input class="input" formControlName="address" placeholder="Street, city…"><span class="field-err-msg" *ngIf="regFieldInvalid('address')">{{ regFieldError('address') }}</span></label>
-          <label class="field" [class.field-error]="regFieldInvalid('username')"><span class="field-label">Username <span class="req">*</span></span><input class="input" formControlName="username" placeholder="letters, numbers, _"><span class="field-err-msg" *ngIf="regFieldInvalid('username')">{{ regFieldError('username') }}</span></label>
-          <label class="field" [class.field-error]="regFieldInvalid('password')"><span class="field-label">Password <span class="req">*</span></span><input class="input" type="password" formControlName="password" placeholder="Min 6 characters"><span class="field-err-msg" *ngIf="regFieldInvalid('password')">{{ regFieldError('password') }}</span></label>
-          <label class="field" [class.field-error]="!!confirmPasswordError"><span class="field-label">Confirm password <span class="req">*</span></span><input class="input" type="password" formControlName="confirmPassword" placeholder="Re-enter password"><span class="field-err-msg" *ngIf="confirmPasswordError">{{ confirmPasswordError }}</span></label>
+          <label class="field" [class.field-error]="regFieldInvalid('firstName')"><span class="field-label">First name</span><input class="input" formControlName="firstName"><span class="field-err-msg" *ngIf="regFieldInvalid('firstName')">{{ regFieldError('firstName') }}</span></label>
+          <label class="field" [class.field-error]="regFieldInvalid('lastName')"><span class="field-label">Last name</span><input class="input" formControlName="lastName"><span class="field-err-msg" *ngIf="regFieldInvalid('lastName')">{{ regFieldError('lastName') }}</span></label>
+          <label class="field" [class.field-error]="regFieldInvalid('email')"><span class="field-label">Email</span><input class="input" type="email" formControlName="email"><span class="field-err-msg" *ngIf="regFieldInvalid('email')">{{ regFieldError('email') }}</span></label>
+          <label class="field" [class.field-error]="regFieldInvalid('phone')"><span class="field-label">Phone</span><input class="input" formControlName="phone"><span class="field-err-msg" *ngIf="regFieldInvalid('phone')">{{ regFieldError('phone') }}</span></label>
+          <label class="field field-full" [class.field-error]="regFieldInvalid('address')"><span class="field-label">Shipping address</span><input class="input" formControlName="address"><span class="field-err-msg" *ngIf="regFieldInvalid('address')">{{ regFieldError('address') }}</span></label>
+          <label class="field" [class.field-error]="regFieldInvalid('username')"><span class="field-label">Username</span><input class="input" formControlName="username"><span class="field-err-msg" *ngIf="regFieldInvalid('username')">{{ regFieldError('username') }}</span></label>
+          <label class="field" [class.field-error]="regFieldInvalid('password')"><span class="field-label">Password</span><input class="input" type="password" formControlName="password"><span class="field-err-msg" *ngIf="regFieldInvalid('password')">{{ regFieldError('password') }}</span></label>
+          <label class="field" [class.field-error]="!!confirmPasswordError"><span class="field-label">Confirm password</span><input class="input" type="password" formControlName="confirmPassword"><span class="field-err-msg" *ngIf="confirmPasswordError">{{ confirmPasswordError }}</span></label>
           <label class="field"><span class="field-label">Gender</span><select class="input" formControlName="gender"><option value="MALE">Male</option><option value="FEMALE">Female</option></select></label>
           <label class="field"><span class="field-label">Birthday</span><input class="input" type="date" formControlName="birthday"></label>
         </div>
@@ -105,12 +84,7 @@
   </div>
 
   <div class="modal" *ngIf="popup" role="dialog" aria-modal="true">
-    <div class="modal-backdrop" (click)="closePopup()" aria-hidden="true"></div>
-    <div class="modal-card popup-card">
-      <div class="popup-icon" [ngClass]="popup.type"><i class="bi" [ngClass]="{'bi-check2-circle': popup.type === 'success', 'bi-x-circle': popup.type === 'error', 'bi-info-circle': popup.type === 'info'}"></i></div>
-      <h2 class="popup-title">{{ popup.title }}</h2>
-      <p class="popup-message">{{ popup.message }}</p>
-      <div class="modal-actions center"><button class="btn btn-primary" type="button" (click)="closePopup()">OK</button></div>
-    </div>
+    <div class="modal-backdrop" (click)="closePopup()"></div>
+    <div class="modal-card popup-card"><div class="popup-icon" [ngClass]="popup.type">{{ popup.type === 'success' ? '✓' : popup.type === 'error' ? '!' : 'i' }}</div><h2>{{ popup.title }}</h2><p>{{ popup.message }}</p><div class="modal-actions center"><button class="btn btn-primary" type="button" (click)="closePopup()">OK</button></div></div>
   </div>
 </div>

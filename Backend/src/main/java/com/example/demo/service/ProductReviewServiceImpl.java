@@ -84,7 +84,7 @@ public class ProductReviewServiceImpl implements ProductReviewService {
         Person user = currentUser();
         String role = accountDAO.getCurrentAccountRole(accountDAO.getCurrentAccountUsername());
         if (!"ADMIN".equals(role) && (review.getUser() == null || !user.getId().equals(review.getUser().getId()))) {
-            throw new RuntimeException("Bạn không có quyền xoá đánh giá này");
+            throw new RuntimeException("You cannot delete this review");
         }
         reviewDAO.delete(id);
     }
