@@ -1,0 +1,24 @@
+<div class="wrap page-shell">
+  <section class="hero">
+    <div><p class="eyebrow"><i class="bi bi-heart"></i> Wishlist</p><h1>Saved products</h1><p>Keep products you like, compare them later, and jump back to details in one click.</p></div>
+    <a class="btn btn-primary" routerLink="/home"><i class="bi bi-bag"></i> Continue shopping</a>
+  </section>
+
+  <section class="panel">
+    <div class="toolbar"><h2>My wishlist</h2><span class="badge">{{ items.length }} item(s)</span></div>
+    <p class="empty" *ngIf="loading">Loading wishlist…</p>
+    <p class="empty" *ngIf="!loading && items.length === 0">No saved products yet.</p>
+    <div class="grid" *ngIf="!loading && items.length > 0">
+      <article class="card" *ngFor="let item of items">
+        <img class="product-thumb" [src]="img(item.image)" [alt]="item.productName">
+        <h3>{{ item.productName }}</h3>
+        <p class="meta">Saved {{ item.createdAt | date:'medium' }}</p>
+        <p><strong>{{ item.price | number:'1.0-0' }}đ</strong></p>
+        <div class="actions">
+          <a class="btn btn-primary btn-small" [routerLink]="['/product', item.productId]"><i class="bi bi-eye"></i> View</a>
+          <button class="btn btn-ghost btn-small danger" type="button" (click)="remove(item.productId)"><i class="bi bi-trash"></i> Remove</button>
+        </div>
+      </article>
+    </div>
+  </section>
+</div>

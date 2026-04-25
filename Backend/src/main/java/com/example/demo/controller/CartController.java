@@ -5,6 +5,7 @@ import com.example.demo.dto.AddToCartRequestDTO;
 import com.example.demo.dto.CartItemDTO;
 import com.example.demo.service.CartItemService;
 import com.example.demo.service.CartService;
+import jakarta.validation.Valid;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -76,7 +77,7 @@ public class CartController {
 
     // ================= ADD TO CART =================
     @PostMapping("/add")
-    public ResponseEntity<String> addToCart(@RequestBody AddToCartRequestDTO request) {
+    public ResponseEntity<String> addToCart(@RequestBody  AddToCartRequestDTO request) {
         try {
             cartItemService.create(request);
             return ResponseEntity.ok("Added to cart successfully");

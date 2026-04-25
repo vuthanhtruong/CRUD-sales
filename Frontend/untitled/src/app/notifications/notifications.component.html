@@ -1,0 +1,14 @@
+<div class="wrap page-shell">
+  <section class="hero"><div><p class="eyebrow"><i class="bi bi-bell"></i> Notifications</p><h1>Activity inbox</h1><p>Track order updates, checkout confirmations, and future system messages.</p></div><button class="btn btn-primary" (click)="markAll()">Mark all read</button></section>
+  <section class="panel">
+    <p class="empty" *ngIf="loading">Loading notifications…</p>
+    <p class="empty" *ngIf="!loading && notifications.length === 0">No notifications yet.</p>
+    <div class="grid" *ngIf="!loading">
+      <article class="card" *ngFor="let n of notifications" [style.opacity]="n.read ? .72 : 1">
+        <div class="badge-line"><span class="badge">{{ n.type || 'INFO' }}</span><span class="status APPROVED" *ngIf="!n.read">New</span></div>
+        <h3>{{ n.title }}</h3><p>{{ n.message }}</p><p class="meta">{{ n.createdAt | date:'medium' }}</p>
+        <div class="actions"><a class="btn btn-primary btn-small" *ngIf="n.targetUrl" [routerLink]="n.targetUrl">Open</a><button class="btn btn-ghost btn-small" *ngIf="!n.read" (click)="markRead(n)">Mark read</button></div>
+      </article>
+    </div>
+  </section>
+</div>

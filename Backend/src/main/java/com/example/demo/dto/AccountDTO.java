@@ -6,7 +6,6 @@ import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
-
 import java.time.LocalDate;
 
 @NoArgsConstructor
@@ -14,7 +13,6 @@ import java.time.LocalDate;
 @Getter
 @Setter
 public class AccountDTO {
-
     @NotBlank(message = "First name must not be blank")
     @Size(max = 50, message = "First name must be <= 50 characters")
     private String firstName;
@@ -24,11 +22,13 @@ public class AccountDTO {
     private String lastName;
 
     @NotBlank(message = "Phone must not be blank")
-    @Pattern(
-            regexp = "^(0|\\+84)[0-9]{9}$",
-            message = "Phone number is invalid (Vietnam format)"
-    )
+    @Pattern(regexp = "^(0|\\+84)[0-9]{9}$", message = "Phone number is invalid (Vietnam format)")
     private String phone;
+
+    @NotBlank(message = "Email must not be blank")
+    @Email(message = "Email is invalid")
+    @Size(max = 120, message = "Email too long")
+    private String email;
 
     @NotBlank(message = "Address must not be blank")
     @Size(max = 255, message = "Address too long")

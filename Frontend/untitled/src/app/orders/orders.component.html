@@ -1,0 +1,64 @@
+<div class="wrap orders-page">
+  <div class="orders-top">
+    <a class="btn btn-ghost btn-small" routerLink="/home"><i class="bi bi-arrow-left"></i> Back</a>
+  </div>
+
+  <header class="orders-hero">
+    <p class="eyebrow"><i class="bi bi-receipt"></i> Purchases</p>
+    <h1>My orders</h1>
+    <p class="muted">Track checkout history, payment method, delivery address and item details.</p>
+  </header>
+
+  <p class="muted" *ngIf="loading">Loading orders…</p>
+  <div class="banner error" *ngIf="error">{{ error }}</div>
+
+  <section class="empty-state" *ngIf="!loading && orders.length === 0">
+    <i class="bi bi-bag-heart"></i>
+    <h3>No orders yet</h3>
+    <p class="muted">Products you checkout will appear here.</p>
+  </section>
+
+  <article class="order-card" *ngFor="let order of orders">
+    <div class="order-head">
+      <div>
+        <p class="order-id">#{{ order.id }}</p>
+        <p class="muted">{{ order.createdAt | date:'medium' }}</p>
+      </div>
+      <span [class]="statusClass(order.status)">{{ order.status }}</span>
+    </div>
+
+    <div class="order-summary">
+      <div><span>Subtotal</span><strong>{{ (order.subtotalAmount || order.totalAmount) | number:'1.0-0' }}đ</strong></div>
+      <div><span>Discount</span><strong>{{ (order.discountAmount || 0) | number:'1.0-0' }}đ</strong></div>
+      <div><span>Total</span><strong>{{ order.totalAmount | number:'1.0-0' }}đ</strong></div>
+      <div><span>Payment</span><strong>{{ order.paymentMethod }}</strong></div>
+      <div><span>Receiver</span><strong>{{ order.receiverName }}</strong></div>
+      <div><span>Phone</span><strong>{{ order.receiverPhone }}</strong></div>
+    </div>
+
+    <p class="address"><i class="bi bi-geo-alt"></i> {{ order.shippingAddress }}</p>
+    <p class="muted" *ngIf="order.couponCode">Coupon: {{ order.couponCode }}</p>
+    <p class="muted" *ngIf="order.note">Note: {{ order.note }}</p>
+
+    <button class="btn btn-ghost btn-small" type="button" (click)="toggle(order.id)">
+      {{ isExpanded(order.id) ? 'Hide items' : 'Show items' }}
+    </button>
+
+    <div class="timeline" *ngIf="isExpanded(order.id) && order.timeline?.length">
+      <div class="timeline-item" *ngFor="let event of order.timeline">
+        <strong>{{ event.status }}</strong><span>{{ event.note }}</span><em>{{ event.createdAt | date:'short' }}</em>
+      </div>
+    </div>
+
+    <div class="items" *ngIf="isExpanded(order.id)">
+      <div class="item" *ngFor="let item of order.items">
+        <div>
+          <strong>{{ item.productName }}</strong>
+          <p class="muted">Size {{ item.sizeName }} / {{ item.colorName }}</p>
+        </div>
+        <span>{{ item.quantity }} × {{ item.unitPrice | number:'1.0-0' }}đ</span>
+        <strong>{{ item.subtotal | number:'1.0-0' }}đ</strong>
+      </div>
+    </div>
+  </article>
+</div>

@@ -8,6 +8,8 @@ import { ProductImageDTO } from '../services/product-image.service';
 import { ProductDTO } from '../services/product.service';
 import { CartService, AddToCartRequestDTO } from '../services/cart.service';
 import { ProductVariantService, ProductVariantDTO } from '../services/product-variant.service';
+import { WishlistService } from '../services/wishlist.service';
+import { ProductReviewDTO, ReviewService, ReviewSummaryDTO } from '../services/review.service';
 
 type PopupType = 'success' | 'error' | 'info' | 'warning';
 
@@ -34,6 +36,13 @@ export class ProductDetailComponent implements OnInit {
   addingToCart = false;
   totalQuantity: number | null = null;
   stockLoading = false;
+  liked = false;
+  wishlistCount = 0;
+
+  reviews: ProductReviewDTO[] = [];
+  reviewSummary: ReviewSummaryDTO | null = null;
+  reviewForm = { rating: 5, title: '', comment: '' };
+  submittingReview = false;
 
   popup: { type: PopupType; title: string; message: string } | null = null;
 
@@ -42,6 +51,8 @@ export class ProductDetailComponent implements OnInit {
     private productUserService: ProductUserService,
     private productVariantService: ProductVariantService,
     private cartService: CartService,
+    private wishlistService: WishlistService,
+    private reviewService: ReviewService,
     private cdr: ChangeDetectorRef,
   ) {}
 
@@ -61,6 +72,8 @@ export class ProductDetailComponent implements OnInit {
       colors: this.productUserService.getColorsByProduct(productId),
       variants: this.productVariantService.findByProduct(productId),
       totalQuantity: this.productVariantService.getTotalQuantityByProductId(productId),
+      reviews: this.reviewService.productReviews(productId),
+      reviewSummary: this.reviewService.summary(productId),
     }).subscribe({
       next: (res) => {
         this.product = res.product;
@@ -69,7 +82,10 @@ export class ProductDetailComponent implements OnInit {
         this.colors = res.colors;
         this.variants = res.variants;
         this.totalQuantity = res.totalQuantity ?? 0;
+        this.reviews = res.reviews;
+        this.reviewSummary = res.reviewSummary;
         this.selectedImage = this.images.find((img) => img.isPrimary) ?? this.images[0] ?? null;
+        this.loadWishlistStatus(productId);
         this.loading = false;
         this.stockLoading = false;
         this.cdr.detectChanges();
@@ -177,6 +193,73 @@ export class ProductDetailComponent implements OnInit {
     return !!localStorage.getItem('token');
   }
 
+  loadWishlistStatus(productId: string) {
+    if (!this.isLoggedIn()) return;
+    this.wishlistService.status(productId).subscribe({
+      next: (res) => {
+        this.liked = !!res.liked;
+        this.wishlistCount = res.count || 0;
+        this.cdr.detectChanges();
+      },
+      error: () => undefined,
+    });
+  }
+
+  toggleWishlist() {
+    if (!this.product) return;
+    if (!this.isLoggedIn()) {
+      this.showPopup('warning', 'Login required', 'Please log in to save products.');
+      return;
+    }
+    const productId = this.product.productId;
+    const req = this.liked ? this.wishlistService.remove(productId) : this.wishlistService.add(productId);
+    req.subscribe({
+      next: () => {
+        this.liked = !this.liked;
+        this.wishlistCount += this.liked ? 1 : -1;
+        this.showPopup('success', this.liked ? 'Saved' : 'Removed', this.liked ? 'Product saved to wishlist.' : 'Product removed from wishlist.');
+        this.cdr.detectChanges();
+      },
+      error: () => this.showPopup('error', 'Wishlist failed', 'Could not update wishlist.'),
+    });
+  }
+
+  submitReview() {
+    if (!this.product) return;
+    if (!this.isLoggedIn()) {
+      this.showPopup('warning', 'Login required', 'Please log in to review products.');
+      return;
+    }
+    if (!this.reviewForm.comment.trim()) {
+      this.showPopup('warning', 'Comment required', 'Please write a short review comment.');
+      return;
+    }
+    this.submittingReview = true;
+    this.reviewService.create({
+      productId: this.product.productId,
+      rating: this.reviewForm.rating,
+      title: this.reviewForm.title,
+      comment: this.reviewForm.comment,
+    }).subscribe({
+      next: () => {
+        this.submittingReview = false;
+        this.reviewForm = { rating: 5, title: '', comment: '' };
+        this.showPopup('success', 'Review submitted', 'Your review is waiting for admin approval.');
+        this.cdr.detectChanges();
+      },
+      error: (err) => {
+        this.submittingReview = false;
+        const msg = typeof err?.error === 'string' ? err.error : err?.error?.message || 'Could not submit review.';
+        this.showPopup('error', 'Review failed', msg);
+        this.cdr.detectChanges();
+      },
+    });
+  }
+
+  stars(n: number) {
+    return '★'.repeat(n) + '☆'.repeat(5 - n);
+  }
+
   reloadStockAfterAddToCart() {
     if (!this.product) return;
 
@@ -185,6 +268,8 @@ export class ProductDetailComponent implements OnInit {
     forkJoin({
       variants: this.productVariantService.findByProduct(productId),
       totalQuantity: this.productVariantService.getTotalQuantityByProductId(productId),
+      reviews: this.reviewService.productReviews(productId),
+      reviewSummary: this.reviewService.summary(productId),
     }).subscribe({
       next: (res) => {
         this.variants = res.variants;

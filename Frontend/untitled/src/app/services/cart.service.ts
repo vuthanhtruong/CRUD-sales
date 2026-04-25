@@ -1,7 +1,8 @@
 // cart.service.ts
 import { Injectable } from '@angular/core';
-import { HttpClient, HttpHeaders } from '@angular/common/http';
+import { HttpClient } from '@angular/common/http';
 import { Observable } from 'rxjs';
+import { CheckoutRequestDTO, OrderDTO } from './order.service';
 
 export interface AddToCartRequestDTO {
   productId: string;
@@ -24,79 +25,43 @@ export interface CartItemDTO {
 @Injectable({ providedIn: 'root' })
 export class CartService {
   private baseUrl = 'http://localhost:8080/api/cart';
+  private orderUrl = 'http://localhost:8080/api/orders';
 
   constructor(private http: HttpClient) {}
 
-  private getAuthHeaders() {
-    const token = localStorage.getItem('token');
-    return {
-      headers: new HttpHeaders({
-        Authorization: token ? `Bearer ${token}` : '',
-      }),
-    };
-  }
-
-  // responseType: 'text' để đọc đúng error message string từ backend
-  private getTextOptions() {
-    const token = localStorage.getItem('token');
-    return {
-      headers: new HttpHeaders({
-        Authorization: token ? `Bearer ${token}` : '',
-      }),
-      responseType: 'text' as const,
-    };
-  }
-
-  // ================= ADD TO CART =================
   addToCart(request: AddToCartRequestDTO): Observable<string> {
-    return this.http.post(`${this.baseUrl}/add`, request, this.getTextOptions());
+    return this.http.post(`${this.baseUrl}/add`, request, { responseType: 'text' });
   }
 
-  // ================= GET MY CART =================
   getMyCart(): Observable<CartItemDTO[]> {
-    return this.http.get<CartItemDTO[]>(`${this.baseUrl}/me`, this.getAuthHeaders());
+    return this.http.get<CartItemDTO[]>(`${this.baseUrl}/me`);
   }
 
-  // ================= GET CART ITEMS BY ID =================
   getCartItems(cartId: string): Observable<CartItemDTO[]> {
-    return this.http.get<CartItemDTO[]>(`${this.baseUrl}/${cartId}`, this.getAuthHeaders());
+    return this.http.get<CartItemDTO[]>(`${this.baseUrl}/${cartId}`);
   }
 
-  // ================= INCREASE QUANTITY =================
   increaseQuantity(cartItemId: string, amount: number = 1): Observable<string> {
-    return this.http.put(
-      `${this.baseUrl}/item/increase/${cartItemId}?amount=${amount}`,
-      {},
-      this.getTextOptions(),
-    );
+    return this.http.put(`${this.baseUrl}/item/increase/${cartItemId}?amount=${amount}`, {}, { responseType: 'text' });
   }
 
-  // ================= DECREASE QUANTITY =================
   decreaseQuantity(cartItemId: string, amount: number = 1): Observable<string> {
-    return this.http.put(
-      `${this.baseUrl}/item/decrease/${cartItemId}?amount=${amount}`,
-      {},
-      this.getTextOptions(),
-    );
+    return this.http.put(`${this.baseUrl}/item/decrease/${cartItemId}?amount=${amount}`, {}, { responseType: 'text' });
   }
 
-  // ================= UPDATE ITEM =================
   updateCartItem(item: CartItemDTO): Observable<string> {
-    return this.http.put(`${this.baseUrl}/item`, item, this.getTextOptions());
+    return this.http.put(`${this.baseUrl}/item`, item, { responseType: 'text' });
   }
 
-  // ================= DELETE ITEM =================
   deleteCartItem(id: string): Observable<string> {
-    return this.http.delete(`${this.baseUrl}/item/${id}`, this.getTextOptions());
+    return this.http.delete(`${this.baseUrl}/item/${id}`, { responseType: 'text' });
   }
 
-  // ================= CLEAR CART =================
   clearCart(cartId: string): Observable<string> {
-    return this.http.delete(`${this.baseUrl}/clear/${cartId}`, this.getTextOptions());
+    return this.http.delete(`${this.baseUrl}/clear/${cartId}`, { responseType: 'text' });
   }
 
-  // ================= CHECKOUT =================
-  checkout(cartItemIds: string[]): Observable<string> {
-    return this.http.post(`${this.baseUrl}/checkout`, cartItemIds, this.getTextOptions());
+  checkout(request: CheckoutRequestDTO): Observable<OrderDTO> {
+    return this.http.post<OrderDTO>(`${this.orderUrl}/checkout`, request);
   }
 }

@@ -74,6 +74,13 @@
           </p>
         </label>
 
+        <!-- Email -->
+        <label class="field">
+          <span class="field-label">Email <span class="req">*</span></span>
+          <input class="input" [class.input-error]="isInvalid('email')" formControlName="email" placeholder="you@example.com" type="email">
+          <p class="form-hint error" *ngIf="isInvalid('email')">{{ fieldError('email') }}</p>
+        </label>
+
         <!-- Address -->
         <label class="field">
           <span class="field-label">Address <span class="req">*</span></span>

@@ -1,18 +1,39 @@
 <div class="wrap admin-page">
   <header class="admin-hero">
     <div>
-      <p class="eyebrow"><i class="bi bi-stars"></i> Catalog management</p>
+      <p class="eyebrow"><i class="bi bi-stars"></i> Catalog & operations</p>
       <h1 class="admin-title">Admin control center</h1>
-      <p class="admin-sub">
-        Quản lý Product, ProductType, Size, Color, ProductImage và ProductVariant đúng theo model backend.
-      </p>
+      <p class="admin-sub">Quản lý sản phẩm, biến thể, tồn kho, đơn hàng và thống kê vận hành.</p>
     </div>
-
-    <div class="admin-hero-badge">
-      <i class="bi bi-shield-check"></i>
-      <span>Administrator</span>
-    </div>
+    <div class="admin-hero-badge"><i class="bi bi-shield-check"></i><span>Administrator</span></div>
   </header>
+
+  <section class="stats-grid" *ngIf="stats">
+    <article class="stat-card"><span>Products</span><strong>{{ stats.totalProducts }}</strong></article>
+    <article class="stat-card"><span>Users</span><strong>{{ stats.totalUsers }}</strong></article>
+    <article class="stat-card"><span>Orders</span><strong>{{ stats.totalOrders }}</strong></article>
+    <article class="stat-card"><span>Pending</span><strong>{{ stats.pendingOrders }}</strong></article>
+    <article class="stat-card"><span>Completed</span><strong>{{ stats.completedOrders }}</strong></article>
+    <article class="stat-card"><span>Revenue</span><strong>{{ stats.revenue | number:'1.0-0' }}đ</strong></article>
+    <article class="stat-card"><span>Low stock</span><strong>{{ stats.lowStockVariants }}</strong></article>
+  </section>
+
+  <p class="muted" *ngIf="loadingStats">Loading dashboard stats…</p>
+
+  <section class="ops-grid" *ngIf="revenue.length || statuses.length || topProducts.length">
+    <article class="ops-panel">
+      <h2>Revenue trend</h2>
+      <div class="mini-bars"><div class="mini-bar" *ngFor="let r of revenue" [style.height.%]="stats?.revenue ? (r.value / (stats?.revenue || 1)) * 100 : 8" [title]="r.label + ': ' + (r.value | number:'1.0-0') + 'đ'"></div></div>
+    </article>
+    <article class="ops-panel">
+      <h2>Order status</h2>
+      <p class="metric-line" *ngFor="let s of statuses"><span>{{ s.label }}</span><strong>{{ s.count }}</strong></p>
+    </article>
+    <article class="ops-panel">
+      <h2>Top products</h2>
+      <p class="metric-line" *ngFor="let p of topProducts"><span>{{ p.label }}</span><strong>{{ p.count }}</strong></p>
+    </article>
+  </section>
 
   <section class="admin-grid" aria-label="Admin sections">
     <article class="admin-card primary-card">
@@ -20,6 +41,27 @@
       <h2 class="card-title">Products</h2>
       <p class="card-sub">Quản lý productId, name, status, type, price, description, images và variants.</p>
       <a class="btn btn-primary" routerLink="/products">Open products</a>
+    </article>
+
+    <article class="admin-card">
+      <div class="card-icon"><i class="bi bi-clipboard-check"></i></div>
+      <h2 class="card-title">Orders</h2>
+      <p class="card-sub">Xem đơn hàng, thông tin giao hàng, item và cập nhật trạng thái xử lý.</p>
+      <a class="btn btn-primary" routerLink="/admin/orders">Open orders</a>
+    </article>
+
+    <article class="admin-card">
+      <div class="card-icon"><i class="bi bi-ticket-perforated"></i></div>
+      <h2 class="card-title">Coupons</h2>
+      <p class="card-sub">Tạo mã giảm giá theo phần trăm hoặc số tiền cố định.</p>
+      <a class="btn btn-primary" routerLink="/admin/coupons">Open coupons</a>
+    </article>
+
+    <article class="admin-card">
+      <div class="card-icon"><i class="bi bi-star"></i></div>
+      <h2 class="card-title">Reviews</h2>
+      <p class="card-sub">Duyệt đánh giá sản phẩm và phản hồi khách hàng.</p>
+      <a class="btn btn-primary" routerLink="/admin/reviews">Open reviews</a>
     </article>
 
     <article class="admin-card">

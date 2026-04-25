@@ -487,3 +487,27 @@
     justify-content: flex-start;
   }
 }
+
+.checkout-form {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 10px;
+  margin: 14px 0;
+  padding: 14px;
+  border: 1px solid var(--border);
+  border-radius: 18px;
+  background: var(--surface-2);
+}
+
+.checkout-form .field-full {
+  grid-column: 1 / -1;
+}
+
+@media (max-width: 720px) {
+  .checkout-form {
+    grid-template-columns: 1fr;
+  }
+}
+
+.cart-total-stack { display: grid; gap: 3px; text-align: right; }
+.coupon-line { display: grid; grid-template-columns: 1fr auto; gap: 8px; align-items: center; }

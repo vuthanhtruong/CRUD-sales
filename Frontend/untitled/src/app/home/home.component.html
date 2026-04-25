@@ -307,8 +307,46 @@
       <div class="cart-footer" *ngIf="!cartLoading && cartItems.length > 0">
         <div class="cart-total">
           <span>Selected <strong>{{ selectedCount }}</strong> / {{ cartItems.length }} item(s)</span>
-          <strong>{{ selectedTotal | number:'1.0-0' }}đ</strong>
+          <div class="cart-total-stack">
+            <span *ngIf="couponPreview?.valid" class="muted">Subtotal {{ selectedTotal | number:'1.0-0' }}đ · Discount {{ couponPreview?.discountAmount | number:'1.0-0' }}đ</span>
+            <strong>{{ payableTotal | number:'1.0-0' }}đ</strong>
+          </div>
         </div>
+        <div class="checkout-form">
+          <label class="field">
+            <span class="field-label">Receiver name</span>
+            <input class="input" [(ngModel)]="checkoutInfo.receiverName" placeholder="Receiver name">
+          </label>
+          <label class="field">
+            <span class="field-label">Phone</span>
+            <input class="input" [(ngModel)]="checkoutInfo.receiverPhone" placeholder="0xxxxxxxxx">
+          </label>
+          <label class="field field-full">
+            <span class="field-label">Shipping address</span>
+            <input class="input" [(ngModel)]="checkoutInfo.shippingAddress" placeholder="Delivery address">
+          </label>
+          <label class="field">
+            <span class="field-label">Payment</span>
+            <select class="input" [(ngModel)]="checkoutInfo.paymentMethod">
+              <option value="COD">COD</option>
+              <option value="BANK_TRANSFER">Bank transfer</option>
+              <option value="CARD">Card</option>
+            </select>
+          </label>
+          <label class="field">
+            <span class="field-label">Coupon</span>
+            <div class="coupon-line">
+              <input class="input" [(ngModel)]="checkoutInfo.couponCode" placeholder="SALE10">
+              <button class="btn btn-soft btn-small" type="button" (click)="applyCoupon()" [disabled]="couponChecking || selectedCount === 0">Apply</button>
+            </div>
+            <span class="form-hint" *ngIf="couponPreview" [class.error]="!couponPreview.valid">{{ couponPreview.message }}</span>
+          </label>
+          <label class="field field-full">
+            <span class="field-label">Note</span>
+            <input class="input" [(ngModel)]="checkoutInfo.note" placeholder="Optional note">
+          </label>
+        </div>
+
         <div class="cart-footer-actions">
           <button class="btn btn-ghost btn-small" type="button" (click)="clearCart()" [disabled]="cartLoading || checkoutProcessing">
             Clear all

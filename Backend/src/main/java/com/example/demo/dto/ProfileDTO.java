@@ -5,14 +5,12 @@ import jakarta.validation.constraints.*;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
-
 import java.time.LocalDate;
 
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
 public class ProfileDTO {
-
     @NotBlank(message = "Username must not be blank")
     @Size(min = 4, max = 20, message = "Username must be 4-20 characters")
     private String username;
@@ -26,11 +24,13 @@ public class ProfileDTO {
     private String lastName;
 
     @NotBlank(message = "Phone must not be blank")
-    @Pattern(
-            regexp = "^(0|\\+84)[0-9]{9}$",
-            message = "Phone number is invalid (Vietnam format)"
-    )
+    @Pattern(regexp = "^(0|\\+84)[0-9]{9}$", message = "Phone number is invalid (Vietnam format)")
     private String phone;
+
+    @NotBlank(message = "Email must not be blank")
+    @Email(message = "Email is invalid")
+    @Size(max = 120, message = "Email too long")
+    private String email;
 
     @NotBlank(message = "Address must not be blank")
     @Size(max = 255, message = "Address too long")

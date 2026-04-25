@@ -1,0 +1,18 @@
+<div class="wrap page-shell">
+  <section class="hero"><div><p class="eyebrow"><i class="bi bi-ticket-perforated"></i> Admin coupons</p><h1>Promotion engine</h1><p>Create percentage or fixed-amount coupons with minimum order, cap, dates and usage limits.</p></div></section>
+  <section class="panel"><div class="toolbar"><h2>{{ editingId ? 'Edit coupon' : 'Create coupon' }}</h2><button class="btn btn-ghost btn-small" (click)="reset()">Reset</button></div>
+    <div class="form-grid">
+      <label class="field"><span class="field-label">Code</span><input class="input" [(ngModel)]="form.code"></label>
+      <label class="field"><span class="field-label">Name</span><input class="input" [(ngModel)]="form.name"></label>
+      <label class="field"><span class="field-label">Type</span><select class="input" [(ngModel)]="form.discountType"><option value="PERCENTAGE">Percentage</option><option value="FIXED_AMOUNT">Fixed amount</option></select></label>
+      <label class="field"><span class="field-label">Value</span><input class="input" type="number" [(ngModel)]="form.discountValue"></label>
+      <label class="field"><span class="field-label">Min order</span><input class="input" type="number" [(ngModel)]="form.minOrderAmount"></label>
+      <label class="field"><span class="field-label">Max discount</span><input class="input" type="number" [(ngModel)]="form.maxDiscountAmount"></label>
+      <label class="field"><span class="field-label">Usage limit</span><input class="input" type="number" [(ngModel)]="form.usageLimit"></label>
+      <label class="field"><span class="field-label">Active</span><select class="input" [(ngModel)]="form.active"><option [ngValue]="true">Active</option><option [ngValue]="false">Inactive</option></select></label>
+    </div><div class="actions"><button class="btn btn-primary" (click)="save()">Save coupon</button></div>
+  </section>
+  <section class="panel"><div class="toolbar"><h2>Coupons</h2><span class="badge">{{ coupons.length }} coupon(s)</span></div>
+    <div class="table-wrap"><table><thead><tr><th>Code</th><th>Name</th><th>Discount</th><th>Usage</th><th>Status</th><th></th></tr></thead><tbody><tr *ngFor="let c of coupons"><td><strong>{{ c.code }}</strong></td><td>{{ c.name }}</td><td>{{ c.discountType }} {{ c.discountValue }}</td><td>{{ c.usedCount || 0 }} / {{ c.usageLimit || '∞' }}</td><td><span class="status" [class.APPROVED]="c.active" [class.REJECTED]="!c.active">{{ c.active ? 'ACTIVE' : 'INACTIVE' }}</span></td><td><button class="btn btn-ghost btn-small" (click)="edit(c)">Edit</button> <button class="btn btn-ghost btn-small danger" (click)="delete(c)">Delete</button></td></tr></tbody></table></div>
+  </section>
+</div>

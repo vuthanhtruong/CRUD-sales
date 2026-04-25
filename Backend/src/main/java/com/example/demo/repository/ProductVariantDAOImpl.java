@@ -69,8 +69,25 @@ public class ProductVariantDAOImpl implements ProductVariantDAO {
     }
 
     @Override
-    public int decreaseQuantity(String productId, String sizeId, String colorId, int amount) {
+    public int increaseQuantity(String productId, String sizeId, String colorId, int amount) {
+        String jpql = """
+        UPDATE ProductVariant v
+        SET v.quantity = v.quantity + :amount
+        WHERE v.id.productId = :productId
+        AND v.id.sizeId = :sizeId
+        AND v.id.colorId = :colorId
+    """;
 
+        return entityManager.createQuery(jpql)
+                .setParameter("amount", amount)
+                .setParameter("productId", productId)
+                .setParameter("sizeId", sizeId)
+                .setParameter("colorId", colorId)
+                .executeUpdate();
+    }
+
+    @Override
+    public int decreaseQuantity(String productId, String sizeId, String colorId, int amount) {
         String jpql = """
         UPDATE ProductVariant v
         SET v.quantity = v.quantity - :amount

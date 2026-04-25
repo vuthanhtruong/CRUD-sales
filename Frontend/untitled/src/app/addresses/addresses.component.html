@@ -1,0 +1,29 @@
+<div class="wrap page-shell">
+  <section class="hero"><div><p class="eyebrow"><i class="bi bi-geo-alt"></i> Address book</p><h1>Shipping addresses</h1><p>Save several delivery locations and mark a default address for faster checkout.</p></div></section>
+  <section class="panel">
+    <div class="toolbar"><h2>{{ editingId ? 'Edit address' : 'Add address' }}</h2><button class="btn btn-ghost btn-small" type="button" (click)="reset()">Reset</button></div>
+    <div class="form-grid">
+      <label class="field"><span class="field-label">Receiver</span><input class="input" [(ngModel)]="form.receiverName"></label>
+      <label class="field"><span class="field-label">Phone</span><input class="input" [(ngModel)]="form.receiverPhone"></label>
+      <label class="field"><span class="field-label">Label</span><input class="input" [(ngModel)]="form.label" placeholder="Home, Office…"></label>
+      <label class="field"><span class="field-label">City</span><input class="input" [(ngModel)]="form.city"></label>
+      <label class="field"><span class="field-label">District</span><input class="input" [(ngModel)]="form.district"></label>
+      <label class="field"><span class="field-label">Ward</span><input class="input" [(ngModel)]="form.ward"></label>
+      <label class="field" style="grid-column:1/-1"><span class="field-label">Full address</span><input class="input" [(ngModel)]="form.fullAddress"></label>
+      <label class="field"><span class="field-label">Default</span><select class="input" [(ngModel)]="form.defaultAddress"><option [ngValue]="false">No</option><option [ngValue]="true">Yes</option></select></label>
+    </div>
+    <div class="actions"><button class="btn btn-primary" type="button" (click)="save()"><i class="bi bi-save"></i> Save address</button></div>
+  </section>
+  <section class="panel">
+    <div class="toolbar"><h2>Saved addresses</h2><span class="badge">{{ addresses.length }} address(es)</span></div>
+    <p class="empty" *ngIf="loading">Loading addresses…</p>
+    <div class="grid" *ngIf="!loading">
+      <article class="card" *ngFor="let a of addresses">
+        <div class="badge-line"><span class="badge">{{ a.label || 'Address' }}</span><span class="status APPROVED" *ngIf="a.defaultAddress">Default</span></div>
+        <h3>{{ a.receiverName }}</h3><p class="meta">{{ a.receiverPhone }}</p><p>{{ a.fullAddress }}</p>
+        <p class="meta">{{ a.ward }} {{ a.district }} {{ a.city }}</p>
+        <div class="actions"><button class="btn btn-ghost btn-small" (click)="edit(a)">Edit</button><button class="btn btn-soft btn-small" (click)="setDefault(a)">Set default</button><button class="btn btn-ghost btn-small danger" (click)="delete(a)">Delete</button></div>
+      </article>
+    </div>
+  </section>
+</div>

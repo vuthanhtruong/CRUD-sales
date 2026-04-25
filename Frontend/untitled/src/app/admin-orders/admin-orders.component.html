@@ -1,0 +1,68 @@
+<div class="wrap admin-orders-page">
+  <div class="topbar">
+    <a class="btn btn-ghost btn-small" routerLink="/admin"><i class="bi bi-arrow-left"></i> Admin</a>
+  </div>
+
+  <header class="hero-card">
+    <p class="eyebrow"><i class="bi bi-clipboard-check"></i> Order operations</p>
+    <h1>Manage orders</h1>
+    <p class="muted">Review checkout details and move orders across fulfillment statuses.</p>
+  </header>
+
+  <section class="toolbar">
+    <label class="field">
+      <span class="field-label">Status filter</span>
+      <select class="input" [(ngModel)]="statusFilter" (change)="loadOrders()">
+        <option *ngFor="let s of statuses" [ngValue]="s">{{ s || 'ALL' }}</option>
+      </select>
+    </label>
+    <button class="btn btn-primary" type="button" (click)="loadOrders()">Refresh</button>
+  </section>
+
+  <div class="banner success" *ngIf="message">{{ message }}</div>
+  <div class="banner error" *ngIf="error">{{ error }}</div>
+  <p class="muted" *ngIf="loading">Loading…</p>
+
+  <article class="order-card" *ngFor="let order of orders">
+    <div class="order-head">
+      <div>
+        <p class="order-id">#{{ order.id }}</p>
+        <p class="muted">{{ order.createdAt | date:'medium' }} · {{ order.username || order.customerName }}</p>
+      </div>
+      <span [class]="statusClass(order.status)">{{ order.status }}</span>
+    </div>
+
+    <div class="order-grid">
+      <div><span>Subtotal</span><strong>{{ (order.subtotalAmount || order.totalAmount) | number:'1.0-0' }}đ</strong></div>
+      <div><span>Discount</span><strong>{{ (order.discountAmount || 0) | number:'1.0-0' }}đ</strong></div>
+      <div><span>Total</span><strong>{{ order.totalAmount | number:'1.0-0' }}đ</strong></div>
+      <div><span>Payment</span><strong>{{ order.paymentMethod }}</strong></div>
+      <div><span>Receiver</span><strong>{{ order.receiverName }}</strong></div>
+      <div><span>Phone</span><strong>{{ order.receiverPhone }}</strong></div>
+    </div>
+
+    <p class="address"><i class="bi bi-geo-alt"></i> {{ order.shippingAddress }}</p>
+    <p class="muted" *ngIf="order.couponCode">Coupon: {{ order.couponCode }}</p>
+
+    <div class="timeline" *ngIf="order.timeline?.length">
+      <div class="timeline-item" *ngFor="let event of order.timeline">
+        <strong>{{ event.status }}</strong><span>{{ event.note }}</span><em>{{ event.createdAt | date:'short' }}</em>
+      </div>
+    </div>
+
+    <div class="items">
+      <div class="item" *ngFor="let item of order.items">
+        <span>{{ item.productName }} — {{ item.sizeName }} / {{ item.colorName }}</span>
+        <span>{{ item.quantity }} × {{ item.unitPrice | number:'1.0-0' }}đ</span>
+        <strong>{{ item.subtotal | number:'1.0-0' }}đ</strong>
+      </div>
+    </div>
+
+    <div class="actions">
+      <button class="btn btn-ghost btn-small" type="button" (click)="updateStatus(order, 'CONFIRMED')" [disabled]="order.status !== 'PENDING'">Confirm</button>
+      <button class="btn btn-ghost btn-small" type="button" (click)="updateStatus(order, 'SHIPPING')" [disabled]="order.status !== 'CONFIRMED'">Ship</button>
+      <button class="btn btn-primary btn-small" type="button" (click)="updateStatus(order, 'COMPLETED')" [disabled]="order.status !== 'SHIPPING'">Complete</button>
+      <button class="btn btn-danger btn-small" type="button" (click)="updateStatus(order, 'CANCELLED')" [disabled]="order.status === 'COMPLETED' || order.status === 'CANCELLED'">Cancel</button>
+    </div>
+  </article>
+</div>

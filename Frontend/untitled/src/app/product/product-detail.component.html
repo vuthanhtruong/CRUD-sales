@@ -170,11 +170,47 @@
           </span>
         </button>
 
+        <button class="btn btn-ghost" type="button" (click)="toggleWishlist()">
+          <i class="bi" [class.bi-heart-fill]="liked" [class.bi-heart]="!liked"></i>
+          {{ liked ? 'Saved' : 'Save' }} <span *ngIf="wishlistCount > 0">({{ wishlistCount }})</span>
+        </button>
+
         <a class="btn btn-ghost" [routerLink]="['/home']">
           <i class="bi bi-grid"></i> Browse more
         </a>
       </div>
     </article>
+  </section>
+
+  <section class="reviews" *ngIf="!loading && product">
+    <div class="reviews-head">
+      <div>
+        <p class="eyebrow"><i class="bi bi-stars"></i> Customer reviews</p>
+        <h2>Ratings and feedback</h2>
+      </div>
+      <div class="review-score" *ngIf="reviewSummary">
+        <strong>{{ reviewSummary.averageRating | number:'1.1-1' }}</strong>
+        <span>{{ reviewSummary.totalReviews }} approved review(s)</span>
+      </div>
+    </div>
+
+    <div class="review-form">
+      <label class="field"><span class="field-label">Rating</span><select class="input" [(ngModel)]="reviewForm.rating"><option [ngValue]="5">5 stars</option><option [ngValue]="4">4 stars</option><option [ngValue]="3">3 stars</option><option [ngValue]="2">2 stars</option><option [ngValue]="1">1 star</option></select></label>
+      <label class="field"><span class="field-label">Title</span><input class="input" [(ngModel)]="reviewForm.title" placeholder="Short title"></label>
+      <label class="field field-full"><span class="field-label">Comment</span><textarea class="textarea" rows="3" [(ngModel)]="reviewForm.comment" placeholder="What did you think about this product?"></textarea></label>
+      <button class="btn btn-primary" type="button" (click)="submitReview()" [disabled]="submittingReview"><i class="bi bi-send"></i> Submit review</button>
+    </div>
+
+    <div class="review-list" *ngIf="reviews.length > 0">
+      <article class="review-card" *ngFor="let r of reviews">
+        <div class="stars">{{ stars(r.rating) }}</div>
+        <h3>{{ r.title || 'Customer review' }}</h3>
+        <p>{{ r.comment }}</p>
+        <p class="muted">{{ r.customerName || r.username || 'Customer' }} · {{ r.createdAt | date:'medium' }}</p>
+        <div class="admin-reply" *ngIf="r.adminReply"><strong>Admin reply:</strong> {{ r.adminReply }}</div>
+      </article>
+    </div>
+    <p class="muted not-found" *ngIf="reviews.length === 0">No approved reviews yet.</p>
   </section>
 
   <p class="muted not-found" *ngIf="!loading && !product">Product not found.</p>

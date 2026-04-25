@@ -11,6 +11,7 @@ import org.springframework.stereotype.Component;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Random;
 
@@ -38,6 +39,7 @@ public class DataSeeder implements CommandLineRunner {
         seedSizes();
         seedColors();
         seedProductsAndVariants();
+        seedCoupons();
         seedCart();
 
         System.out.println("===== SEEDING DONE =====");
@@ -51,7 +53,8 @@ public class DataSeeder implements CommandLineRunner {
             adminUser.setId("admin01");
             adminUser.setFirstName("System");
             adminUser.setLastName("Admin");
-            adminUser.setPhone("0000000000");
+            adminUser.setPhone("0123456789");
+            adminUser.setEmail("admin.com");
             adminUser.setAddress("System");
             adminUser.setGender(Gender.FEMALE);
             adminUser.setBirthday(LocalDate.of(2000, 1, 1));
@@ -123,6 +126,40 @@ public class DataSeeder implements CommandLineRunner {
 
             System.out.println("Cart created for admin");
         }
+    }
+
+    private void seedCoupons() {
+        Long count = em.createQuery("SELECT COUNT(c) FROM Coupon c", Long.class).getSingleResult();
+        if (count > 0) return;
+
+        Coupon welcome = new Coupon();
+        welcome.setCode("WELCOME10");
+        welcome.setName("Welcome 10% off");
+        welcome.setDiscountType(DiscountType.PERCENTAGE);
+        welcome.setDiscountValue(BigDecimal.valueOf(10));
+        welcome.setMinOrderAmount(BigDecimal.valueOf(150000));
+        welcome.setMaxDiscountAmount(BigDecimal.valueOf(50000));
+        welcome.setUsageLimit(200);
+        welcome.setUsedCount(0);
+        welcome.setActive(true);
+        welcome.setStartsAt(LocalDateTime.now().minusDays(1));
+        welcome.setExpiresAt(LocalDateTime.now().plusMonths(3));
+        em.persist(welcome);
+
+        Coupon freeship = new Coupon();
+        freeship.setCode("SHIP30K");
+        freeship.setName("Shipping support 30K");
+        freeship.setDiscountType(DiscountType.FIXED_AMOUNT);
+        freeship.setDiscountValue(BigDecimal.valueOf(30000));
+        freeship.setMinOrderAmount(BigDecimal.valueOf(250000));
+        freeship.setUsageLimit(300);
+        freeship.setUsedCount(0);
+        freeship.setActive(true);
+        freeship.setStartsAt(LocalDateTime.now().minusDays(1));
+        freeship.setExpiresAt(LocalDateTime.now().plusMonths(2));
+        em.persist(freeship);
+
+        System.out.println("Coupons seeded");
     }
 
     // ================= PRODUCT + VARIANT =================

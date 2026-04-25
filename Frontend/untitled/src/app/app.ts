@@ -53,7 +53,7 @@ export class App implements OnInit {
       {
         firstName: ['', [Validators.required, Validators.minLength(2)]],
         lastName: ['', [Validators.required, Validators.minLength(2)]],
-        phone: ['', [Validators.required, Validators.pattern(/^[0-9]{9,11}$/)]],
+        phone: ['', [Validators.required, Validators.pattern(/^(0|\+84)[0-9]{9}$/)]],
         address: ['', Validators.required],
         email: ['', [Validators.required, Validators.email]],
         username: [
@@ -63,7 +63,7 @@ export class App implements OnInit {
         password: ['', [Validators.required, Validators.minLength(6)]],
         confirmPassword: ['', Validators.required],
         gender: ['MALE'],
-        birthday: [''],
+        birthday: ['', Validators.required],
       },
       { validators: this.passwordMatchValidator },
     );
@@ -224,7 +224,7 @@ export class App implements OnInit {
         const msg =
           typeof err.error === 'string'
             ? err.error
-            : 'Registration failed. Please check your information.';
+            : (err.error?.message || 'Registration failed. Please check your information.');
         this.showPopup('error', 'Registration failed', msg);
       },
     });

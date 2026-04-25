@@ -30,6 +30,7 @@ export class ProfileComponent implements OnInit {
       firstName: ['', [Validators.required, Validators.minLength(2), Validators.maxLength(50)]],
       lastName: ['', [Validators.required, Validators.minLength(2), Validators.maxLength(50)]],
       phone: ['', [Validators.required, Validators.pattern('^(0|\\+84)[0-9]{9}$')]],
+      email: ['', [Validators.required, Validators.email, Validators.maxLength(120)]],
       address: ['', [Validators.required, Validators.maxLength(255)]],
       gender: ['MALE', Validators.required],
       birthday: ['', Validators.required],
@@ -74,6 +75,7 @@ export class ProfileComponent implements OnInit {
           firstName: res.firstName,
           lastName: res.lastName,
           phone: res.phone,
+          email: res.email,
           address: res.address,
           gender: res.gender,
           birthday: res.birthday,
@@ -91,13 +93,13 @@ export class ProfileComponent implements OnInit {
   }
 
   setFormDisabled() {
-    ['firstName', 'lastName', 'phone', 'address', 'gender', 'birthday'].forEach((f) =>
+    ['firstName', 'lastName', 'phone', 'email', 'address', 'gender', 'birthday'].forEach((f) =>
       this.profileForm.get(f)?.disable(),
     );
   }
 
   setFormEnabled() {
-    ['firstName', 'lastName', 'phone', 'address', 'gender', 'birthday'].forEach((f) =>
+    ['firstName', 'lastName', 'phone', 'email', 'address', 'gender', 'birthday'].forEach((f) =>
       this.profileForm.get(f)?.enable(),
     );
   }
@@ -144,6 +146,7 @@ export class ProfileComponent implements OnInit {
       firstName: raw.firstName,
       lastName: raw.lastName,
       phone: raw.phone,
+      email: raw.email,
       address: raw.address,
       gender: raw.gender,
       birthday: raw.birthday,

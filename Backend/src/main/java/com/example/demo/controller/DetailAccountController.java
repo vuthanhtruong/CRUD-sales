@@ -3,7 +3,6 @@ package com.example.demo.controller;
 import com.example.demo.dto.ProfileDTO;
 import com.example.demo.service.AccountService;
 import jakarta.validation.Valid;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -14,43 +13,42 @@ import org.springframework.web.bind.annotation.*;
 @CrossOrigin(origins = "http://localhost:4200")
 public class DetailAccountController {
 
-    @Autowired
-    private AccountService accountService;
+    private final AccountService accountService;
 
-    // 👤 GET PROFILE BY USERNAME (FRONTEND SEND)
-    @GetMapping("/me")
-    public ResponseEntity<ProfileDTO> getMyProfile() {
-
-        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-
-        if (authentication == null || !authentication.isAuthenticated()) {
-            throw new RuntimeException("User not logged in");
-        }
-
-        String username = authentication.getName();
-        return ResponseEntity.ok(accountService.getProfileByUsername(username));
+    public DetailAccountController(AccountService accountService) {
+        this.accountService = accountService;
     }
 
-    // 🧾 GET ROLE BY USERNAME
+    @GetMapping("/me")
+    public ResponseEntity<ProfileDTO> getMyProfile() {
+        return ResponseEntity.ok(accountService.getProfileByUsername(currentUsername()));
+    }
+
     @GetMapping("/role")
     public ResponseEntity<String> getMyRole() {
-        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-
-        if (authentication == null || !authentication.isAuthenticated()) {
-            throw new RuntimeException("User not logged in");
-        }
-
-        String username = authentication.getName();
+        String username = currentUsername();
         return ResponseEntity.ok(accountService.getCurrentAccountRole(username));
     }
 
-    // ✏️ UPDATE PROFILE BY USERNAME
-    @PutMapping("/update/{username}")
-    public ResponseEntity<Void> updateProfile(
-            @PathVariable String username,
-            @RequestBody @Valid ProfileDTO dto
-    ) {
-        accountService.updateProfile(username, dto);
+    @PutMapping("/me")
+    public ResponseEntity<Void> updateMyProfile(@RequestBody @Valid ProfileDTO dto) {
+        accountService.updateProfile(currentUsername(), dto);
         return ResponseEntity.ok().build();
+    }
+
+    @PutMapping("/update/{username}")
+    public ResponseEntity<Void> updateProfileLegacy(@PathVariable String username, @RequestBody @Valid ProfileDTO dto) {
+        String current = currentUsername();
+        if (!current.equals(username)) {
+            throw new RuntimeException("You can only update your own profile");
+        }
+        accountService.updateProfile(current, dto);
+        return ResponseEntity.ok().build();
+    }
+
+    private String currentUsername() {
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        if (authentication == null || !authentication.isAuthenticated()) throw new RuntimeException("User not logged in");
+        return authentication.getName();
     }
 }

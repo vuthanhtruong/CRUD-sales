@@ -96,7 +96,7 @@ public class ProductDAOImpl implements ProductDAO {
 
         // 🏷️ product type
         if (productTypeId != null && !productTypeId.trim().isEmpty()) {
-            jpql.append(" AND p.productType.productTypeId = :typeId");
+            jpql.append(" AND p.productType.id = :typeId");
         }
 
         // 📌 status (QUAN TRỌNG - admin mới có)
@@ -322,6 +322,10 @@ public class ProductDAOImpl implements ProductDAO {
     public void delete(String id) {
 
         Product managed = entityManager.find(Product.class, id);
+
+        if (managed == null) {
+            throw new RuntimeException("Product not found");
+        }
 
         // 1. xóa variants trước
         entityManager.createQuery(

@@ -12,6 +12,9 @@ import { CartService, CartItemDTO, AddToCartRequestDTO } from '../services/cart.
 import { Subject } from 'rxjs';
 import { debounceTime } from 'rxjs/operators';
 import { ProductVariantService, ProductVariantDTO } from '../services/product-variant.service';
+import { DetailAccountService } from '../services/detail-account.service';
+import { CheckoutRequestDTO, PaymentMethod } from '../services/order.service';
+import { CouponPreviewDTO, CouponService } from '../services/coupon.service';
 
 export interface ConfirmDialog {
   title: string;
@@ -61,6 +64,17 @@ export class HomeComponent implements OnInit {
   checkoutProcessing = false;
   selectedIds: Set<string> = new Set();
 
+  checkoutInfo = {
+    receiverName: '',
+    receiverPhone: '',
+    shippingAddress: '',
+    paymentMethod: 'COD' as PaymentMethod,
+    note: '',
+    couponCode: '',
+  };
+  couponPreview: CouponPreviewDTO | null = null;
+  couponChecking = false;
+
   stockMap: Map<string, number> = new Map();
   stockLoading: Set<string> = new Set();
 
@@ -82,6 +96,8 @@ export class HomeComponent implements OnInit {
     private productUserService: ProductUserService,
     private cartService: CartService,
     private productVariantService: ProductVariantService,
+    private detailAccountService: DetailAccountService,
+    private couponService: CouponService,
     private cdr: ChangeDetectorRef,
   ) {}
 
@@ -410,6 +426,37 @@ export class HomeComponent implements OnInit {
       .reduce((sum, item) => sum + item.subtotal, 0);
   }
 
+  get payableTotal(): number {
+    return this.couponPreview?.valid ? this.couponPreview.finalAmount : this.selectedTotal;
+  }
+
+  applyCoupon() {
+    const code = (this.checkoutInfo.couponCode || '').trim();
+    if (!code) {
+      this.couponPreview = null;
+      this.showPopup('warning', 'Coupon required', 'Enter a coupon code first.');
+      return;
+    }
+    if (this.selectedTotal <= 0) {
+      this.showPopup('warning', 'No items selected', 'Select cart items before applying a coupon.');
+      return;
+    }
+    this.couponChecking = true;
+    this.couponService.preview(code, this.selectedTotal).subscribe({
+      next: (preview) => {
+        this.couponPreview = preview;
+        this.couponChecking = false;
+        this.showPopup(preview.valid ? 'success' : 'warning', preview.valid ? 'Coupon applied' : 'Coupon unavailable', preview.message);
+        this.cdr.detectChanges();
+      },
+      error: () => {
+        this.couponChecking = false;
+        this.showPopup('error', 'Coupon failed', 'Could not validate coupon.');
+        this.cdr.detectChanges();
+      },
+    });
+  }
+
   get selectedCount(): number {
     return this.selectedIds.size;
   }
@@ -421,6 +468,7 @@ export class HomeComponent implements OnInit {
   toggleSelect(id: string): void {
     if (this.selectedIds.has(id)) this.selectedIds.delete(id);
     else this.selectedIds.add(id);
+    this.couponPreview = null;
 
     this.cdr.detectChanges();
   }
@@ -435,6 +483,7 @@ export class HomeComponent implements OnInit {
   toggleSelectAll(): void {
     if (this.isAllSelected()) this.selectedIds.clear();
     else this.cartItems.forEach((item) => this.selectedIds.add(item.cartItemId));
+    this.couponPreview = null;
 
     this.cdr.detectChanges();
   }
@@ -448,7 +497,20 @@ export class HomeComponent implements OnInit {
     }
 
     this.showCart = true;
+    this.prefillCheckoutInfo();
     this.loadMyCart(false);
+  }
+
+  prefillCheckoutInfo() {
+    this.detailAccountService.getMe().subscribe({
+      next: (profile) => {
+        this.checkoutInfo.receiverName = `${profile.firstName} ${profile.lastName}`.trim();
+        this.checkoutInfo.receiverPhone = profile.phone || '';
+        this.checkoutInfo.shippingAddress = profile.address || '';
+        this.cdr.detectChanges();
+      },
+      error: () => undefined,
+    });
   }
 
   closeCart() {
@@ -469,6 +531,8 @@ export class HomeComponent implements OnInit {
 
         if (resetSelected) {
           this.selectedIds.clear();
+        this.couponPreview = null;
+        this.checkoutInfo.couponCode = '';
         } else {
           const existingIds = new Set(items.map((item) => item.cartItemId));
           this.selectedIds.forEach((id) => {
@@ -581,9 +645,14 @@ export class HomeComponent implements OnInit {
       return;
     }
 
+    if (!this.checkoutInfo.receiverName || !this.checkoutInfo.receiverPhone || !this.checkoutInfo.shippingAddress) {
+      this.showPopup('warning', 'Shipping info required', 'Please enter receiver name, phone and shipping address.');
+      return;
+    }
+
     const selectedIdsSnapshot = Array.from(this.selectedIds);
     const selectedCountSnapshot = selectedIdsSnapshot.length;
-    const totalSnapshot = this.selectedTotal.toLocaleString('vi-VN');
+    const totalSnapshot = this.payableTotal.toLocaleString('vi-VN');
 
     const ok = await this.openConfirm(
       'Confirm checkout',
@@ -598,12 +667,24 @@ export class HomeComponent implements OnInit {
     this.cartLoading = true;
     this.cdr.detectChanges();
 
-    this.cartService.checkout(selectedIdsSnapshot).subscribe({
+    const checkoutRequest: CheckoutRequestDTO = {
+      cartItemIds: selectedIdsSnapshot,
+      receiverName: this.checkoutInfo.receiverName,
+      receiverPhone: this.checkoutInfo.receiverPhone,
+      shippingAddress: this.checkoutInfo.shippingAddress,
+      paymentMethod: this.checkoutInfo.paymentMethod,
+      note: this.checkoutInfo.note,
+      couponCode: this.checkoutInfo.couponCode || undefined,
+    };
+
+    this.cartService.checkout(checkoutRequest).subscribe({
       next: () => {
         this.cartItems = this.cartItems.filter(
           (item) => !selectedIdsSnapshot.includes(item.cartItemId),
         );
         this.selectedIds.clear();
+        this.couponPreview = null;
+        this.checkoutInfo.couponCode = '';
 
         this.checkoutProcessing = false;
         this.cartLoading = false;
@@ -624,7 +705,7 @@ export class HomeComponent implements OnInit {
         this.checkoutProcessing = false;
         this.cartLoading = false;
 
-        const msg = typeof err.error === 'string' && err.error ? err.error : 'Checkout failed.';
+        const msg = typeof err.error === 'string' && err.error ? err.error : (err.error?.message || 'Checkout failed.');
         this.showPopup('error', 'Checkout failed', msg);
         this.cdr.detectChanges();
       },

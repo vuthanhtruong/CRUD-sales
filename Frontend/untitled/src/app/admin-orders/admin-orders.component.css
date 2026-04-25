@@ -1,0 +1,28 @@
+.admin-orders-page { display: grid; gap: 18px; }
+.topbar { display: flex; }
+.hero-card, .toolbar, .order-card { border: 1px solid var(--border); background: #fff; border-radius: 24px; padding: 22px; box-shadow: var(--shadow); }
+.hero-card h1 { margin: 6px 0; font-size: clamp(28px, 5vw, 44px); letter-spacing: -.05em; }
+.toolbar { display: flex; gap: 12px; align-items: end; }
+.order-card { display: grid; gap: 14px; }
+.order-head, .actions { display: flex; align-items: center; justify-content: space-between; gap: 10px; flex-wrap: wrap; }
+.order-id { font-weight: 950; margin: 0; word-break: break-all; }
+.order-grid { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 10px; }
+.order-grid div { background: var(--surface-2); border: 1px solid var(--border); border-radius: 16px; padding: 12px; display: grid; gap: 5px; }
+.order-grid span { color: var(--muted); font-size: 12px; font-weight: 850; }
+.status { border-radius: 999px; padding: 8px 11px; font-size: 12px; font-weight: 950; background: var(--surface-2); }
+.status.pending { color: #92400e; background: #fffbeb; }
+.status.confirmed { color: #1d4ed8; background: #eff6ff; }
+.status.shipping { color: #6d28d9; background: #f5f3ff; }
+.status.completed { color: #047857; background: #ecfdf5; }
+.status.cancelled { color: #b91c1c; background: #fef2f2; }
+.items { display: grid; gap: 8px; }
+.item { display: grid; grid-template-columns: 1fr auto auto; gap: 12px; border-top: 1px solid var(--border); padding-top: 10px; }
+.btn-danger { background: #dc2626; color: #fff; border-color: #dc2626; }
+@media (max-width: 850px) { .order-grid { grid-template-columns: 1fr 1fr; } .item { grid-template-columns: 1fr; } }
+@media (max-width: 560px) { .toolbar, .order-grid { grid-template-columns: 1fr; display: grid; } }
+
+.timeline { display:grid; gap:8px; margin:12px 0; }
+.timeline-item { display:grid; grid-template-columns: 130px 1fr auto; gap:10px; align-items:center; border:1px solid var(--border); border-radius:14px; padding:10px; background:var(--surface-2); }
+.timeline-item strong { color:var(--primary-2); }
+.timeline-item em { color:var(--muted); font-style:normal; font-size:12px; }
+@media (max-width: 700px) { .timeline-item { grid-template-columns: 1fr; } }
