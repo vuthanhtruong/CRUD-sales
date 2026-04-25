@@ -1,17 +1,15 @@
-// product-detail.component.ts
 import { Component, OnInit, ChangeDetectorRef } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { ActivatedRoute, RouterModule } from '@angular/router';
 import { FormsModule } from '@angular/forms';
 import { forkJoin } from 'rxjs';
-
 import { ProductUserService, SizeDTO, ColorDTO } from '../services/product-user.service';
-
 import { ProductImageDTO } from '../services/product-image.service';
 import { ProductDTO } from '../services/product.service';
 import { CartService, AddToCartRequestDTO } from '../services/cart.service';
-
 import { ProductVariantService, ProductVariantDTO } from '../services/product-variant.service';
+
+type PopupType = 'success' | 'error' | 'info' | 'warning';
 
 @Component({
   selector: 'app-product-detail',
@@ -25,26 +23,19 @@ export class ProductDetailComponent implements OnInit {
   images: ProductImageDTO[] = [];
   sizes: SizeDTO[] = [];
   colors: ColorDTO[] = [];
-
   variants: ProductVariantDTO[] = [];
 
   selectedImage: ProductImageDTO | null = null;
   selectedSize: SizeDTO | null = null;
   selectedColor: ColorDTO | null = null;
-
-  quantity: number = 1;
+  quantity = 1;
 
   loading = true;
   addingToCart = false;
-
-  // Tổng tồn kho của toàn bộ sản phẩm
   totalQuantity: number | null = null;
   stockLoading = false;
 
-  // toast / popup
-  toastMessage: string | null = null;
-  toastType: 'success' | 'error' = 'success';
-  private toastTimer: any;
+  popup: { type: PopupType; title: string; message: string } | null = null;
 
   constructor(
     private route: ActivatedRoute,
@@ -78,24 +69,29 @@ export class ProductDetailComponent implements OnInit {
         this.colors = res.colors;
         this.variants = res.variants;
         this.totalQuantity = res.totalQuantity ?? 0;
-
         this.selectedImage = this.images.find((img) => img.isPrimary) ?? this.images[0] ?? null;
-
         this.loading = false;
         this.stockLoading = false;
         this.cdr.detectChanges();
       },
-      error: (err) => {
-        console.error(err);
-
+      error: () => {
         this.loading = false;
         this.stockLoading = false;
         this.totalQuantity = 0;
-
-        this.showToast('Failed to load product detail.', 'error');
+        this.showPopup('error', 'Product unavailable', 'Failed to load product detail.');
         this.cdr.detectChanges();
       },
     });
+  }
+
+  showPopup(type: PopupType, title: string, message: string) {
+    this.popup = { type, title, message };
+    this.cdr.detectChanges();
+  }
+
+  closePopup() {
+    this.popup = null;
+    this.cdr.detectChanges();
   }
 
   selectImage(img: ProductImageDTO) {
@@ -117,13 +113,11 @@ export class ProductDetailComponent implements OnInit {
 
   get selectedVariant(): ProductVariantDTO | null {
     if (!this.selectedSize || !this.selectedColor) return null;
-
-    return (
-      this.variants.find(
-        (variant) =>
-          variant.sizeId === this.selectedSize!.id && variant.colorId === this.selectedColor!.id,
-      ) ?? null
-    );
+    return this.variants.find(
+      (variant) =>
+        variant.sizeId === this.selectedSize!.id &&
+        variant.colorId === this.selectedColor!.id
+    ) ?? null;
   }
 
   get selectedVariantQuantity(): number | null {
@@ -149,10 +143,7 @@ export class ProductDetailComponent implements OnInit {
     if (this.addingToCart) return false;
 
     const variantStock = this.selectedVariantQuantity;
-
-    if (variantStock !== null && this.quantity > variantStock) {
-      return false;
-    }
+    if (variantStock !== null && this.quantity > variantStock) return false;
 
     return true;
   }
@@ -161,7 +152,7 @@ export class ProductDetailComponent implements OnInit {
     const max = this.selectedVariantQuantity;
 
     if (max !== null && this.quantity >= max) {
-      this.showToast(`Chỉ còn ${max} sản phẩm cho biến thể này.`, 'error');
+      this.showPopup('error', 'Stock limit reached', `Only ${max} item(s) are available for this variant.`);
       return;
     }
 
@@ -186,19 +177,6 @@ export class ProductDetailComponent implements OnInit {
     return !!localStorage.getItem('token');
   }
 
-  showToast(message: string, type: 'success' | 'error' = 'success') {
-    this.toastMessage = message;
-    this.toastType = type;
-    this.cdr.detectChanges();
-
-    clearTimeout(this.toastTimer);
-
-    this.toastTimer = setTimeout(() => {
-      this.toastMessage = null;
-      this.cdr.detectChanges();
-    }, 3000);
-  }
-
   reloadStockAfterAddToCart() {
     if (!this.product) return;
 
@@ -213,56 +191,53 @@ export class ProductDetailComponent implements OnInit {
         this.totalQuantity = res.totalQuantity ?? 0;
 
         const currentStock = this.selectedVariantQuantity;
-
         if (currentStock !== null && this.quantity > currentStock) {
           this.quantity = Math.max(1, currentStock);
         }
 
         this.cdr.detectChanges();
       },
-      error: () => {
-        this.cdr.detectChanges();
-      },
+      error: () => this.cdr.detectChanges(),
     });
   }
 
   addToCart() {
     if (!this.isLoggedIn()) {
-      this.showToast('Please login to add items to cart.', 'error');
+      this.showPopup('warning', 'Login required', 'Please log in before adding products to your cart.');
       return;
     }
 
     if (!this.product) return;
 
     if (this.isProductOutOfStock) {
-      this.showToast('Sản phẩm đã hết hàng.', 'error');
+      this.showPopup('error', 'Out of stock', 'This product is currently unavailable.');
       return;
     }
 
     if (!this.selectedSize) {
-      this.showToast('Please select a size.', 'error');
+      this.showPopup('error', 'Size required', 'Please select a size.');
       return;
     }
 
     if (!this.selectedColor) {
-      this.showToast('Please select a color.', 'error');
+      this.showPopup('error', 'Color required', 'Please select a color.');
       return;
     }
 
     const variantStock = this.selectedVariantQuantity;
 
     if (variantStock === null) {
-      this.showToast('Please select a valid variant.', 'error');
+      this.showPopup('error', 'Invalid variant', 'Please select a valid product variant.');
       return;
     }
 
     if (variantStock <= 0) {
-      this.showToast('Biến thể này đã hết hàng.', 'error');
+      this.showPopup('error', 'Out of stock', 'This variant is currently unavailable.');
       return;
     }
 
     if (this.quantity > variantStock) {
-      this.showToast(`Chỉ còn ${variantStock} sản phẩm cho biến thể này.`, 'error');
+      this.showPopup('error', 'Stock limit reached', `Only ${variantStock} item(s) are available for this variant.`);
       return;
     }
 
@@ -279,21 +254,22 @@ export class ProductDetailComponent implements OnInit {
     this.cartService.addToCart(request).subscribe({
       next: () => {
         this.addingToCart = false;
-
-        this.showToast(`Đã thêm "${this.product!.productName}" vào giỏ hàng!`, 'success');
-
+        this.showPopup(
+          'success',
+          'Added to cart',
+          `${this.product!.productName} was added to your cart successfully.`,
+        );
         this.reloadStockAfterAddToCart();
         this.cdr.detectChanges();
       },
       error: (err) => {
         this.addingToCart = false;
-
         const msg =
           typeof err?.error === 'string'
             ? err.error
-            : err?.error?.message || 'Failed to add to cart.';
+            : err?.error?.message || 'Failed to add item to cart.';
 
-        this.showToast(msg, 'error');
+        this.showPopup('error', 'Add to cart failed', msg);
         this.cdr.detectChanges();
       },
     });

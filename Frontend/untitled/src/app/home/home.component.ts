@@ -1,14 +1,6 @@
 import { Component, OnInit, ChangeDetectorRef } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import {
-  ReactiveFormsModule,
-  FormBuilder,
-  Validators,
-  FormsModule,
-  AbstractControl,
-  ValidationErrors,
-} from '@angular/forms';
-import { AccountService } from '../services/account.service';
+import { FormsModule } from '@angular/forms';
 import { RouterModule } from '@angular/router';
 import {
   ProductUserService,
@@ -21,15 +13,6 @@ import { Subject } from 'rxjs';
 import { debounceTime } from 'rxjs/operators';
 import { ProductVariantService, ProductVariantDTO } from '../services/product-variant.service';
 
-// ─── Toast ───────────────────────────────────────────────────────────────────
-export interface ToastMessage {
-  id: number;
-  type: 'success' | 'error' | 'info' | 'warning';
-  title: string;
-  message?: string;
-}
-
-// ─── Confirm dialog ──────────────────────────────────────────────────────────
 export interface ConfirmDialog {
   title: string;
   message: string;
@@ -38,33 +21,27 @@ export interface ConfirmDialog {
   resolve: (value: boolean) => void;
 }
 
+type PopupType = 'success' | 'error' | 'info' | 'warning';
+
 @Component({
   selector: 'app-home',
   standalone: true,
-  imports: [CommonModule, ReactiveFormsModule, FormsModule, RouterModule],
+  imports: [CommonModule, FormsModule, RouterModule],
   templateUrl: './home.component.html',
   styleUrls: ['./home.component.css'],
 })
 export class HomeComponent implements OnInit {
-  registerForm: any;
-  loginForm: any;
-
-  showRegister = false;
-  showLogin = false;
-
   currentUser: string | null = null;
   role: string | null = null;
   token: string | null = null;
 
-  // ================= PRODUCT =================
   products: ProductUserDTO[] = [];
   pagedProducts: ProductUserDTO[] = [];
   currentPage = 1;
   totalPages = 1;
   pageSize = 8;
 
-  // ================= SEARCH =================
-  keyword: string = '';
+  keyword = '';
   searchSubject = new Subject<string>();
   selectedMinPrice: number | null = null;
   selectedMaxPrice: number | null = null;
@@ -77,21 +54,16 @@ export class HomeComponent implements OnInit {
     { label: 'Above 500K', min: 500000, max: null },
   ];
 
-  // ================= CART =================
   showCart = false;
   cartItems: CartItemDTO[] = [];
   cartLoading = false;
   cartError: string | null = null;
+  checkoutProcessing = false;
   selectedIds: Set<string> = new Set();
 
-  // ================= STOCK =================
-  // stockMap lưu tổng tồn kho của từng sản phẩm.
-  // Key: productId
-  // Value: tổng quantity của tất cả biến thể size + color.
   stockMap: Map<string, number> = new Map();
   stockLoading: Set<string> = new Set();
 
-  // ================= QUICK-ADD MODAL =================
   showQuickAdd = false;
   quickAddProduct: ProductUserDTO | null = null;
   quickAddSizes: SizeDTO[] = [];
@@ -102,134 +74,45 @@ export class HomeComponent implements OnInit {
   quickAddQuantity = 1;
   quickAddLoading = false;
   quickAddAdding = false;
-  quickAddToastMsg: string | null = null;
-  quickAddToastType: 'success' | 'error' = 'success';
-  private quickAddToastTimer: any;
 
-  // ================= TOAST SYSTEM =================
-  toasts: ToastMessage[] = [];
-  private toastCounter = 0;
-
-  // ================= CONFIRM DIALOG =================
   confirmDialog: ConfirmDialog | null = null;
-
-  // ================= REGISTER VALIDATION =================
-  registerSubmitted = false;
+  popup: { type: PopupType; title: string; message: string } | null = null;
 
   constructor(
-    private fb: FormBuilder,
-    private accountService: AccountService,
     private productUserService: ProductUserService,
     private cartService: CartService,
     private productVariantService: ProductVariantService,
     private cdr: ChangeDetectorRef,
-  ) {
-    this.registerForm = this.fb.group(
-      {
-        firstName: ['', [Validators.required, Validators.minLength(2)]],
-        lastName: ['', [Validators.required, Validators.minLength(2)]],
-        phone: ['', [Validators.required, Validators.pattern(/^[0-9]{9,11}$/)]],
-        address: ['', Validators.required],
-        email: ['', [Validators.required, Validators.email]],
-        username: [
-          '',
-          [Validators.required, Validators.minLength(4), Validators.pattern(/^[a-zA-Z0-9_]+$/)],
-        ],
-        password: ['', [Validators.required, Validators.minLength(6)]],
-        confirmPassword: ['', Validators.required],
-        gender: ['MALE'],
-        birthday: [''],
-      },
-      { validators: this.passwordMatchValidator },
-    );
+  ) {}
 
-    this.loginForm = this.fb.group({
-      username: ['', Validators.required],
-      password: ['', Validators.required],
+  ngOnInit() {
+    this.refreshAuthState();
+
+    window.addEventListener('storage', () => {
+      this.refreshAuthState();
+      this.cdr.detectChanges();
     });
+
+    this.searchSubject.pipe(debounceTime(400)).subscribe(() => this.loadProducts());
+    this.loadProducts();
   }
 
-  // ─── Custom validator ─────────────────────────────────────────────────────
-  passwordMatchValidator(group: AbstractControl): ValidationErrors | null {
-    const pw = group.get('password')?.value;
-    const cpw = group.get('confirmPassword')?.value;
-    return pw && cpw && pw !== cpw ? { passwordMismatch: true } : null;
+  refreshAuthState() {
+    this.token = localStorage.getItem('token');
+    this.role = localStorage.getItem('role');
+    this.currentUser = localStorage.getItem('username');
   }
 
-  // ─── Helpers ──────────────────────────────────────────────────────────────
-  getRegField(name: string) {
-    return this.registerForm.get(name);
-  }
-
-  regFieldInvalid(name: string): boolean {
-    const ctrl = this.getRegField(name);
-    return ctrl && (ctrl.dirty || ctrl.touched || this.registerSubmitted) && ctrl.invalid;
-  }
-
-  regFieldError(name: string): string {
-    const ctrl = this.getRegField(name);
-
-    if (!ctrl || !ctrl.errors) return '';
-
-    if (ctrl.errors['required']) return 'This field is required.';
-    if (ctrl.errors['minlength'])
-      return `Minimum ${ctrl.errors['minlength'].requiredLength} characters.`;
-    if (ctrl.errors['email']) return 'Enter a valid email address.';
-
-    if (ctrl.errors['pattern']) {
-      if (name === 'phone') return 'Phone must be 9–11 digits.';
-      if (name === 'username') return 'Username may only contain letters, numbers and underscores.';
-    }
-
-    return 'Invalid value.';
-  }
-
-  get confirmPasswordError(): string {
-    const ctrl = this.getRegField('confirmPassword');
-
-    if (!ctrl) return '';
-
-    if ((ctrl.dirty || ctrl.touched || this.registerSubmitted) && ctrl.errors?.['required']) {
-      return 'Please confirm your password.';
-    }
-
-    if (
-      (ctrl.dirty || ctrl.touched || this.registerSubmitted) &&
-      this.registerForm.errors?.['passwordMismatch']
-    ) {
-      return 'Passwords do not match.';
-    }
-
-    return '';
-  }
-
-  // ================= TOAST =================
-  showToast(type: ToastMessage['type'], title: string, message?: string, duration = 3500) {
-    const id = ++this.toastCounter;
-
-    this.toasts.push({ id, type, title, message });
-    this.cdr.detectChanges();
-
-    setTimeout(() => this.dismissToast(id), duration);
-  }
-
-  dismissToast(id: number) {
-    this.toasts = this.toasts.filter((t) => t.id !== id);
+  showPopup(type: PopupType, title: string, message: string) {
+    this.popup = { type, title, message };
     this.cdr.detectChanges();
   }
 
-  toastIcon(type: ToastMessage['type']): string {
-    const map: Record<string, string> = {
-      success: 'bi-check-circle-fill',
-      error: 'bi-x-circle-fill',
-      info: 'bi-info-circle-fill',
-      warning: 'bi-exclamation-triangle-fill',
-    };
-
-    return map[type] ?? 'bi-bell-fill';
+  closePopup() {
+    this.popup = null;
+    this.cdr.detectChanges();
   }
 
-  // ================= CONFIRM DIALOG =================
   openConfirm(
     title: string,
     message: string,
@@ -237,14 +120,7 @@ export class HomeComponent implements OnInit {
     cancelLabel = 'Cancel',
   ): Promise<boolean> {
     return new Promise((resolve) => {
-      this.confirmDialog = {
-        title,
-        message,
-        confirmLabel,
-        cancelLabel,
-        resolve,
-      };
-
+      this.confirmDialog = { title, message, confirmLabel, cancelLabel, resolve };
       this.cdr.detectChanges();
     });
   }
@@ -261,23 +137,6 @@ export class HomeComponent implements OnInit {
     this.cdr.detectChanges();
   }
 
-  // ================= INIT =================
-  ngOnInit() {
-    this.token = localStorage.getItem('token');
-    this.role = localStorage.getItem('role');
-    this.currentUser = localStorage.getItem('username');
-
-    if (this.token) {
-      this.loadCurrentUser();
-      this.loadRole();
-    }
-
-    this.searchSubject.pipe(debounceTime(400)).subscribe(() => this.loadProducts());
-
-    this.loadProducts();
-  }
-
-  // ================= PRODUCTS =================
   loadProducts() {
     this.productUserService
       .searchProducts(
@@ -291,19 +150,14 @@ export class HomeComponent implements OnInit {
           this.products = res;
           this.totalPages = Math.max(1, Math.ceil(this.products.length / this.pageSize));
           this.currentPage = 1;
-
           this.updatePagedProducts();
-
-          // Xóa cache stock cũ để tránh hiển thị sai khi search/filter.
           this.stockMap.clear();
           this.stockLoading.clear();
-
           this.loadStockForPage();
           this.cdr.detectChanges();
         },
-        error: (err) => {
-          console.error(err);
-          this.showToast('error', 'Failed to load products', 'Please try again later.');
+        error: () => {
+          this.showPopup('error', 'Products unavailable', 'Could not load products. Please try again.');
         },
       });
   }
@@ -329,7 +183,6 @@ export class HomeComponent implements OnInit {
 
   goToPage(page: number) {
     if (page < 1 || page > this.totalPages) return;
-
     this.currentPage = page;
     this.updatePagedProducts();
     this.loadStockForPage();
@@ -342,14 +195,10 @@ export class HomeComponent implements OnInit {
     return `data:image/jpeg;base64,${image}`;
   }
 
-  // ================= STOCK =================
   loadStockForPage() {
     for (const product of this.pagedProducts) {
       const productId = product.productId;
-
-      if (!productId) continue;
-      if (this.stockMap.has(productId)) continue;
-      if (this.stockLoading.has(productId)) continue;
+      if (!productId || this.stockMap.has(productId) || this.stockLoading.has(productId)) continue;
 
       this.stockLoading.add(productId);
 
@@ -378,20 +227,16 @@ export class HomeComponent implements OnInit {
     return stock !== null && stock === 0;
   }
 
-  hasStock(productId: string): boolean {
-    const stock = this.getStock(productId);
-    return stock !== null && stock > 0;
-  }
-
-  // ================= QUICK-ADD MODAL =================
   openQuickAdd(product: ProductUserDTO) {
-    if (!this.currentUser) {
-      this.showToast('warning', 'Login required', 'Please log in to add items to your cart.');
+    this.refreshAuthState();
+
+    if (!this.currentUser || !this.token) {
+      this.showPopup('warning', 'Login required', 'Please log in before adding products to your cart.');
       return;
     }
 
     if (this.isOutOfStock(product.productId)) {
-      this.showToast('error', 'Out of stock', 'This product is currently unavailable.');
+      this.showPopup('error', 'Out of stock', 'This product is currently unavailable.');
       return;
     }
 
@@ -404,9 +249,7 @@ export class HomeComponent implements OnInit {
     this.quickAddQuantity = 1;
     this.quickAddLoading = true;
     this.quickAddAdding = false;
-    this.quickAddToastMsg = null;
     this.showQuickAdd = true;
-
     this.cdr.detectChanges();
 
     const productId = product.productId;
@@ -414,7 +257,6 @@ export class HomeComponent implements OnInit {
 
     const checkDone = () => {
       done++;
-
       if (done === 3) {
         this.quickAddLoading = false;
         this.cdr.detectChanges();
@@ -449,7 +291,6 @@ export class HomeComponent implements OnInit {
   closeQuickAdd() {
     this.showQuickAdd = false;
     this.quickAddProduct = null;
-    this.quickAddToastMsg = null;
     this.cdr.detectChanges();
   }
 
@@ -486,7 +327,7 @@ export class HomeComponent implements OnInit {
     const max = this.quickAddCurrentStock;
 
     if (max !== null && this.quickAddQuantity >= max) {
-      this.showQuickToast(`Only ${max} item(s) left in stock.`, 'error');
+      this.showPopup('error', 'Stock limit reached', `Only ${max} item(s) are available for this variant.`);
       return;
     }
 
@@ -501,35 +342,21 @@ export class HomeComponent implements OnInit {
     }
   }
 
-  showQuickToast(msg: string, type: 'success' | 'error') {
-    this.quickAddToastMsg = msg;
-    this.quickAddToastType = type;
-
-    this.cdr.detectChanges();
-
-    clearTimeout(this.quickAddToastTimer);
-
-    this.quickAddToastTimer = setTimeout(() => {
-      this.quickAddToastMsg = null;
-      this.cdr.detectChanges();
-    }, 3000);
-  }
-
   submitQuickAdd() {
     if (!this.quickAddProduct) return;
 
     if (!this.quickAddSelectedSize) {
-      this.showQuickToast('Please select a size.', 'error');
+      this.showPopup('error', 'Size required', 'Please select a size.');
       return;
     }
 
     if (!this.quickAddSelectedColor) {
-      this.showQuickToast('Please select a color.', 'error');
+      this.showPopup('error', 'Color required', 'Please select a color.');
       return;
     }
 
     if (this.quickAddIsOutOfStock) {
-      this.showQuickToast('Out of stock.', 'error');
+      this.showPopup('error', 'Out of stock', 'This variant is currently unavailable.');
       return;
     }
 
@@ -545,30 +372,30 @@ export class HomeComponent implements OnInit {
 
     this.cartService.addToCart(request).subscribe({
       next: () => {
-        this.quickAddAdding = false;
-        this.showQuickToast('Added to cart! 🛒', 'success');
-
+        const productName = this.quickAddProduct?.productName || 'Product';
         const productId = this.quickAddProduct!.productId;
 
-        // Reload lại stock tổng của sản phẩm này.
+        this.quickAddAdding = false;
+        this.closeQuickAdd();
+
         this.stockMap.delete(productId);
         this.loadStockForPage();
 
+        this.showPopup('success', 'Added to cart', `${productName} was added to your cart successfully.`);
         this.cdr.detectChanges();
       },
       error: (err) => {
         this.quickAddAdding = false;
-
         const msg =
-          typeof err.error === 'string' && err.error ? err.error : 'Failed to add item to cart.';
-
-        this.showQuickToast(msg, 'error');
+          typeof err.error === 'string' && err.error
+            ? err.error
+            : 'Failed to add item to cart.';
+        this.showPopup('error', 'Add to cart failed', msg);
         this.cdr.detectChanges();
       },
     });
   }
 
-  // ================= CART: COMPUTED =================
   get cartTotal(): number {
     return this.cartItems.reduce((sum, item) => sum + item.subtotal, 0);
   }
@@ -587,17 +414,13 @@ export class HomeComponent implements OnInit {
     return this.selectedIds.size;
   }
 
-  // ================= CART: CHECKBOX =================
   isSelected(id: string): boolean {
     return this.selectedIds.has(id);
   }
 
   toggleSelect(id: string): void {
-    if (this.selectedIds.has(id)) {
-      this.selectedIds.delete(id);
-    } else {
-      this.selectedIds.add(id);
-    }
+    if (this.selectedIds.has(id)) this.selectedIds.delete(id);
+    else this.selectedIds.add(id);
 
     this.cdr.detectChanges();
   }
@@ -610,19 +433,17 @@ export class HomeComponent implements OnInit {
   }
 
   toggleSelectAll(): void {
-    if (this.isAllSelected()) {
-      this.selectedIds.clear();
-    } else {
-      this.cartItems.forEach((item) => this.selectedIds.add(item.cartItemId));
-    }
+    if (this.isAllSelected()) this.selectedIds.clear();
+    else this.cartItems.forEach((item) => this.selectedIds.add(item.cartItemId));
 
     this.cdr.detectChanges();
   }
 
-  // ================= CART: OPEN / CLOSE =================
   openCart() {
-    if (!this.currentUser) {
-      this.showToast('warning', 'Login required', 'Please log in to view your cart.');
+    this.refreshAuthState();
+
+    if (!this.currentUser || !this.token) {
+      this.showPopup('warning', 'Login required', 'Please log in to view your cart.');
       return;
     }
 
@@ -635,7 +456,9 @@ export class HomeComponent implements OnInit {
     this.cartError = null;
   }
 
-  loadMyCart(resetSelected: boolean = false) {
+  loadMyCart(resetSelected = false) {
+    if (this.checkoutProcessing) return;
+
     this.cartLoading = true;
     this.cartError = null;
 
@@ -648,11 +471,8 @@ export class HomeComponent implements OnInit {
           this.selectedIds.clear();
         } else {
           const existingIds = new Set(items.map((item) => item.cartItemId));
-
           this.selectedIds.forEach((id) => {
-            if (!existingIds.has(id)) {
-              this.selectedIds.delete(id);
-            }
+            if (!existingIds.has(id)) this.selectedIds.delete(id);
           });
         }
 
@@ -666,8 +486,9 @@ export class HomeComponent implements OnInit {
     });
   }
 
-  // ================= CART: INCREASE =================
   increaseQty(item: CartItemDTO) {
+    if (this.checkoutProcessing) return;
+
     this.cartLoading = true;
 
     this.cartService.increaseQuantity(item.cartItemId, 1).subscribe({
@@ -678,17 +499,16 @@ export class HomeComponent implements OnInit {
       },
       error: (err) => {
         this.cartLoading = false;
-
         const msg = typeof err.error === 'string' && err.error ? err.error : 'Not enough stock.';
-
-        this.showToast('error', 'Cannot increase quantity', msg);
+        this.showPopup('error', 'Cannot increase quantity', msg);
         this.cdr.detectChanges();
       },
     });
   }
 
-  // ================= CART: DECREASE =================
   decreaseQty(item: CartItemDTO) {
+    if (this.checkoutProcessing) return;
+
     this.cartLoading = true;
 
     this.cartService.decreaseQuantity(item.cartItemId, 1).subscribe({
@@ -699,39 +519,34 @@ export class HomeComponent implements OnInit {
       },
       error: (err) => {
         this.cartLoading = false;
-
         const msg =
           typeof err.error === 'string' && err.error ? err.error : 'Failed to decrease quantity.';
-
-        this.showToast('error', 'Error', msg);
+        this.showPopup('error', 'Quantity update failed', msg);
         this.cdr.detectChanges();
       },
     });
   }
 
-  // ================= CART: REMOVE =================
   removeItem(item: CartItemDTO) {
+    if (this.checkoutProcessing) return;
+
     this.cartLoading = true;
 
     this.cartService.deleteCartItem(item.cartItemId).subscribe({
       next: () => {
         this.selectedIds.delete(item.cartItemId);
         this.loadMyCart(false);
-        this.showToast('success', 'Item removed');
+        this.showPopup('success', 'Item removed', 'The item was removed from your cart.');
       },
       error: (err) => {
         this.cartLoading = false;
-
-        const msg =
-          typeof err.error === 'string' && err.error ? err.error : 'Failed to remove item.';
-
-        this.showToast('error', 'Error', msg);
+        const msg = typeof err.error === 'string' && err.error ? err.error : 'Failed to remove item.';
+        this.showPopup('error', 'Remove failed', msg);
         this.cdr.detectChanges();
       },
     });
   }
 
-  // ================= CART: CLEAR =================
   async clearCart() {
     const ok = await this.openConfirm(
       'Clear cart',
@@ -750,163 +565,70 @@ export class HomeComponent implements OnInit {
       .then(() => {
         this.cartItems = [];
         this.selectedIds.clear();
-        this.showToast('success', 'Cart cleared');
+        this.showPopup('success', 'Cart cleared', 'All items were removed from your cart.');
         this.cdr.detectChanges();
       })
       .catch(() => {
-        this.showToast('error', 'Error', 'Failed to clear cart.');
+        this.showPopup('error', 'Clear cart failed', 'Failed to clear cart.');
       });
   }
 
-  // ================= CART: CHECKOUT =================
   async checkout() {
+    if (this.checkoutProcessing) return;
+
     if (this.selectedIds.size === 0) {
-      this.showToast(
-        'warning',
-        'No items selected',
-        'Please select at least one item to checkout.',
-      );
+      this.showPopup('warning', 'No items selected', 'Please select at least one item to checkout.');
       return;
     }
 
-    const totalStr = this.selectedTotal.toLocaleString('vi-VN');
+    const selectedIdsSnapshot = Array.from(this.selectedIds);
+    const selectedCountSnapshot = selectedIdsSnapshot.length;
+    const totalSnapshot = this.selectedTotal.toLocaleString('vi-VN');
 
     const ok = await this.openConfirm(
       'Confirm checkout',
-      `Checkout ${this.selectedCount} item(s) for a total of ${totalStr}đ?`,
+      `Checkout ${selectedCountSnapshot} item(s) for a total of ${totalSnapshot}đ?`,
       'Checkout',
       'Cancel',
     );
 
     if (!ok) return;
 
-    const ids = Array.from(this.selectedIds);
+    this.checkoutProcessing = true;
+    this.cartLoading = true;
+    this.cdr.detectChanges();
 
-    this.cartService.checkout(ids).subscribe({
+    this.cartService.checkout(selectedIdsSnapshot).subscribe({
       next: () => {
-        this.showToast('success', 'Order placed! 🎉', 'Your order has been placed successfully.');
-
+        this.cartItems = this.cartItems.filter(
+          (item) => !selectedIdsSnapshot.includes(item.cartItemId),
+        );
         this.selectedIds.clear();
-        this.loadMyCart(false);
 
-        // Checkout làm thay đổi tồn kho nên clear cache stock.
+        this.checkoutProcessing = false;
+        this.cartLoading = false;
+        this.showCart = false;
+
         this.stockMap.clear();
         this.loadStockForPage();
+
+        this.showPopup(
+          'success',
+          'Checkout successful',
+          `Your order for ${selectedCountSnapshot} item(s) has been placed successfully.`,
+        );
+
+        this.cdr.detectChanges();
       },
       error: (err) => {
-        const msg = typeof err.error === 'string' && err.error ? err.error : 'Unknown error.';
+        this.checkoutProcessing = false;
+        this.cartLoading = false;
 
-        this.showToast('error', 'Checkout failed', msg);
-      },
-    });
-  }
-
-  // ================= AUTH =================
-  loadCurrentUser() {
-    this.accountService.getCurrentUser().subscribe({
-      next: (res: any) => {
-        this.currentUser = res.username;
-        localStorage.setItem('username', res.username);
-        this.cdr.detectChanges();
-      },
-      error: () => this.logout(),
-    });
-  }
-
-  loadRole() {
-    this.accountService.getRole().subscribe({
-      next: (res: any) => {
-        this.role = res.role;
-        localStorage.setItem('role', res.role);
+        const msg = typeof err.error === 'string' && err.error ? err.error : 'Checkout failed.';
+        this.showPopup('error', 'Checkout failed', msg);
         this.cdr.detectChanges();
       },
     });
-  }
-
-  openRegister() {
-    this.registerSubmitted = false;
-    this.registerForm.reset({ gender: 'MALE' });
-    this.showRegister = true;
-  }
-
-  openLogin() {
-    this.showLogin = true;
-  }
-
-  closePopup() {
-    this.showRegister = false;
-    this.showLogin = false;
-  }
-
-  submitRegister() {
-    this.registerSubmitted = true;
-
-    if (this.registerForm.invalid) {
-      this.showToast('error', 'Form incomplete', 'Please fix the errors before submitting.');
-      return;
-    }
-
-    const { confirmPassword, ...payload } = this.registerForm.value;
-
-    this.accountService.register(payload).subscribe({
-      next: () => {
-        this.showToast('success', 'Account created!', 'You can now log in with your credentials.');
-        this.closePopup();
-        this.registerForm.reset({ gender: 'MALE' });
-        this.registerSubmitted = false;
-      },
-      error: (err: any) => {
-        const msg = typeof err.error === 'string' ? err.error : JSON.stringify(err.error);
-        this.showToast('error', 'Registration failed', msg);
-      },
-    });
-  }
-
-  submitLogin() {
-    if (this.loginForm.invalid) return;
-
-    this.accountService.login(this.loginForm.value).subscribe({
-      next: (res: any) => {
-        this.token = res.token;
-        localStorage.setItem('token', res.token);
-
-        const username = this.loginForm.value.username;
-        this.currentUser = username;
-        localStorage.setItem('username', username);
-
-        if (res.role) {
-          this.role = res.role;
-          localStorage.setItem('role', res.role);
-        } else {
-          this.loadRole();
-        }
-
-        this.loadCurrentUser();
-        this.cdr.detectChanges();
-        this.closePopup();
-
-        this.showToast('success', `Welcome back, ${username}!`);
-      },
-      error: () => {
-        this.showToast('error', 'Login failed', 'Invalid username or password.');
-      },
-    });
-  }
-
-  logout() {
-    this.currentUser = null;
-    this.role = null;
-    this.token = null;
-    this.cartItems = [];
-
-    this.selectedIds.clear();
-    this.stockMap.clear();
-
-    localStorage.removeItem('token');
-    localStorage.removeItem('username');
-    localStorage.removeItem('role');
-
-    this.showToast('info', 'Logged out', 'See you next time!');
   }
 
   isUser(): boolean {
@@ -917,7 +639,7 @@ export class HomeComponent implements OnInit {
     return this.role === 'ROLE_ADMIN' || this.role === 'ADMIN';
   }
 
-  isAdminOrUser(): boolean {
-    return ['ROLE_ADMIN', 'ADMIN', 'ROLE_USER', 'USER'].includes(this.role || '');
+  isLoggedIn(): boolean {
+    return !!this.token;
   }
 }

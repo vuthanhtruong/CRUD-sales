@@ -4,22 +4,24 @@ import { AdminComponent } from './admin/admin.component';
 import { ProductsComponent } from './product/products.component';
 import { ColorsComponent } from './product/colors.component';
 import { ProductTypeComponent } from './product/product-type.component';
-import {SizesComponent} from './product/sizes.component';
-import {ProductDetailComponent} from './product/product-detail.component';
-import {ProfileComponent} from './auth/profile.component';
+import { SizesComponent } from './product/sizes.component';
+import { ProductDetailComponent } from './product/product-detail.component';
+import { ProfileComponent } from './auth/profile.component';
+import { adminGuard, profileGuard } from './guards/role.guard';
 
 export const routes: Routes = [
   { path: '', redirectTo: 'home', pathMatch: 'full' },
 
   { path: 'home', component: HomeComponent },
-
-  { path: 'admin', component: AdminComponent },
-
-  { path: 'products', component: ProductsComponent },
-  { path: 'product-types', component: ProductTypeComponent },
-  { path: 'sizes', component: SizesComponent },
-  { path: 'colors', component: ColorsComponent },
   { path: 'product/:id', component: ProductDetailComponent },
-  { path: 'profile', component: ProfileComponent },
+
+  { path: 'profile', component: ProfileComponent, canActivate: [profileGuard] },
+
+  { path: 'admin', component: AdminComponent, canActivate: [adminGuard] },
+  { path: 'products', component: ProductsComponent, canActivate: [adminGuard] },
+  { path: 'product-types', component: ProductTypeComponent, canActivate: [adminGuard] },
+  { path: 'sizes', component: SizesComponent, canActivate: [adminGuard] },
+  { path: 'colors', component: ColorsComponent, canActivate: [adminGuard] },
+
   { path: '**', redirectTo: 'home' }
 ];
