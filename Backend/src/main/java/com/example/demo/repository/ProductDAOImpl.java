@@ -319,6 +319,7 @@ public class ProductDAOImpl implements ProductDAO {
     }
 
     @Override
+    @Transactional
     public void delete(String id) {
 
         Product managed = entityManager.find(Product.class, id);
@@ -327,19 +328,98 @@ public class ProductDAOImpl implements ProductDAO {
             throw new RuntimeException("Product not found");
         }
 
-        // 1. delete variants first
-        entityManager.createQuery(
-                        "DELETE FROM ProductVariant pv WHERE pv.product.productId = :id"
-                ).setParameter("id", managed.getProductId())
+        String productId = managed.getProductId();
+
+        /*
+         * ProductComment có self FK parent_id.
+         * Phải cắt parent trước, nếu không khi DELETE comment có thể lỗi FK.
+         */
+        entityManager.createNativeQuery("""
+        UPDATE product_comment
+        SET parent_id = NULL
+        WHERE product_id = :productId
+    """)
+                .setParameter("productId", productId)
                 .executeUpdate();
 
-        // 2. delete images when foreign keys require it
-        entityManager.createQuery(
-                        "DELETE FROM ProductImage pi WHERE pi.product.productId = :id"
-                ).setParameter("id", managed.getProductId())
+        // 1. Xóa comment của product
+        entityManager.createNativeQuery("""
+        DELETE FROM product_comment
+        WHERE product_id = :productId
+    """)
+                .setParameter("productId", productId)
                 .executeUpdate();
 
-        // 3. delete product
-        entityManager.remove(managed);
+        // 2. Xóa review của product
+        entityManager.createNativeQuery("""
+        DELETE FROM product_review
+        WHERE product_id = :productId
+    """)
+                .setParameter("productId", productId)
+                .executeUpdate();
+
+        // 3. Xóa wishlist liên quan tới product
+        entityManager.createNativeQuery("""
+        DELETE FROM wishlist_item
+        WHERE product_id = :productId
+    """)
+                .setParameter("productId", productId)
+                .executeUpdate();
+
+        // 4. Xóa metric của product
+        entityManager.createNativeQuery("""
+        DELETE FROM product_metric
+        WHERE product_id = :productId
+    """)
+                .setParameter("productId", productId)
+                .executeUpdate();
+
+        // 5. Xóa image của product
+        entityManager.createNativeQuery("""
+        DELETE FROM product_image
+        WHERE product_id = :productId
+    """)
+                .setParameter("productId", productId)
+                .executeUpdate();
+
+        /*
+         * ProductVariant đang bị CartItem và OrderItem tham chiếu.
+         * Phải xóa các bảng này trước khi xóa product_variant.
+         */
+
+        // 6. Xóa cart item đang giữ variant của product
+        entityManager.createNativeQuery("""
+        DELETE FROM cart_item
+        WHERE product_id = :productId
+    """)
+                .setParameter("productId", productId)
+                .executeUpdate();
+
+        // 7. Xóa order item đang giữ variant của product
+        entityManager.createNativeQuery("""
+        DELETE FROM order_item
+        WHERE product_id = :productId
+    """)
+                .setParameter("productId", productId)
+                .executeUpdate();
+
+        // 8. Xóa variants
+        entityManager.createNativeQuery("""
+        DELETE FROM product_variant
+        WHERE product_id = :productId
+    """)
+                .setParameter("productId", productId)
+                .executeUpdate();
+
+        // 9. Cuối cùng mới xóa product
+        entityManager.createNativeQuery("""
+        DELETE FROM product
+        WHERE product_id = :productId
+    """)
+                .setParameter("productId", productId)
+                .executeUpdate();
+
+        entityManager.flush();
+        entityManager.clear();
     }
 }
