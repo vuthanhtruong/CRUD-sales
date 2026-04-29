@@ -21,6 +21,31 @@ public class ProductUserController {
     @Autowired
     private ProductImageService productImageService;
 
+    private final ProductService productService;
+
+    public ProductUserController(ProductService productService) {
+        this.productService = productService;
+    }
+
+    @GetMapping("/page")
+    public ResponseEntity<PageResponseDTO<ProductUserDTO>> searchProductsPage(
+            @RequestParam(required = false) String keyword,
+            @RequestParam(required = false) java.math.BigDecimal minPrice,
+            @RequestParam(required = false) java.math.BigDecimal maxPrice,
+            @RequestParam(required = false) String productTypeId,
+            @RequestParam(defaultValue = "1") int page,
+            @RequestParam(defaultValue = "8") int pageSize
+    ) {
+        return ResponseEntity.ok(productService.searchUserProductsPage(
+                keyword,
+                minPrice,
+                maxPrice,
+                productTypeId,
+                page,
+                pageSize
+        ));
+    }
+
     @GetMapping("/{productId}/sizes")
     public List<SizeDTO> getSizesByProduct(@PathVariable String productId) {
         return productVariantService.findSizesByProductId(productId);
@@ -33,7 +58,6 @@ public class ProductUserController {
             @RequestParam(required = false) java.math.BigDecimal maxPrice,
             @RequestParam(required = false) String productTypeId
     ) {
-
         List<ProductUserDTO> result = productService.searchUserProducts(
                 keyword,
                 minPrice,
@@ -49,7 +73,6 @@ public class ProductUserController {
             @RequestParam(required = false) java.math.BigDecimal minPrice,
             @RequestParam(required = false) java.math.BigDecimal maxPrice
     ) {
-
         List<ProductUserDTO> result;
 
         if (minPrice != null && maxPrice != null) {
@@ -59,7 +82,7 @@ public class ProductUserController {
         } else if (maxPrice != null) {
             result = productService.findUserProductsByPriceLessThan(maxPrice);
         } else {
-            result = productService.getProductsForUser(); // fallback
+            result = productService.getProductsForUser();
         }
 
         return ResponseEntity.ok(result);
@@ -70,13 +93,6 @@ public class ProductUserController {
         return productVariantService.findColorsByProductId(productId);
     }
 
-    private final ProductService productService;
-
-    public ProductUserController(ProductService productService) {
-        this.productService = productService;
-    }
-
-    // ================= GET IMAGES BY PRODUCT =================
     @GetMapping("/{productId}/images")
     public ResponseEntity<List<ProductImageDTO>> getImagesByProduct(
             @PathVariable String productId
@@ -86,18 +102,14 @@ public class ProductUserController {
         );
     }
 
-    // ================= GET ALL PRODUCTS FOR USER =================
     @GetMapping
     public ResponseEntity<List<ProductUserDTO>> getProductsForUser() {
-
         List<ProductUserDTO> products = productService.getProductsForUser();
-
         return ResponseEntity.ok(products);
     }
 
     @GetMapping("/{productId}")
     public ResponseEntity<ProductDTO> getProductById(@PathVariable String productId) {
-
         return ResponseEntity.ok(
                 productService.findById(productId)
         );

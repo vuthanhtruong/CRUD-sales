@@ -45,6 +45,7 @@ export class HomeComponent implements OnInit {
   currentPage = 1;
   totalPages = 1;
   pageSize = 8;
+  totalItems = 0;
 
   keyword = '';
   searchSubject = new Subject<string>();
@@ -113,7 +114,7 @@ export class HomeComponent implements OnInit {
     });
 
 
-    this.searchSubject.pipe(debounceTime(400)).subscribe(() => this.loadProducts());
+    this.searchSubject.pipe(debounceTime(400)).subscribe(() => this.loadProducts(true));
 
     this.loadProducts();
     this.loadTrending();
@@ -167,20 +168,25 @@ export class HomeComponent implements OnInit {
     });
   }
 
-  loadProducts() {
+  loadProducts(resetPage = false) {
+    if (resetPage) this.currentPage = 1;
+
     this.productUserService
-      .searchProducts(
+      .searchProductsPage(
         this.keyword,
         this.selectedMinPrice ?? undefined,
         this.selectedMaxPrice ?? undefined,
         undefined,
+        this.currentPage,
+        this.pageSize,
       )
       .subscribe({
         next: (res) => {
-          this.products = res;
-          this.totalPages = Math.max(1, Math.ceil(this.products.length / this.pageSize));
-          this.currentPage = 1;
-          this.updatePagedProducts();
+          this.products = res.content ?? [];
+          this.pagedProducts = res.content ?? [];
+          this.totalItems = res.totalItems || 0;
+          this.totalPages = Math.max(1, res.totalPages || 1);
+          this.currentPage = Math.min(Math.max(1, res.currentPage || 1), this.totalPages);
           this.stockMap.clear();
           this.stockLoading.clear();
           this.loadStockForPage();
@@ -197,8 +203,7 @@ export class HomeComponent implements OnInit {
   }
 
   onSearchClick() {
-
-    this.loadProducts();
+    this.loadProducts(true);
     this.loadTrending();
   }
 
@@ -206,21 +211,18 @@ export class HomeComponent implements OnInit {
     this.selectedMinPrice = range.min;
     this.selectedMaxPrice = range.max;
 
-    this.loadProducts();
+    this.loadProducts(true);
     this.loadTrending();
   }
 
   updatePagedProducts() {
-    const start = (this.currentPage - 1) * this.pageSize;
-    this.pagedProducts = this.products.slice(start, start + this.pageSize);
+    this.pagedProducts = this.products;
   }
 
   goToPage(page: number) {
     if (page < 1 || page > this.totalPages) return;
     this.currentPage = page;
-    this.updatePagedProducts();
-    this.loadStockForPage();
-    this.cdr.detectChanges();
+    this.loadProducts();
   }
 
   buildImageSrc(image: string | null): string {

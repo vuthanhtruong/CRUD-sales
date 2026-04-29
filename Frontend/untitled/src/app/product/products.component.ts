@@ -5,11 +5,10 @@ import { ProductVariantService, ProductVariantDTO } from '../services/product-va
 import { ProductTypeService, ProductType } from '../services/product-type.service';
 import { SizeService, Size } from '../services/size.service';
 import { ColorService, ColorDTO } from '../services/color.service';
-import { forkJoin, of } from 'rxjs';
+import { of } from 'rxjs';
 import { catchError } from 'rxjs/operators';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
-import { ExportService } from '../services/export.service';
 
 interface ImageRow {
   preview: string;
@@ -84,6 +83,7 @@ export class ProductsComponent implements OnInit {
   currentPage = 1;
   totalPages = 1;
   pageSize = 10;
+  totalItems = 0;
 
   // =========================
   // IMAGE ROWS
@@ -135,7 +135,6 @@ export class ProductsComponent implements OnInit {
     private productTypeService: ProductTypeService,
     private sizeService: SizeService,
     private colorService: ColorService,
-    private exportService: ExportService,
     private cdr: ChangeDetectorRef,
   ) {}
 
@@ -209,16 +208,12 @@ export class ProductsComponent implements OnInit {
   // LOAD DATA
   // =========================
   loadProductsPaged() {
-    forkJoin({
-      products: this.productService.findAllPaged(this.currentPage, this.pageSize),
-      totalPages: this.productService.countTotalPages(this.pageSize),
-    }).subscribe({
+    this.productService.findProductsPage(this.searchParams, this.currentPage, this.pageSize).subscribe({
       next: (res) => {
-        this.products = res.products;
-        this.totalPages = res.totalPages;
-        if (this.currentPage > this.totalPages) {
-          this.currentPage = Math.max(1, this.totalPages);
-        }
+        this.products = res.content ?? [];
+        this.totalPages = Math.max(1, res.totalPages || 1);
+        this.totalItems = res.totalItems || 0;
+        this.currentPage = Math.min(Math.max(1, res.currentPage || 1), this.totalPages);
         this.cdr.detectChanges();
       },
       error: (err) => console.error(err),
@@ -228,17 +223,14 @@ export class ProductsComponent implements OnInit {
   goToPage(page: number) {
     if (page < 1 || page > this.totalPages) return;
     this.currentPage = page;
-    if (this.isSearchMode) this.doSearch();
-    else this.loadProductsPaged();
+    this.loadProductsPaged();
   }
 
   changePageSize(size: number) {
     this.pageSize = size;
     this.currentPage = 1;
-    if (this.isSearchMode) this.doSearch();
-    else this.loadProductsPaged();
+    this.loadProductsPaged();
   }
-
   loadStatuses() {
     this.productService.getStatuses().subscribe((res) => {
       this.statuses = res;
@@ -269,7 +261,6 @@ export class ProductsComponent implements OnInit {
 
   // =========================
   // SEARCH
-  // =========================
   doSearch() {
     this.searchError = '';
     const min = this.searchParams.minPrice;
@@ -278,6 +269,7 @@ export class ProductsComponent implements OnInit {
       this.searchError = 'Min price cannot be greater than max price';
       return;
     }
+
     const hasAnyFilter =
       !!this.searchParams.keyword?.trim() ||
       min != null ||
@@ -285,24 +277,9 @@ export class ProductsComponent implements OnInit {
       !!this.searchParams.productTypeId?.trim() ||
       !!this.searchParams.status?.trim();
 
-    if (!hasAnyFilter) {
-      this.resetSearch();
-      return;
-    }
-
-    this.isSearchMode = true;
-    this.productService.searchProducts(this.searchParams).subscribe({
-      next: (res) => {
-        this.products = res;
-        this.totalPages = 1;
-        this.currentPage = 1;
-        this.cdr.detectChanges();
-      },
-      error: () => {
-        this.searchError = 'Search failed. Please try again.';
-        this.cdr.detectChanges();
-      },
-    });
+    this.isSearchMode = hasAnyFilter;
+    this.currentPage = 1;
+    this.loadProductsPaged();
   }
 
   resetSearch() {
@@ -354,10 +331,11 @@ export class ProductsComponent implements OnInit {
     this.cdr.detectChanges();
   }
 
-  async doExport() {
+  doExport() {
     this.exportError = '';
 
-    if (this.exportScopeType === 'selected' && this.selectedPages.size === 0) {
+    const selected = Array.from(this.selectedPages).sort((a, b) => a - b);
+    if (this.exportScopeType === 'selected' && selected.length === 0) {
       this.exportError = 'Please select at least one page.';
       return;
     }
@@ -365,43 +343,61 @@ export class ProductsComponent implements OnInit {
     this.exportLoading = true;
     this.cdr.detectChanges();
 
-    try {
-      let data: ProductDTO[] = [];
+    this.productService
+      .exportProducts(
+        this.exportFormat,
+        this.exportScopeType,
+        this.searchParams,
+        this.currentPage,
+        this.pageSize,
+        selected,
+      )
+      .subscribe({
+        next: (response) => {
+          const blob = response.body;
+          if (!blob) {
+            this.exportError = 'Export failed. Please try again.';
+            this.exportLoading = false;
+            this.cdr.detectChanges();
+            return;
+          }
 
-      if (this.exportScopeType === 'current') {
-        data = this.products;
-      } else if (this.exportScopeType === 'selected') {
-        const pages = Array.from(this.selectedPages).sort((a, b) => a - b);
-        const results = await Promise.all(
-          pages.map((p) =>
-            this.productService
-              .findAllPaged(p, this.pageSize)
-              .toPromise()
-              .then((r) => r ?? []),
-          ),
-        );
-        data = results.flat();
-      } else {
-        const allData = await this.productService.findAll().toPromise();
-        data = allData ?? [];
-      }
+          this.downloadBlob(blob, this.getFileNameFromResponse(response.headers.get('Content-Disposition')));
+          this.exportLoading = false;
+          this.closeExportModal();
+        },
+        error: (err) => {
+          console.error(err);
+          this.exportError = 'Export failed. Please try again.';
+          this.exportLoading = false;
+          this.cdr.detectChanges();
+        },
+      });
+  }
 
-      if (this.exportFormat === 'excel') {
-        await this.exportService.exportExcel(data);
-      } else if (this.exportFormat === 'word') {
-        await this.exportService.exportWord(data);
-      } else {
-        await this.exportService.exportPdf(data);
-      }
+  private downloadBlob(blob: Blob, fileName: string) {
+    const url = window.URL.createObjectURL(blob);
+    const anchor = document.createElement('a');
+    anchor.href = url;
+    anchor.download = fileName;
+    document.body.appendChild(anchor);
+    anchor.click();
+    anchor.remove();
+    window.URL.revokeObjectURL(url);
+  }
 
-      this.exportLoading = false;
-      this.closeExportModal();
-    } catch (err) {
-      console.error(err);
-      this.exportError = 'Export failed. Please try again.';
-      this.exportLoading = false;
-      this.cdr.detectChanges();
-    }
+  private getFileNameFromResponse(contentDisposition: string | null): string {
+    const fallback = `products_${new Date().toISOString().slice(0, 19).replace(/[:T]/g, '-')}.${this.exportExtension()}`;
+    if (!contentDisposition) return fallback;
+
+    const match = contentDisposition.match(/filename\*?=(?:UTF-8'')?"?([^";]+)"?/i);
+    return match?.[1] ? decodeURIComponent(match[1]) : fallback;
+  }
+
+  private exportExtension(): string {
+    if (this.exportFormat === 'word') return 'docx';
+    if (this.exportFormat === 'pdf') return 'pdf';
+    return 'xlsx';
   }
 
   // =========================

@@ -25,6 +25,23 @@ public interface ProductDAO {
             BigDecimal maxPrice,
             String productTypeId
     );
+
+    List<Product> searchProductsPaged(
+            String keyword,
+            BigDecimal minPrice,
+            BigDecimal maxPrice,
+            String productTypeId,
+            int page,
+            int pageSize
+    );
+
+    long countSearchProducts(
+            String keyword,
+            BigDecimal minPrice,
+            BigDecimal maxPrice,
+            String productTypeId
+    );
+
     List<Product> searchProductsAdmin(
             String keyword,
             BigDecimal minPrice,
@@ -32,8 +49,26 @@ public interface ProductDAO {
             String productTypeId,
             ProductStatus status
     );
+
+    List<Product> searchProductsAdminPaged(
+            String keyword,
+            BigDecimal minPrice,
+            BigDecimal maxPrice,
+            String productTypeId,
+            ProductStatus status,
+            int page,
+            int pageSize
+    );
+
+    long countSearchProductsAdmin(
+            String keyword,
+            BigDecimal minPrice,
+            BigDecimal maxPrice,
+            String productTypeId,
+            ProductStatus status
+    );
+
     boolean existsByProductType(String productTypeId);
     boolean existsByColorId(String colorId);
     boolean existsBySizeId(String sizeId);
-
 }

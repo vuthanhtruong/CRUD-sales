@@ -61,7 +61,7 @@
       </div>
     </div>
     <p class="form-hint error" *ngIf="searchError">{{ searchError }}</p>
-    <p class="form-hint" *ngIf="isSearchMode">Showing search results — {{ products.length }} product(s)</p>
+    <p class="form-hint" *ngIf="isSearchMode">Showing filtered results — {{ products.length }} / {{ totalItems }} product(s)</p>
   </section>
 
   <!-- ================= CATALOG GRID ================= -->
@@ -121,7 +121,7 @@
       </article>
     </div>
 
-    <div class="pager" *ngIf="!isSearchMode">
+    <div class="pager" *ngIf="totalPages > 1">
       <button class="btn btn-ghost btn-small" type="button" (click)="goToPage(1)" [disabled]="currentPage === 1">
         <i class="bi bi-chevron-double-left" aria-hidden="true"></i>
         <span>First</span>

@@ -1,8 +1,8 @@
 import { Injectable } from '@angular/core';
-import { HttpClient } from '@angular/common/http';
+import { HttpClient, HttpParams } from '@angular/common/http';
 import { Observable } from 'rxjs';
 import { ProductImageDTO } from './product-image.service';
-import { ProductDTO } from './product.service';
+import { PageResponse, ProductDTO } from './product.service';
 
 export interface ProductUserDTO {
   productId: string;
@@ -30,6 +30,22 @@ export class ProductUserService {
 
   constructor(private http: HttpClient) {}
 
+  private buildSearchParams(
+    keyword?: string,
+    minPrice?: number,
+    maxPrice?: number,
+    productTypeId?: string,
+  ): HttpParams {
+    let params = new HttpParams();
+
+    if (keyword && keyword.trim() !== '') params = params.set('keyword', keyword.trim());
+    if (minPrice !== undefined && minPrice !== null) params = params.set('minPrice', minPrice.toString());
+    if (maxPrice !== undefined && maxPrice !== null) params = params.set('maxPrice', maxPrice.toString());
+    if (productTypeId && productTypeId.trim() !== '') params = params.set('productTypeId', productTypeId.trim());
+
+    return params;
+  }
+
   getProducts(): Observable<ProductUserDTO[]> {
     return this.http.get<ProductUserDTO[]>(this.apiUrl);
   }
@@ -51,17 +67,9 @@ export class ProductUserService {
   }
 
   filterProducts(minPrice?: number, maxPrice?: number): Observable<ProductUserDTO[]> {
-
-    let params: any = {};
-
-    if (minPrice !== undefined && minPrice !== null) {
-      params.minPrice = minPrice;
-    }
-
-    if (maxPrice !== undefined && maxPrice !== null) {
-      params.maxPrice = maxPrice;
-    }
-
+    let params = new HttpParams();
+    if (minPrice !== undefined && minPrice !== null) params = params.set('minPrice', minPrice.toString());
+    if (maxPrice !== undefined && maxPrice !== null) params = params.set('maxPrice', maxPrice.toString());
     return this.http.get<ProductUserDTO[]>(`${this.apiUrl}/filter`, { params });
   }
 
@@ -71,28 +79,22 @@ export class ProductUserService {
     maxPrice?: number,
     productTypeId?: string
   ): Observable<ProductUserDTO[]> {
+    const params = this.buildSearchParams(keyword, minPrice, maxPrice, productTypeId);
+    return this.http.get<ProductUserDTO[]>(`${this.apiUrl}/search`, { params });
+  }
 
-    let params: any = {};
+  searchProductsPage(
+    keyword?: string,
+    minPrice?: number,
+    maxPrice?: number,
+    productTypeId?: string,
+    page = 1,
+    pageSize = 8,
+  ): Observable<PageResponse<ProductUserDTO>> {
+    let params = this.buildSearchParams(keyword, minPrice, maxPrice, productTypeId)
+      .set('page', page.toString())
+      .set('pageSize', pageSize.toString());
 
-    if (keyword && keyword.trim() !== '') {
-      params.keyword = keyword.trim();
-    }
-
-    if (minPrice !== undefined && minPrice !== null) {
-      params.minPrice = minPrice;
-    }
-
-    if (maxPrice !== undefined && maxPrice !== null) {
-      params.maxPrice = maxPrice;
-    }
-
-    if (productTypeId && productTypeId.trim() !== '') {
-      params.productTypeId = productTypeId;
-    }
-
-    return this.http.get<ProductUserDTO[]>(
-      `${this.apiUrl}/search`,
-      { params }
-    );
+    return this.http.get<PageResponse<ProductUserDTO>>(`${this.apiUrl}/page`, { params });
   }
 }
