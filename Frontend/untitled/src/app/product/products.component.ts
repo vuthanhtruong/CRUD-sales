@@ -122,11 +122,43 @@ export class ProductsComponent implements OnInit {
   exportLoading = false;
   exportError = '';
 
+  selectedPages: Set<number> = new Set();
+  exportScopeType: 'current' | 'selected' | 'all' = 'current';
+
   get pageNumbers(): number[] {
     return Array.from({ length: this.totalPages }, (_, i) => i + 1);
   }
-  selectedPages: Set<number> = new Set();
-  exportScopeType: 'current' | 'selected' | 'all' = 'current';
+
+  // =========================
+  // DELETE PRODUCT POPUP
+  // =========================
+  showDeletePopup = false;
+  deleteProductId = '';
+  deleteLoading = false;
+  deleteError = '';
+
+  // =========================
+  // DELETE IMAGES POPUP
+  // =========================
+  showDeleteImagesPopup = false;
+  deleteImagesLoading = false;
+  deleteImagesError = '';
+
+  // =========================
+  // DELETE VARIANT POPUP
+  // =========================
+  showDeleteVariantPopup = false;
+  variantToDelete: ProductVariantDTO | null = null;
+  deleteVariantLoading = false;
+  deleteVariantError = '';
+
+  // =========================
+  // GENERIC ALERT POPUP
+  // =========================
+  showAlertPopup = false;
+  alertPopupTitle = '';
+  alertPopupMessage = '';
+  alertPopupIsError = false;
 
   constructor(
     private productService: ProductService,
@@ -147,6 +179,22 @@ export class ProductsComponent implements OnInit {
     this.loadProductTypes();
     this.loadSizes();
     this.loadColors();
+  }
+
+  // =========================
+  // GENERIC ALERT POPUP
+  // =========================
+  openAlertPopup(title: string, message: string, isError = false) {
+    this.alertPopupTitle = title;
+    this.alertPopupMessage = message;
+    this.alertPopupIsError = isError;
+    this.showAlertPopup = true;
+    this.cdr.detectChanges();
+  }
+
+  closeAlertPopup() {
+    this.showAlertPopup = false;
+    this.cdr.detectChanges();
   }
 
   buildProductImageSrc(image: string | undefined): string {
@@ -174,7 +222,7 @@ export class ProductsComponent implements OnInit {
   }
 
   openCart() {
-    alert(`Cart items: ${this.cartCount}`);
+    this.openAlertPopup('Cart', `Cart items: ${this.cartCount}`);
   }
 
   trackByProductId(_: number, p: ProductDTO) {
@@ -196,10 +244,12 @@ export class ProductsComponent implements OnInit {
     this.reset();
     this.showProductModal = true;
   }
+
   openEditModal(p: ProductDTO) {
     this.edit(p);
     this.showProductModal = true;
   }
+
   closeProductModal() {
     this.showProductModal = false;
   }
@@ -208,16 +258,18 @@ export class ProductsComponent implements OnInit {
   // LOAD DATA
   // =========================
   loadProductsPaged() {
-    this.productService.findProductsPage(this.searchParams, this.currentPage, this.pageSize).subscribe({
-      next: (res) => {
-        this.products = res.content ?? [];
-        this.totalPages = Math.max(1, res.totalPages || 1);
-        this.totalItems = res.totalItems || 0;
-        this.currentPage = Math.min(Math.max(1, res.currentPage || 1), this.totalPages);
-        this.cdr.detectChanges();
-      },
-      error: (err) => console.error(err),
-    });
+    this.productService
+      .findProductsPage(this.searchParams, this.currentPage, this.pageSize)
+      .subscribe({
+        next: (res) => {
+          this.products = res.content ?? [];
+          this.totalPages = Math.max(1, res.totalPages || 1);
+          this.totalItems = res.totalItems || 0;
+          this.currentPage = Math.min(Math.max(1, res.currentPage || 1), this.totalPages);
+          this.cdr.detectChanges();
+        },
+        error: (err) => console.error(err),
+      });
   }
 
   goToPage(page: number) {
@@ -231,6 +283,7 @@ export class ProductsComponent implements OnInit {
     this.currentPage = 1;
     this.loadProductsPaged();
   }
+
   loadStatuses() {
     this.productService.getStatuses().subscribe((res) => {
       this.statuses = res;
@@ -261,6 +314,7 @@ export class ProductsComponent implements OnInit {
 
   // =========================
   // SEARCH
+  // =========================
   doSearch() {
     this.searchError = '';
     const min = this.searchParams.minPrice;
@@ -362,7 +416,10 @@ export class ProductsComponent implements OnInit {
             return;
           }
 
-          this.downloadBlob(blob, this.getFileNameFromResponse(response.headers.get('Content-Disposition')));
+          this.downloadBlob(
+            blob,
+            this.getFileNameFromResponse(response.headers.get('Content-Disposition')),
+          );
           this.exportLoading = false;
           this.closeExportModal();
         },
@@ -455,15 +512,42 @@ export class ProductsComponent implements OnInit {
     this.cdr.detectChanges();
   }
 
-  deleteSelectedImages() {
+  // --- Delete Images Popup ---
+  openDeleteImagesPopup() {
     if (this.selectedImageIds.size === 0) {
-      alert('Please select at least one image to delete');
+      this.openAlertPopup('No images selected', 'Please select at least one image to delete.', true);
       return;
     }
-    if (!confirm(`Delete ${this.selectedImageIds.size} selected image(s)?`)) return;
+    this.deleteImagesError = '';
+    this.deleteImagesLoading = false;
+    this.showDeleteImagesPopup = true;
+    this.cdr.detectChanges();
+  }
+
+  closeDeleteImagesPopup() {
+    if (this.deleteImagesLoading) return;
+    this.showDeleteImagesPopup = false;
+    this.deleteImagesError = '';
+    this.cdr.detectChanges();
+  }
+
+  confirmDeleteImages() {
+    this.deleteImagesLoading = true;
+    this.deleteImagesError = '';
+    this.cdr.detectChanges();
+
     this.productImageService.deleteBatch(Array.from(this.selectedImageIds)).subscribe({
-      next: () => this.openImageModal(this.imageModalProductId),
-      error: () => alert('Error deleting images'),
+      next: () => {
+        this.deleteImagesLoading = false;
+        this.showDeleteImagesPopup = false;
+        this.deleteImagesError = '';
+        this.openImageModal(this.imageModalProductId);
+      },
+      error: () => {
+        this.deleteImagesLoading = false;
+        this.deleteImagesError = 'Error deleting images. Please try again.';
+        this.cdr.detectChanges();
+      },
     });
   }
 
@@ -472,7 +556,7 @@ export class ProductsComponent implements OnInit {
     if (!img.id) return;
     this.productImageService.setPrimary(img.id).subscribe({
       next: () => this.openImageModal(this.imageModalProductId),
-      error: () => alert("Could not update primary image"),
+      error: () => this.openAlertPopup('Error', 'Could not update primary image.', true),
     });
   }
 
@@ -511,7 +595,6 @@ export class ProductsComponent implements OnInit {
       this.modalImageErrors[index] = 'Only image files are allowed';
       return;
     }
-    // 1MB limit
     if (file.size > MAX_IMAGE_SIZE_BYTES) {
       this.modalImageErrors[index] = `Image must be under ${MAX_IMAGE_SIZE_MB}MB`;
       (event.target as HTMLInputElement).value = '';
@@ -538,7 +621,9 @@ export class ProductsComponent implements OnInit {
       return '';
     });
     if (!valid || this.modalImageRows.length === 0) {
-      if (this.modalImageRows.length === 0) alert('Please add at least one image');
+      if (this.modalImageRows.length === 0) {
+        this.openAlertPopup('No images', 'Please add at least one image.', true);
+      }
       this.cdr.detectChanges();
       return;
     }
@@ -568,8 +653,8 @@ export class ProductsComponent implements OnInit {
         next: () => sendNext(i + 1),
         error: () => {
           hasError = true;
-          alert(`Error uploading image ${i + 1}`);
           this.modalUploadSubmitting = false;
+          this.openAlertPopup('Upload error', `Error uploading image ${i + 1}. Please try again.`, true);
           this.cdr.detectChanges();
         },
       });
@@ -608,7 +693,6 @@ export class ProductsComponent implements OnInit {
       this.imageErrors[index] = 'Only image files are allowed';
       return;
     }
-    // 1MB limit
     if (file.size > MAX_IMAGE_SIZE_BYTES) {
       this.imageErrors[index] = `Image must be under ${MAX_IMAGE_SIZE_MB}MB`;
       (event.target as HTMLInputElement).value = '';
@@ -752,9 +836,51 @@ export class ProductsComponent implements OnInit {
     this.cdr.detectChanges();
   }
 
+  // =========================
+  // DELETE PRODUCT POPUP
+  // =========================
+  openDeletePopup(productId: string) {
+    this.deleteProductId = productId;
+    this.deleteError = '';
+    this.deleteLoading = false;
+    this.showDeletePopup = true;
+    this.cdr.detectChanges();
+  }
+
+  closeDeletePopup() {
+    if (this.deleteLoading) return;
+    this.showDeletePopup = false;
+    this.deleteProductId = '';
+    this.deleteError = '';
+    this.cdr.detectChanges();
+  }
+
+  confirmDeleteProduct() {
+    if (!this.deleteProductId) return;
+    this.deleteLoading = true;
+    this.deleteError = '';
+    this.cdr.detectChanges();
+
+    this.productService.delete(this.deleteProductId).subscribe({
+      next: () => {
+        this.deleteLoading = false;
+        this.showDeletePopup = false;
+        this.deleteProductId = '';
+        this.deleteError = '';
+        this.loadProductsPaged();
+        this.cdr.detectChanges();
+      },
+      error: (err) => {
+        console.error(err);
+        this.deleteLoading = false;
+        this.deleteError = 'Could not delete product. Please try again.';
+        this.cdr.detectChanges();
+      },
+    });
+  }
+
   delete(productId: string) {
-    if (!confirm(`Delete product "${productId}"?`)) return;
-    this.productService.delete(productId).subscribe(() => this.loadProductsPaged());
+    this.openDeletePopup(productId);
   }
 
   reset() {
@@ -822,11 +948,11 @@ export class ProductsComponent implements OnInit {
       (v) => !v.sizeId || !v.colorId || (v.quantity ?? 0) < 1,
     );
     if (invalid) {
-      alert('Please fill in all fields for each variant row');
+      this.openAlertPopup('Validation error', 'Please fill in all fields for each variant row.', true);
       return;
     }
     if (this.newVariantRows.length === 0) {
-      alert('No new variants to save');
+      this.openAlertPopup('No variants', 'No new variants to save.', true);
       return;
     }
     this.variantService
@@ -840,25 +966,62 @@ export class ProductsComponent implements OnInit {
       )
       .subscribe({
         next: () => {
-          alert('Variants saved successfully');
           this.newVariantRows = [];
           this.loadVariants(this.selectedProductId);
+          this.openAlertPopup('Success', 'Variants saved successfully.');
         },
-        error: () => alert('Error saving variants'),
+        error: () => this.openAlertPopup('Error', 'Error saving variants. Please try again.', true),
       });
   }
 
   updateVariant(v: ProductVariantDTO) {
     this.variantService.update(v).subscribe({
-      next: () => alert('Variant updated'),
+      next: () => this.openAlertPopup('Success', 'Variant updated successfully.'),
       error: (err) => console.error(err),
     });
   }
 
+  // --- Delete Variant Popup ---
+  openDeleteVariantPopup(v: ProductVariantDTO) {
+    this.variantToDelete = v;
+    this.deleteVariantError = '';
+    this.deleteVariantLoading = false;
+    this.showDeleteVariantPopup = true;
+    this.cdr.detectChanges();
+  }
+
+  closeDeleteVariantPopup() {
+    if (this.deleteVariantLoading) return;
+    this.showDeleteVariantPopup = false;
+    this.variantToDelete = null;
+    this.deleteVariantError = '';
+    this.cdr.detectChanges();
+  }
+
+  confirmDeleteVariant() {
+    if (!this.variantToDelete) return;
+    const v = this.variantToDelete;
+    this.deleteVariantLoading = true;
+    this.deleteVariantError = '';
+    this.cdr.detectChanges();
+
+    this.variantService.delete(v.productId, v.sizeId, v.colorId).subscribe({
+      next: () => {
+        this.deleteVariantLoading = false;
+        this.showDeleteVariantPopup = false;
+        this.variantToDelete = null;
+        this.loadVariants(this.selectedProductId);
+        this.cdr.detectChanges();
+      },
+      error: () => {
+        this.deleteVariantLoading = false;
+        this.deleteVariantError = 'Could not delete variant. Please try again.';
+        this.cdr.detectChanges();
+      },
+    });
+  }
+
   deleteVariant(v: ProductVariantDTO) {
-    if (!confirm('Delete this variant?')) return;
-    this.variantService
-      .delete(v.productId, v.sizeId, v.colorId)
-      .subscribe(() => this.loadVariants(this.selectedProductId));
+    this.openDeleteVariantPopup(v);
   }
 }

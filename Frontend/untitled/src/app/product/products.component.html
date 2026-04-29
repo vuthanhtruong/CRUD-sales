@@ -69,7 +69,6 @@
     <div class="product-grid" role="list">
       <article class="product-card" role="listitem" *ngFor="let p of products; trackBy: trackByProductId">
         <div class="product-media" aria-hidden="true">
-          <!-- Use DB image first, otherwise fallback to Picsum placeholder -->
           <img
             *ngIf="p.image"
             [src]="buildProductImageSrc(p.image)"
@@ -103,7 +102,7 @@
                 <i class="bi bi-pencil-square" aria-hidden="true"></i>
                 <span>Edit</span>
               </button>
-              <button class="btn btn-ghost btn-small danger" type="button" (click)="delete(p.productId)">
+              <button class="btn btn-ghost btn-small danger" type="button" (click)="openDeletePopup(p.productId)">
                 <i class="bi bi-trash3" aria-hidden="true"></i>
                 <span>Delete</span>
               </button>
@@ -301,7 +300,6 @@
     <section class="image-uploader" *ngIf="!isEdit" aria-label="Product images">
       <div class="image-head">
         <p class="image-title">Product images</p>
-        <!-- Updated: 1MB limit -->
         <p class="image-sub">Max 1MB / image • JPG/PNG/WEBP</p>
       </div>
       <div class="image-rows">
@@ -356,7 +354,7 @@
         <i class="bi bi-slash-circle" aria-hidden="true"></i>
         <span>Clear</span>
       </button>
-      <button class="btn btn-ghost btn-small danger" type="button" (click)="deleteSelectedImages()" [disabled]="selectedImageIds.size === 0">
+      <button class="btn btn-ghost btn-small danger" type="button" (click)="openDeleteImagesPopup()" [disabled]="selectedImageIds.size === 0">
         <i class="bi bi-trash3" aria-hidden="true"></i>
         <span>Delete selected ({{ selectedImageIds.size }})</span>
       </button>
@@ -364,8 +362,8 @@
     <p class="muted" *ngIf="!imageModalLoading && productImages.length === 0">No images found for this product.</p>
     <div class="thumb-grid" *ngIf="!imageModalLoading">
       <div class="thumb-card" *ngFor="let img of productImages"
-              (click)="toggleSelectImage(img.id)"
-              [class.is-selected]="img.id && selectedImageIds.has(img.id)">
+           (click)="toggleSelectImage(img.id)"
+           [class.is-selected]="img.id && selectedImageIds.has(img.id)">
         <span class="check" aria-hidden="true">
           <i class="bi bi-check2" *ngIf="img.id && selectedImageIds.has(img.id)"></i>
         </span>
@@ -383,7 +381,6 @@
     </div>
     <hr class="divider">
     <h4 class="subhead">Add new images</h4>
-    <!-- Updated: 1MB limit -->
     <p class="form-hint">Max 1MB / image • JPG/PNG/WEBP</p>
     <div class="upload-row" *ngFor="let row of modalImageRows; let i = index">
       <div class="upload-file">
@@ -440,7 +437,7 @@
         <div><input class="input qty" type="number" min="1" [(ngModel)]="v.quantity"></div>
         <div class="vactions">
           <button class="btn btn-ghost btn-small" type="button" (click)="updateVariant(v)">Save</button>
-          <button class="btn btn-ghost btn-small danger" type="button" (click)="deleteVariant(v)">Delete</button>
+          <button class="btn btn-ghost btn-small danger" type="button" (click)="openDeleteVariantPopup(v)">Delete</button>
         </div>
       </div>
     </div>
@@ -485,6 +482,132 @@
       <button class="btn btn-ghost" type="button" (click)="closeModal()">
         <i class="bi bi-x-circle" aria-hidden="true"></i>
         <span>Close</span>
+      </button>
+    </div>
+  </div>
+</div>
+
+<!-- ================= DELETE PRODUCT POPUP ================= -->
+<div class="modal" *ngIf="showDeletePopup" role="dialog" aria-modal="true">
+  <div class="modal-backdrop" (click)="closeDeletePopup()" aria-hidden="true"></div>
+  <div class="modal-card delete-popup-card">
+    <div class="modal-head">
+      <h3 class="modal-title">
+        <i class="bi bi-exclamation-triangle" aria-hidden="true"></i>
+        <span>Delete product</span>
+      </h3>
+      <button class="icon-btn" type="button" (click)="closeDeletePopup()" aria-label="Close" [disabled]="deleteLoading">
+        <i class="bi bi-x-lg" aria-hidden="true"></i>
+      </button>
+    </div>
+    <div class="popup-body">
+      <p class="popup-message">
+        Are you sure you want to delete product
+        <strong>"{{ deleteProductId }}"</strong>?
+        This action cannot be undone.
+      </p>
+      <p class="form-hint error" *ngIf="deleteError">{{ deleteError }}</p>
+    </div>
+    <div class="export-actions">
+      <button class="btn btn-ghost" type="button" (click)="closeDeletePopup()" [disabled]="deleteLoading">
+        <i class="bi bi-x-circle" aria-hidden="true"></i>
+        <span>Cancel</span>
+      </button>
+      <button class="btn btn-ghost danger" type="button" (click)="confirmDeleteProduct()" [disabled]="deleteLoading">
+        <i class="bi bi-trash3" aria-hidden="true"></i>
+        <span>{{ deleteLoading ? 'Deleting...' : 'Delete' }}</span>
+      </button>
+    </div>
+  </div>
+</div>
+
+<!-- ================= DELETE IMAGES POPUP ================= -->
+<div class="modal" *ngIf="showDeleteImagesPopup" role="dialog" aria-modal="true">
+  <div class="modal-backdrop" (click)="closeDeleteImagesPopup()" aria-hidden="true"></div>
+  <div class="modal-card delete-popup-card">
+    <div class="modal-head">
+      <h3 class="modal-title">
+        <i class="bi bi-exclamation-triangle" aria-hidden="true"></i>
+        <span>Delete images</span>
+      </h3>
+      <button class="icon-btn" type="button" (click)="closeDeleteImagesPopup()" aria-label="Close" [disabled]="deleteImagesLoading">
+        <i class="bi bi-x-lg" aria-hidden="true"></i>
+      </button>
+    </div>
+    <div class="popup-body">
+      <p class="popup-message">
+        Are you sure you want to delete
+        <strong>{{ selectedImageIds.size }} image(s)</strong>?
+        This action cannot be undone.
+      </p>
+      <p class="form-hint error" *ngIf="deleteImagesError">{{ deleteImagesError }}</p>
+    </div>
+    <div class="export-actions">
+      <button class="btn btn-ghost" type="button" (click)="closeDeleteImagesPopup()" [disabled]="deleteImagesLoading">
+        <i class="bi bi-x-circle" aria-hidden="true"></i>
+        <span>Cancel</span>
+      </button>
+      <button class="btn btn-ghost danger" type="button" (click)="confirmDeleteImages()" [disabled]="deleteImagesLoading">
+        <i class="bi bi-trash3" aria-hidden="true"></i>
+        <span>{{ deleteImagesLoading ? 'Deleting...' : 'Delete' }}</span>
+      </button>
+    </div>
+  </div>
+</div>
+
+<!-- ================= DELETE VARIANT POPUP ================= -->
+<div class="modal" *ngIf="showDeleteVariantPopup" role="dialog" aria-modal="true">
+  <div class="modal-backdrop" (click)="closeDeleteVariantPopup()" aria-hidden="true"></div>
+  <div class="modal-card delete-popup-card">
+    <div class="modal-head">
+      <h3 class="modal-title">
+        <i class="bi bi-exclamation-triangle" aria-hidden="true"></i>
+        <span>Delete variant</span>
+      </h3>
+      <button class="icon-btn" type="button" (click)="closeDeleteVariantPopup()" aria-label="Close" [disabled]="deleteVariantLoading">
+        <i class="bi bi-x-lg" aria-hidden="true"></i>
+      </button>
+    </div>
+    <div class="popup-body">
+      <p class="popup-message">
+        Are you sure you want to delete this variant
+        <strong>({{ variantToDelete?.sizeName || variantToDelete?.sizeId }} / {{ variantToDelete?.colorName || variantToDelete?.colorId }})</strong>?
+      </p>
+      <p class="form-hint error" *ngIf="deleteVariantError">{{ deleteVariantError }}</p>
+    </div>
+    <div class="export-actions">
+      <button class="btn btn-ghost" type="button" (click)="closeDeleteVariantPopup()" [disabled]="deleteVariantLoading">
+        <i class="bi bi-x-circle" aria-hidden="true"></i>
+        <span>Cancel</span>
+      </button>
+      <button class="btn btn-ghost danger" type="button" (click)="confirmDeleteVariant()" [disabled]="deleteVariantLoading">
+        <i class="bi bi-trash3" aria-hidden="true"></i>
+        <span>{{ deleteVariantLoading ? 'Deleting...' : 'Delete' }}</span>
+      </button>
+    </div>
+  </div>
+</div>
+
+<!-- ================= GENERIC TOAST / ALERT POPUP ================= -->
+<div class="modal" *ngIf="showAlertPopup" role="dialog" aria-modal="true">
+  <div class="modal-backdrop" (click)="closeAlertPopup()" aria-hidden="true"></div>
+  <div class="modal-card delete-popup-card">
+    <div class="modal-head">
+      <h3 class="modal-title">
+        <i class="bi" [ngClass]="alertPopupIsError ? 'bi-x-circle' : 'bi-check-circle'" aria-hidden="true"></i>
+        <span>{{ alertPopupTitle }}</span>
+      </h3>
+      <button class="icon-btn" type="button" (click)="closeAlertPopup()" aria-label="Close">
+        <i class="bi bi-x-lg" aria-hidden="true"></i>
+      </button>
+    </div>
+    <div class="popup-body">
+      <p class="popup-message">{{ alertPopupMessage }}</p>
+    </div>
+    <div class="export-actions">
+      <button class="btn btn-primary" type="button" (click)="closeAlertPopup()">
+        <i class="bi bi-check2" aria-hidden="true"></i>
+        <span>OK</span>
       </button>
     </div>
   </div>

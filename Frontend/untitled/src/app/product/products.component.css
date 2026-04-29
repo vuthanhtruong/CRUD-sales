@@ -457,6 +457,21 @@
   text-transform: uppercase;
 }
 
+/* ===== DELETE / ALERT POPUP ===== */
+.delete-popup-card {
+  width: min(420px, 100%);
+}
+
+.popup-body {
+  padding: 8px 0 16px;
+}
+
+.popup-message {
+  margin: 0;
+  line-height: 1.6;
+  color: var(--text, #1a1a1a);
+}
+
 @media (min-width: 760px) {
   .page {
     grid-template-columns: 1fr auto;
