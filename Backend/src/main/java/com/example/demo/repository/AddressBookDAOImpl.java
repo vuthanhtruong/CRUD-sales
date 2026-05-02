@@ -1,5 +1,6 @@
 package com.example.demo.repository;
 
+import com.example.demo.dto.AddressBookDTO;
 import com.example.demo.model.AddressBook;
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.PersistenceContext;
@@ -50,4 +51,15 @@ public class AddressBookDAOImpl implements AddressBookDAO {
         AddressBook address = entityManager.find(AddressBook.class, id);
         if (address != null) entityManager.remove(address);
     }
+
+    @Override
+    public List<AddressBookDTO> findByUserIdDTO(String userId) {
+        return entityManager.createQuery(
+                        "SELECT new com.example.demo.dto.AddressBookDTO(a.id, a.receiverName, a.receiverPhone, a.fullAddress, a.city, a.district, a.ward, a.label, a.defaultAddress, a.createdAt, a.updatedAt) " +
+                                "FROM AddressBook a WHERE a.user.id = :userId ORDER BY a.defaultAddress DESC, a.updatedAt DESC",
+                        AddressBookDTO.class)
+                .setParameter("userId", userId)
+                .getResultList();
+    }
+
 }

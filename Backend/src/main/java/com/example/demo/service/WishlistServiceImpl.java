@@ -30,21 +30,22 @@ public class WishlistServiceImpl implements WishlistService {
 
     @Override
     public List<WishlistItemDTO> findMine() {
-        return wishlistDAO.findByUserId(currentUser().getId()).stream().map(this::toDTO).toList();
+        return wishlistDAO.findByUserIdDTO(currentUser().getId());
     }
 
     @Override
     public WishlistItemDTO add(String productId) {
         Person user = currentUser();
-        return wishlistDAO.findByUserAndProduct(user.getId(), productId)
-                .map(this::toDTO)
+        return wishlistDAO.findByUserAndProductDTO(user.getId(), productId)
                 .orElseGet(() -> {
                     Product product = productDAO.findById(productId);
                     if (product == null) throw new RuntimeException("Product not found");
                     WishlistItem item = new WishlistItem();
                     item.setUser(user);
                     item.setProduct(product);
-                    return toDTO(wishlistDAO.save(item));
+                    WishlistItem saved = wishlistDAO.save(item);
+                    return wishlistDAO.findByUserAndProductDTO(user.getId(), productId)
+                            .orElseGet(() -> toDTO(saved));
                 });
     }
 

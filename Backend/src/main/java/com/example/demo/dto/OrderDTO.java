@@ -31,4 +31,25 @@ public class OrderDTO {
     private LocalDateTime updatedAt;
     private List<OrderItemDTO> items;
     private List<OrderTimelineDTO> timeline;
+    public OrderDTO(String id, String username, String customerName, OrderStatus status, PaymentMethod paymentMethod,
+                    BigDecimal subtotalAmount, BigDecimal discountAmount, BigDecimal totalAmount, String couponCode,
+                    String receiverName, String receiverPhone, String shippingAddress, String note,
+                    LocalDateTime createdAt, LocalDateTime updatedAt) {
+        this.id = id;
+        this.username = username;
+        this.customerName = customerName;
+        this.status = status;
+        this.paymentMethod = paymentMethod;
+        this.subtotalAmount = subtotalAmount;
+        this.discountAmount = discountAmount;
+        this.totalAmount = totalAmount;
+        this.couponCode = couponCode;
+        this.receiverName = receiverName;
+        this.receiverPhone = receiverPhone;
+        this.shippingAddress = shippingAddress;
+        this.note = note;
+        this.createdAt = createdAt;
+        this.updatedAt = updatedAt;
+    }
+
 }

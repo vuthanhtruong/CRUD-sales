@@ -17,4 +17,10 @@ public class CartDTO {
 
     private List<CartItemDTO> items;
 
+
+    public CartDTO(String cartId, String userId) {
+        this.cartId = cartId;
+        this.userId = userId;
+    }
+
 }

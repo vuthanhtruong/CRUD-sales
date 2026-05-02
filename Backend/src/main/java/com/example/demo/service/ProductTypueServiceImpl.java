@@ -17,22 +17,12 @@ public class ProductTypueServiceImpl implements ProductTypueService {
 
     @Override
     public List<ProductTypeDTO> getProductTypes() {
-        List<ProductType> productTypes = productTypeDAO.getProductTypes();
-
-        return productTypes.stream()
-                .map(this::convertToDTO)
-                .collect(Collectors.toList());
+        return productTypeDAO.getProductTypeDTOs();
     }
 
     @Override
     public ProductTypeDTO getProductTypeById(String id) {
-        ProductType productType = productTypeDAO.getProductTypeById(id);
-
-        if (productType == null) {
-            return null;
-        }
-
-        return convertToDTO(productType);
+        return productTypeDAO.getProductTypeDTOById(id);
     }
 
     @Override

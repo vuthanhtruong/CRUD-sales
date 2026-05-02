@@ -1,5 +1,6 @@
 package com.example.demo.repository;
 
+import com.example.demo.dto.NotificationDTO;
 import com.example.demo.model.Notification;
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.PersistenceContext;
@@ -48,4 +49,15 @@ public class NotificationDAOImpl implements NotificationDAO {
                 .setParameter("userId", userId)
                 .executeUpdate();
     }
+
+    @Override
+    public List<NotificationDTO> findByUserIdDTO(String userId) {
+        return entityManager.createQuery(
+                        "SELECT new com.example.demo.dto.NotificationDTO(n.id, n.title, n.message, n.type, n.targetUrl, n.read, n.createdAt) " +
+                                "FROM Notification n WHERE n.user.id = :userId ORDER BY n.createdAt DESC",
+                        NotificationDTO.class)
+                .setParameter("userId", userId)
+                .getResultList();
+    }
+
 }

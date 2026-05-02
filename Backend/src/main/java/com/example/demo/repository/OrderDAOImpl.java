@@ -1,5 +1,8 @@
 package com.example.demo.repository;
 
+import com.example.demo.dto.OrderTimelineDTO;
+import com.example.demo.dto.OrderItemDTO;
+import com.example.demo.dto.OrderDTO;
 import com.example.demo.model.OrderStatus;
 import com.example.demo.model.SalesOrder;
 import jakarta.persistence.EntityManager;
@@ -113,4 +116,76 @@ public class OrderDAOImpl implements OrderDAO {
                 .getSingleResult();
         return revenue == null ? BigDecimal.ZERO : revenue;
     }
+
+    private static final String ORDER_DTO_SELECT =
+            "SELECT new com.example.demo.dto.OrderDTO(" +
+                    "o.id, a.username, CONCAT(CONCAT(COALESCE(u.firstName, ''), ' '), COALESCE(u.lastName, '')), " +
+                    "o.status, o.paymentMethod, o.subtotalAmount, o.discountAmount, o.totalAmount, o.couponCode, " +
+                    "o.receiverName, o.receiverPhone, o.shippingAddress, o.note, o.createdAt, o.updatedAt) " +
+                    "FROM SalesOrder o JOIN o.user u LEFT JOIN Account a ON a.user.id = u.id ";
+
+    @Override
+    public Optional<OrderDTO> findByIdDTO(String id) {
+        return entityManager.createQuery(
+                        ORDER_DTO_SELECT + "WHERE o.id = :id",
+                        OrderDTO.class)
+                .setParameter("id", id)
+                .getResultStream()
+                .findFirst()
+                .map(this::hydrateOrderDTO);
+    }
+
+    @Override
+    public List<OrderDTO> findByCurrentUserDTO(String username) {
+        return entityManager.createQuery(
+                        ORDER_DTO_SELECT + "WHERE a.username = :username ORDER BY o.createdAt DESC",
+                        OrderDTO.class)
+                .setParameter("username", username)
+                .getResultList()
+                .stream()
+                .map(this::hydrateOrderDTO)
+                .toList();
+    }
+
+    @Override
+    public List<OrderDTO> findAllDTO(OrderStatus status) {
+        String jpql = ORDER_DTO_SELECT;
+        if (status != null) {
+            jpql += "WHERE o.status = :status ";
+        }
+        jpql += "ORDER BY o.createdAt DESC";
+
+        var query = entityManager.createQuery(jpql, OrderDTO.class);
+        if (status != null) {
+            query.setParameter("status", status);
+        }
+        return query.getResultList().stream().map(this::hydrateOrderDTO).toList();
+    }
+
+    @Override
+    public List<OrderItemDTO> findItemsByOrderIdDTO(String orderId) {
+        return entityManager.createQuery(
+                        "SELECT new com.example.demo.dto.OrderItemDTO(i.id, pv.id.productId, i.productName, pv.id.sizeId, i.sizeName, pv.id.colorId, i.colorName, i.quantity, i.unitPrice, i.subtotal) " +
+                                "FROM OrderItem i JOIN i.productVariant pv WHERE i.order.id = :orderId",
+                        OrderItemDTO.class)
+                .setParameter("orderId", orderId)
+                .getResultList();
+    }
+
+    @Override
+    public List<OrderTimelineDTO> findTimelineByOrderIdDTO(String orderId) {
+        return entityManager.createQuery(
+                        "SELECT new com.example.demo.dto.OrderTimelineDTO(t.id, t.status, t.note, t.createdAt) " +
+                                "FROM OrderTimeline t WHERE t.order.id = :orderId ORDER BY t.createdAt ASC",
+                        OrderTimelineDTO.class)
+                .setParameter("orderId", orderId)
+                .getResultList();
+    }
+
+    private OrderDTO hydrateOrderDTO(OrderDTO dto) {
+        dto.setItems(findItemsByOrderIdDTO(dto.getId()));
+        dto.setTimeline(findTimelineByOrderIdDTO(dto.getId()));
+        return dto;
+    }
+
 }

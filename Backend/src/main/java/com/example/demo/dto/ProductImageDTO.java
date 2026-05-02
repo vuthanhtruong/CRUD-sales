@@ -1,7 +1,7 @@
 package com.example.demo.dto;
 
-import jakarta.validation.constraints.NotBlank;
 import lombok.*;
+import java.util.Base64;
 
 @Data
 @NoArgsConstructor
@@ -18,4 +18,12 @@ public class ProductImageDTO {
     private boolean isPrimary;
 
     private String productId;
+    public ProductImageDTO(String id, byte[] imageData, String contentType, boolean isPrimary, String productId) {
+        this.id = id;
+        this.imageData = imageData == null ? null : Base64.getEncoder().encodeToString(imageData);
+        this.contentType = contentType;
+        this.isPrimary = isPrimary;
+        this.productId = productId;
+    }
+
 }

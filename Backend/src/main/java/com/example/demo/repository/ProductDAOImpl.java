@@ -1,5 +1,7 @@
 package com.example.demo.repository;
 
+import com.example.demo.dto.ProductUserDTO;
+import com.example.demo.dto.ProductDTO;
 import com.example.demo.model.*;
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.PersistenceContext;
@@ -483,4 +485,140 @@ public class ProductDAOImpl implements ProductDAO {
         entityManager.flush();
         entityManager.clear();
     }
+
+    private static final String ADMIN_PRODUCT_DTO_SELECT =
+            "SELECT new com.example.demo.dto.ProductDTO(" +
+                    "p.productId, p.productName, p.status, pt.id, creator.id, p.price, p.description, img.imageData) " +
+                    "FROM Product p " +
+                    "LEFT JOIN p.productType pt " +
+                    "LEFT JOIN p.createdBy creator " +
+                    "LEFT JOIN p.images img WITH img.isPrimary = true ";
+
+    private static final String USER_PRODUCT_DTO_SELECT =
+            "SELECT new com.example.demo.dto.ProductUserDTO(p.productId, p.productName, p.price, img.imageData) " +
+                    "FROM Product p " +
+                    "LEFT JOIN p.images img WITH img.isPrimary = true ";
+
+    @Override
+    public List<ProductDTO> searchProductsAdminDTO(String keyword, BigDecimal minPrice, BigDecimal maxPrice, String productTypeId, ProductStatus status) {
+        StringBuilder jpql = new StringBuilder(ADMIN_PRODUCT_DTO_SELECT + "WHERE 1=1");
+        appendAdminFilters(jpql, keyword, minPrice, maxPrice, productTypeId, status);
+        jpql.append(" ORDER BY p.createdDate DESC");
+
+        TypedQuery<ProductDTO> query = entityManager.createQuery(jpql.toString(), ProductDTO.class);
+        setAdminFilterParams(query, keyword, minPrice, maxPrice, productTypeId, status);
+        return query.getResultList();
+    }
+
+    @Override
+    public List<ProductDTO> searchProductsAdminPagedDTO(String keyword, BigDecimal minPrice, BigDecimal maxPrice, String productTypeId, ProductStatus status, int page, int pageSize) {
+        page = Math.max(1, page);
+        pageSize = Math.max(1, Math.min(pageSize, 100));
+
+        StringBuilder jpql = new StringBuilder(ADMIN_PRODUCT_DTO_SELECT + "WHERE 1=1");
+        appendAdminFilters(jpql, keyword, minPrice, maxPrice, productTypeId, status);
+        jpql.append(" ORDER BY p.createdDate DESC");
+
+        TypedQuery<ProductDTO> query = entityManager.createQuery(jpql.toString(), ProductDTO.class);
+        setAdminFilterParams(query, keyword, minPrice, maxPrice, productTypeId, status);
+        return query.setFirstResult((page - 1) * pageSize).setMaxResults(pageSize).getResultList();
+    }
+
+    @Override
+    public List<ProductUserDTO> searchProductsDTO(String keyword, BigDecimal minPrice, BigDecimal maxPrice, String productTypeId) {
+        StringBuilder jpql = new StringBuilder(USER_PRODUCT_DTO_SELECT + "WHERE 1=1");
+        appendUserFilters(jpql, keyword, minPrice, maxPrice, productTypeId);
+        jpql.append(" ORDER BY p.createdDate DESC");
+
+        TypedQuery<ProductUserDTO> query = entityManager.createQuery(jpql.toString(), ProductUserDTO.class);
+        setUserFilterParams(query, keyword, minPrice, maxPrice, productTypeId);
+        return query.getResultList();
+    }
+
+    @Override
+    public List<ProductUserDTO> searchProductsPagedDTO(String keyword, BigDecimal minPrice, BigDecimal maxPrice, String productTypeId, int page, int pageSize) {
+        page = Math.max(1, page);
+        pageSize = Math.max(1, Math.min(pageSize, 100));
+
+        StringBuilder jpql = new StringBuilder(USER_PRODUCT_DTO_SELECT + "WHERE 1=1");
+        appendUserFilters(jpql, keyword, minPrice, maxPrice, productTypeId);
+        jpql.append(" ORDER BY p.createdDate DESC");
+
+        TypedQuery<ProductUserDTO> query = entityManager.createQuery(jpql.toString(), ProductUserDTO.class);
+        setUserFilterParams(query, keyword, minPrice, maxPrice, productTypeId);
+        return query.setFirstResult((page - 1) * pageSize).setMaxResults(pageSize).getResultList();
+    }
+
+    @Override
+    public List<ProductUserDTO> findByPriceBetweenDTO(BigDecimal minPrice, BigDecimal maxPrice) {
+        return entityManager.createQuery(
+                        USER_PRODUCT_DTO_SELECT + "WHERE p.price BETWEEN :minPrice AND :maxPrice AND p.status = :status",
+                        ProductUserDTO.class)
+                .setParameter("minPrice", minPrice)
+                .setParameter("maxPrice", maxPrice)
+                .setParameter("status", ProductStatus.ACTIVE)
+                .getResultList();
+    }
+
+    @Override
+    public List<ProductUserDTO> findByPriceGreaterThanDTO(BigDecimal minPrice) {
+        return entityManager.createQuery(
+                        USER_PRODUCT_DTO_SELECT + "WHERE p.price > :minPrice AND p.status = :status",
+                        ProductUserDTO.class)
+                .setParameter("minPrice", minPrice)
+                .setParameter("status", ProductStatus.ACTIVE)
+                .getResultList();
+    }
+
+    @Override
+    public List<ProductUserDTO> findByPriceLessThanDTO(BigDecimal maxPrice) {
+        return entityManager.createQuery(
+                        USER_PRODUCT_DTO_SELECT + "WHERE p.price <= :maxPrice AND p.status = :status",
+                        ProductUserDTO.class)
+                .setParameter("maxPrice", maxPrice)
+                .setParameter("status", ProductStatus.ACTIVE)
+                .getResultList();
+    }
+
+    @Override
+    public List<ProductUserDTO> getProductsForUserDTO() {
+        return entityManager.createQuery(
+                        USER_PRODUCT_DTO_SELECT + "WHERE p.status = :status ORDER BY p.createdDate DESC",
+                        ProductUserDTO.class)
+                .setParameter("status", ProductStatus.ACTIVE)
+                .getResultList();
+    }
+
+    @Override
+    public List<ProductDTO> findAllPagedDTO(int page, int pageSize) {
+        page = Math.max(1, page);
+        pageSize = Math.max(1, Math.min(pageSize, 100));
+
+        return entityManager.createQuery(
+                        ADMIN_PRODUCT_DTO_SELECT + "ORDER BY p.createdDate DESC",
+                        ProductDTO.class)
+                .setFirstResult((page - 1) * pageSize)
+                .setMaxResults(pageSize)
+                .getResultList();
+    }
+
+    @Override
+    public ProductDTO findByIdDTO(String id) {
+        return entityManager.createQuery(
+                        ADMIN_PRODUCT_DTO_SELECT + "WHERE p.productId = :id",
+                        ProductDTO.class)
+                .setParameter("id", id)
+                .getResultStream()
+                .findFirst()
+                .orElse(null);
+    }
+
+    @Override
+    public List<ProductDTO> findAllDTO() {
+        return entityManager.createQuery(
+                        ADMIN_PRODUCT_DTO_SELECT + "ORDER BY p.createdDate DESC",
+                        ProductDTO.class)
+                .getResultList();
+    }
+
 }

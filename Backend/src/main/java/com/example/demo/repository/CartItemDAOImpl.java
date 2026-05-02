@@ -1,5 +1,6 @@
 package com.example.demo.repository;
 
+import com.example.demo.dto.CartItemDTO;
 import com.example.demo.model.CartItem;
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.PersistenceContext;
@@ -13,9 +14,7 @@ import java.util.Optional;
 
 @Repository
 @Transactional
-public
-
-class CartItemDAOImpl implements CartItemDAO {
+public class CartItemDAOImpl implements CartItemDAO {
 
     // CartItemDAOImpl.java - implement
     @Override
@@ -155,4 +154,57 @@ class CartItemDAOImpl implements CartItemDAO {
                 .setParameter("cartId", cartId)
                 .executeUpdate();
     }
+
+    @Override
+    public List<CartItemDTO> findCurrentUserCartItemsDTO() {
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        if (authentication == null || !authentication.isAuthenticated()) {
+            throw new RuntimeException("User not logged in");
+        }
+        String username = authentication.getName();
+
+        String jpql = """
+        SELECT new com.example.demo.dto.CartItemDTO(ci.id, p.productId, p.productName, s.name, co.name, ci.quantity, p.price)
+        FROM CartItem ci
+        JOIN ci.cart cart
+        JOIN cart.user u
+        JOIN Account a ON a.user.id = u.id
+        JOIN ci.productVariant pv
+        JOIN pv.product p
+        JOIN pv.size s
+        JOIN pv.color co
+        WHERE a.username = :username
+    """;
+
+        return entityManager.createQuery(jpql, CartItemDTO.class)
+                .setParameter("username", username)
+                .getResultList();
+    }
+
+    @Override
+    public List<CartItemDTO> findByCartIdDTO(String cartId) {
+        return entityManager.createQuery(
+                        "SELECT new com.example.demo.dto.CartItemDTO(ci.id, p.productId, p.productName, s.name, co.name, ci.quantity, p.price) " +
+                                "FROM CartItem ci JOIN ci.productVariant pv JOIN pv.product p JOIN pv.size s JOIN pv.color co " +
+                                "WHERE ci.cart.id = :cartId",
+                        CartItemDTO.class)
+                .setParameter("cartId", cartId)
+                .getResultList();
+    }
+
+    @Override
+    public Optional<CartItemDTO> findByCartAndVariantDTO(String cartId, String productId, String sizeId, String colorId) {
+        return entityManager.createQuery(
+                        "SELECT new com.example.demo.dto.CartItemDTO(ci.id, p.productId, p.productName, s.name, co.name, ci.quantity, p.price) " +
+                                "FROM CartItem ci JOIN ci.productVariant pv JOIN pv.product p JOIN pv.size s JOIN pv.color co " +
+                                "WHERE ci.cart.id = :cartId AND pv.product.productId = :productId AND pv.size.id = :sizeId AND pv.color.id = :colorId",
+                        CartItemDTO.class)
+                .setParameter("cartId", cartId)
+                .setParameter("productId", productId)
+                .setParameter("sizeId", sizeId)
+                .setParameter("colorId", colorId)
+                .getResultStream()
+                .findFirst();
+    }
+
 }

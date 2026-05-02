@@ -49,7 +49,7 @@ public class ProductMetricServiceImpl implements ProductMetricService {
     @Override
     @Cacheable(value = "trendingProducts", key = "#limit")
     public List<ProductMetricDTO> trending(int limit) {
-        return metricDAO.topViewed(limit).stream().map(this::toDTO).toList();
+        return metricDAO.topViewedDTO(limit);
     }
 
     private ProductMetricDTO toDTO(ProductMetric metric) {

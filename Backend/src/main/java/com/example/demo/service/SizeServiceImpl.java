@@ -14,13 +14,7 @@ public class SizeServiceImpl implements SizeService {
 
     @Override
     public SizeDTO getSize(String id) {
-        Size size = sizeDAO.getSize(id);
-
-        if (size == null) {
-            return null;
-        }
-
-        return toDTO(size);
+        return sizeDAO.getSizeDTO(id);
     }
 
     @Autowired
@@ -47,10 +41,7 @@ public class SizeServiceImpl implements SizeService {
 
     @Override
     public List<SizeDTO> getAllSizes() {
-        return sizeDAO.getAllSizes()
-                .stream()
-                .map(this::toDTO)
-                .collect(Collectors.toList());
+        return sizeDAO.getAllSizeDTOs();
     }
 
     private SizeDTO toDTO(Size size) {

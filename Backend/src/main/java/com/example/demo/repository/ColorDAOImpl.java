@@ -1,5 +1,6 @@
 package com.example.demo.repository;
 
+import com.example.demo.dto.ColorDTO;
 import com.example.demo.model.Color;
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.PersistenceContext;
@@ -53,4 +54,23 @@ public class ColorDAOImpl implements ColorDAO {
     public Color getColorbyId(String id) {
         return entityManager.find(Color.class, id);
     }
+
+    @Override
+    public ColorDTO getColorDTOById(String id) {
+        return entityManager.createQuery(
+                        "SELECT new com.example.demo.dto.ColorDTO(c.id, c.name) FROM Color c WHERE c.id = :id",
+                        ColorDTO.class)
+                .setParameter("id", id)
+                .getResultStream()
+                .findFirst()
+                .orElse(null);
+    }
+
+    @Override
+    public List<ColorDTO> findAllColorDTO() {
+        return entityManager
+                .createQuery("SELECT new com.example.demo.dto.ColorDTO(c.id, c.name) FROM Color c", ColorDTO.class)
+                .getResultList();
+    }
+
 }

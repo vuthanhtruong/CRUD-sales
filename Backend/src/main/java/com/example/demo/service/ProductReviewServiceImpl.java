@@ -26,7 +26,7 @@ public class ProductReviewServiceImpl implements ProductReviewService {
 
     @Override
     public List<ProductReviewDTO> publicReviews(String productId) {
-        return reviewDAO.findApprovedByProduct(productId).stream().map(this::toDTO).toList();
+        return reviewDAO.findApprovedByProductDTO(productId);
     }
 
     @Override
@@ -45,7 +45,7 @@ public class ProductReviewServiceImpl implements ProductReviewService {
 
     @Override
     public List<ProductReviewDTO> mine() {
-        return reviewDAO.findMine(currentUser().getId()).stream().map(this::toDTO).toList();
+        return reviewDAO.findMineDTO(currentUser().getId());
     }
 
     @Override
@@ -66,7 +66,7 @@ public class ProductReviewServiceImpl implements ProductReviewService {
 
     @Override
     public List<ProductReviewDTO> adminFindAll(ReviewStatus status) {
-        return reviewDAO.findAll(status).stream().map(this::toDTO).toList();
+        return reviewDAO.findAllDTO(status);
     }
 
     @Override

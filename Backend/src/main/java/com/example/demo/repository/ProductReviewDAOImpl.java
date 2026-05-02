@@ -1,5 +1,6 @@
 package com.example.demo.repository;
 
+import com.example.demo.dto.ProductReviewDTO;
 import com.example.demo.model.ProductReview;
 import com.example.demo.model.ReviewStatus;
 import jakarta.persistence.EntityManager;
@@ -108,4 +109,46 @@ public class ProductReviewDAOImpl implements ProductReviewDAO {
         ProductReview review = entityManager.find(ProductReview.class, id);
         if (review != null) entityManager.remove(review);
     }
+
+    private static final String REVIEW_DTO_SELECT =
+            "SELECT new com.example.demo.dto.ProductReviewDTO(" +
+                    "r.id, p.productId, p.productName, a.username, " +
+                    "CONCAT(CONCAT(COALESCE(u.firstName, ''), ' '), COALESCE(u.lastName, '')), " +
+                    "o.id, r.rating, r.title, r.comment, r.status, r.adminReply, r.createdAt, r.updatedAt) " +
+                    "FROM ProductReview r " +
+                    "JOIN r.product p " +
+                    "JOIN r.user u " +
+                    "LEFT JOIN Account a ON a.user.id = u.id " +
+                    "LEFT JOIN r.order o ";
+
+    @Override
+    public List<ProductReviewDTO> findApprovedByProductDTO(String productId) {
+        return entityManager.createQuery(
+                        REVIEW_DTO_SELECT +
+                                "WHERE p.productId = :productId AND r.status = :status ORDER BY r.createdAt DESC",
+                        ProductReviewDTO.class)
+                .setParameter("productId", productId)
+                .setParameter("status", ReviewStatus.APPROVED)
+                .getResultList();
+    }
+
+    @Override
+    public List<ProductReviewDTO> findMineDTO(String userId) {
+        return entityManager.createQuery(
+                        REVIEW_DTO_SELECT + "WHERE u.id = :userId ORDER BY r.createdAt DESC",
+                        ProductReviewDTO.class)
+                .setParameter("userId", userId)
+                .getResultList();
+    }
+
+    @Override
+    public List<ProductReviewDTO> findAllDTO(ReviewStatus status) {
+        String jpql = REVIEW_DTO_SELECT;
+        if (status != null) jpql += "WHERE r.status = :status ";
+        jpql += "ORDER BY r.createdAt DESC";
+        var q = entityManager.createQuery(jpql, ProductReviewDTO.class);
+        if (status != null) q.setParameter("status", status);
+        return q.getResultList();
+    }
+
 }

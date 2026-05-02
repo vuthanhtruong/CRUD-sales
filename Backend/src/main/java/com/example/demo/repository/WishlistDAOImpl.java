@@ -1,5 +1,6 @@
 package com.example.demo.repository;
 
+import com.example.demo.dto.WishlistItemDTO;
 import com.example.demo.model.WishlistItem;
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.PersistenceContext;
@@ -12,6 +13,10 @@ import java.util.Optional;
 @Repository
 @Transactional
 public class WishlistDAOImpl implements WishlistDAO {
+    private static final String WISHLIST_DTO_SELECT =
+            "SELECT new com.example.demo.dto.WishlistItemDTO(w.id, p.productId, p.productName, p.price, img.imageData, w.createdAt) " +
+                    "FROM WishlistItem w JOIN w.product p LEFT JOIN p.images img WITH img.isPrimary = true ";
+
     @PersistenceContext
     private EntityManager entityManager;
 
@@ -42,6 +47,17 @@ public class WishlistDAOImpl implements WishlistDAO {
     }
 
     @Override
+    public Optional<WishlistItemDTO> findByUserAndProductDTO(String userId, String productId) {
+        return entityManager.createQuery(
+                        WISHLIST_DTO_SELECT + "WHERE w.user.id = :userId AND p.productId = :productId",
+                        WishlistItemDTO.class)
+                .setParameter("userId", userId)
+                .setParameter("productId", productId)
+                .getResultStream()
+                .findFirst();
+    }
+
+    @Override
     public void delete(String id) {
         WishlistItem item = entityManager.find(WishlistItem.class, id);
         if (item != null) entityManager.remove(item);
@@ -65,4 +81,14 @@ public class WishlistDAOImpl implements WishlistDAO {
                 .setParameter("userId", userId)
                 .getSingleResult();
     }
+
+    @Override
+    public List<WishlistItemDTO> findByUserIdDTO(String userId) {
+        return entityManager.createQuery(
+                        WISHLIST_DTO_SELECT + "WHERE w.user.id = :userId ORDER BY w.createdAt DESC",
+                        WishlistItemDTO.class)
+                .setParameter("userId", userId)
+                .getResultList();
+    }
+
 }

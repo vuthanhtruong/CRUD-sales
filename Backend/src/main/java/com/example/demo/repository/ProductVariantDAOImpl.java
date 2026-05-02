@@ -1,5 +1,8 @@
 package com.example.demo.repository;
 
+import com.example.demo.dto.SizeDTO;
+import com.example.demo.dto.ProductVariantDTO;
+import com.example.demo.dto.ColorDTO;
 import com.example.demo.model.Color;
 import com.example.demo.model.ProductVariant;
 import com.example.demo.model.ProductVariantId;
@@ -255,4 +258,93 @@ public class ProductVariantDAOImpl implements ProductVariantDAO {
 
         return variants;
     }
+
+    @Override
+    public List<SizeDTO> findSizesByProductIdDTO(String productId) {
+        return entityManager.createQuery(
+                        "SELECT DISTINCT new com.example.demo.dto.SizeDTO(s.id, s.name) " +
+                                "FROM ProductVariant v JOIN v.size s WHERE v.product.productId = :productId",
+                        SizeDTO.class)
+                .setParameter("productId", productId)
+                .getResultList();
+    }
+
+    @Override
+    public List<ColorDTO> findColorsByProductIdDTO(String productId) {
+        return entityManager.createQuery(
+                        "SELECT DISTINCT new com.example.demo.dto.ColorDTO(c.id, c.name) " +
+                                "FROM ProductVariant v JOIN v.color c WHERE v.product.productId = :productId",
+                        ColorDTO.class)
+                .setParameter("productId", productId)
+                .getResultList();
+    }
+
+    @Override
+    public List<SizeDTO> findUnusedSizesByProductIdDTO(String productId) {
+        String jpql = """
+        SELECT new com.example.demo.dto.SizeDTO(s.id, s.name)
+        FROM Size s
+        WHERE s.id NOT IN (
+            SELECT v.size.id
+            FROM ProductVariant v
+            WHERE v.product.productId = :productId
+        )
+    """;
+
+        return entityManager.createQuery(jpql, SizeDTO.class)
+                .setParameter("productId", productId)
+                .getResultList();
+    }
+
+    @Override
+    public List<ColorDTO> findUnusedColorsByProductIdDTO(String productId) {
+        String jpql = """
+        SELECT new com.example.demo.dto.ColorDTO(c.id, c.name)
+        FROM Color c
+        WHERE c.id NOT IN (
+            SELECT v.color.id
+            FROM ProductVariant v
+            WHERE v.product.productId = :productId
+        )
+    """;
+
+        return entityManager.createQuery(jpql, ColorDTO.class)
+                .setParameter("productId", productId)
+                .getResultList();
+    }
+
+    @Override
+    public List<ProductVariantDTO> findAllDTO() {
+        return entityManager.createQuery(
+                        "SELECT new com.example.demo.dto.ProductVariantDTO(p.productId, s.id, c.id, p.productName, s.name, c.name, v.quantity) " +
+                                "FROM ProductVariant v JOIN v.product p JOIN v.size s JOIN v.color c",
+                        ProductVariantDTO.class)
+                .getResultList();
+    }
+
+    @Override
+    public ProductVariantDTO findByIdDTO(ProductVariantId id) {
+        return entityManager.createQuery(
+                        "SELECT new com.example.demo.dto.ProductVariantDTO(p.productId, s.id, c.id, p.productName, s.name, c.name, v.quantity) " +
+                                "FROM ProductVariant v JOIN v.product p JOIN v.size s JOIN v.color c " +
+                                "WHERE v.id.productId = :productId AND v.id.sizeId = :sizeId AND v.id.colorId = :colorId",
+                        ProductVariantDTO.class)
+                .setParameter("productId", id.getProductId())
+                .setParameter("sizeId", id.getSizeId())
+                .setParameter("colorId", id.getColorId())
+                .getResultStream()
+                .findFirst()
+                .orElse(null);
+    }
+
+    @Override
+    public List<ProductVariantDTO> findByProductIdDTO(String productId) {
+        return entityManager.createQuery(
+                        "SELECT new com.example.demo.dto.ProductVariantDTO(p.productId, s.id, c.id, p.productName, s.name, c.name, v.quantity) " +
+                                "FROM ProductVariant v JOIN v.product p JOIN v.size s JOIN v.color c WHERE p.productId = :productId",
+                        ProductVariantDTO.class)
+                .setParameter("productId", productId)
+                .getResultList();
+    }
+
 }

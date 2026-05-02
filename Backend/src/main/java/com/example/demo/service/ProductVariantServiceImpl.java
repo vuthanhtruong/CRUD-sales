@@ -50,55 +50,25 @@ public class ProductVariantServiceImpl implements ProductVariantService {
     @Override
     public List<SizeDTO> findSizesByProductId(String productId) {
 
-        List<Size> sizes = variantDAO.findSizesByProductId(productId);
-
-        return sizes.stream()
-                .map(s -> new SizeDTO(s.getId(), s.getName()))
-                .collect(Collectors.toList());
+        return variantDAO.findSizesByProductIdDTO(productId);
     }
 
     @Override
     public List<ColorDTO> findColorsByProductId(String productId) {
 
-        List<Color> colors = variantDAO.findColorsByProductId(productId);
-
-        return colors.stream()
-                .map(c -> new ColorDTO(c.getId(), c.getName()))
-                .collect(Collectors.toList());
+        return variantDAO.findColorsByProductIdDTO(productId);
     }
 
     @Override
     public List<SizeDTO> findUnusedSizesByProductId(String productId) {
 
-        List<Size> allSizes = sizeDAO.getAllSizes();
-
-        List<ProductVariant> usedVariants = variantDAO.findByProductId(productId);
-
-        List<String> usedSizeIds = usedVariants.stream()
-                .map(v -> v.getSize().getId())
-                .toList();
-
-        return allSizes.stream()
-                .filter(size -> !usedSizeIds.contains(size.getId()))
-                .map(size -> new SizeDTO(size.getId(), size.getName()))
-                .toList();
+        return variantDAO.findUnusedSizesByProductIdDTO(productId);
     }
 
     @Override
     public List<ColorDTO> findUnusedColorsByProductId(String productId) {
 
-        List<Color> allColors = colorDAO.findAllColor();
-
-        List<ProductVariant> usedVariants = variantDAO.findByProductId(productId);
-
-        List<String> usedColorIds = usedVariants.stream()
-                .map(v -> v.getColor().getId())
-                .toList();
-
-        return allColors.stream()
-                .filter(color -> !usedColorIds.contains(color.getId()))
-                .map(color -> new ColorDTO(color.getId(), color.getName()))
-                .toList();
+        return variantDAO.findUnusedColorsByProductIdDTO(productId);
     }
 
     @Autowired
@@ -115,10 +85,7 @@ public class ProductVariantServiceImpl implements ProductVariantService {
 
     @Override
     public List<ProductVariantDTO> findAll() {
-        return variantDAO.findAll()
-                .stream()
-                .map(this::toDTO)
-                .collect(Collectors.toList());
+        return variantDAO.findAllDTO();
     }
 
     @Override
@@ -126,18 +93,13 @@ public class ProductVariantServiceImpl implements ProductVariantService {
 
         ProductVariantId id = new ProductVariantId(productId, sizeId, colorId);
 
-        ProductVariant variant = variantDAO.findById(id);
-
-        return toDTO(variant);
+        return variantDAO.findByIdDTO(id);
     }
 
     @Override
     public List<ProductVariantDTO> findByProductId(String productId) {
 
-        return variantDAO.findByProductId(productId)
-                .stream()
-                .map(this::toDTO)
-                .collect(Collectors.toList());
+        return variantDAO.findByProductIdDTO(productId);
     }
 
     @Override

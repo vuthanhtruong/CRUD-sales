@@ -31,4 +31,20 @@ public class SupportTicketDTO {
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;
     private List<SupportMessageDTO> messages = new ArrayList<>();
+    public SupportTicketDTO(String id, String username, String customerName, String subject, String category, String priority,
+                            TicketStatus status, String initialMessage, String lastMessage, LocalDateTime createdAt, LocalDateTime updatedAt) {
+        this.id = id;
+        this.username = username;
+        this.customerName = customerName;
+        this.subject = subject;
+        this.category = category;
+        this.priority = priority;
+        this.status = status;
+        this.initialMessage = initialMessage;
+        this.lastMessage = lastMessage;
+        this.createdAt = createdAt;
+        this.updatedAt = updatedAt;
+        this.messages = new ArrayList<>();
+    }
+
 }

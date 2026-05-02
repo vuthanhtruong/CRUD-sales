@@ -28,13 +28,7 @@ public class ColorServiceImpl implements ColorService {
 
     @Override
     public List<ColorDTO> findAllColor() {
-        return colorDAO.findAllColor()
-                .stream()
-                .map(color -> new ColorDTO(
-                        color.getId(),
-                        color.getName()
-                ))
-                .collect(Collectors.toList());
+        return colorDAO.findAllColorDTO();
     }
 
     @Override
@@ -52,7 +46,7 @@ public class ColorServiceImpl implements ColorService {
     }
 
     @Override
-    public Color getColorbyId(String id) {
-        return colorDAO.getColorbyId(id);
+    public ColorDTO getColorbyId(String id) {
+        return colorDAO.getColorDTOById(id);
     }
 }

@@ -1,7 +1,7 @@
 services:
   backend:
     build:
-      context: .
+      context: ./Backend
       dockerfile: Dockerfile
     container_name: sale_backend
     ports:
@@ -21,10 +21,9 @@ services:
     networks:
       - sale_network
 
-
   frontend:
     build:
-      context: ../Frontend/untitled
+      context: ./Frontend/untitled
       dockerfile: Dockerfile
     container_name: sale_frontend
     ports:

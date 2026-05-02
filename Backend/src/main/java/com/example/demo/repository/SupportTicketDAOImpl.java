@@ -1,5 +1,7 @@
 package com.example.demo.repository;
 
+import com.example.demo.dto.SupportTicketDTO;
+import com.example.demo.dto.SupportMessageDTO;
 import com.example.demo.model.SupportTicket;
 import com.example.demo.model.TicketMessage;
 import com.example.demo.model.TicketStatus;
@@ -68,4 +70,43 @@ public class SupportTicketDAOImpl implements SupportTicketDAO {
         if (status != null) query.setParameter("status", status);
         return query.getResultList();
     }
+
+    private static final String TICKET_DTO_SELECT =
+            "SELECT new com.example.demo.dto.SupportTicketDTO(" +
+                    "t.id, a.username, CONCAT(CONCAT(COALESCE(u.firstName, ''), ' '), COALESCE(u.lastName, '')), " +
+                    "t.subject, t.category, t.priority, t.status, null, null, t.createdAt, t.updatedAt) " +
+                    "FROM SupportTicket t JOIN t.user u LEFT JOIN Account a ON a.user.id = u.id ";
+
+    @Override
+    public List<SupportTicketDTO> findMineDTO(String userId) {
+        return entityManager.createQuery(
+                        TICKET_DTO_SELECT + "WHERE u.id = :userId ORDER BY t.updatedAt DESC",
+                        SupportTicketDTO.class)
+                .setParameter("userId", userId)
+                .getResultList();
+    }
+
+    @Override
+    public List<SupportTicketDTO> findAllDTO(TicketStatus status) {
+        String jpql = TICKET_DTO_SELECT;
+        if (status != null) jpql += "WHERE t.status = :status ";
+        jpql += "ORDER BY t.updatedAt DESC";
+        var query = entityManager.createQuery(jpql, SupportTicketDTO.class);
+        if (status != null) query.setParameter("status", status);
+        return query.getResultList();
+    }
+
+    @Override
+    public List<SupportMessageDTO> findMessagesByTicketIdDTO(String ticketId) {
+        return entityManager.createQuery(
+                        "SELECT new com.example.demo.dto.SupportMessageDTO(m.id, t.id, a.username, " +
+                                "CONCAT(CONCAT(COALESCE(s.firstName, ''), ' '), COALESCE(s.lastName, '')), " +
+                                "m.message, m.internalNote, m.createdAt) " +
+                                "FROM TicketMessage m JOIN m.ticket t JOIN m.sender s LEFT JOIN Account a ON a.user.id = s.id " +
+                                "WHERE t.id = :ticketId ORDER BY m.createdAt ASC",
+                        SupportMessageDTO.class)
+                .setParameter("ticketId", ticketId)
+                .getResultList();
+    }
+
 }

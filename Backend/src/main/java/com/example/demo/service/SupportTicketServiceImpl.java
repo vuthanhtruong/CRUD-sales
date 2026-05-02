@@ -24,7 +24,7 @@ public class SupportTicketServiceImpl implements SupportTicketService {
 
     @Override
     public List<SupportTicketDTO> mine() {
-        return ticketDAO.findMine(currentUser().getId()).stream().map(this::toDTO).toList();
+        return hydrateTickets(ticketDAO.findMineDTO(currentUser().getId()));
     }
 
     @Override
@@ -72,7 +72,7 @@ public class SupportTicketServiceImpl implements SupportTicketService {
 
     @Override
     public List<SupportTicketDTO> adminFindAll(TicketStatus status) {
-        return ticketDAO.findAll(status).stream().map(this::toDTO).toList();
+        return hydrateTickets(ticketDAO.findAllDTO(status));
     }
 
     @Override
@@ -80,6 +80,21 @@ public class SupportTicketServiceImpl implements SupportTicketService {
         SupportTicket ticket = ticketDAO.findById(ticketId).orElseThrow(() -> new RuntimeException("Ticket not found"));
         ticket.setStatus(status);
         return toDTO(ticketDAO.save(ticket));
+    }
+
+
+    private List<SupportTicketDTO> hydrateTickets(List<SupportTicketDTO> tickets) {
+        for (SupportTicketDTO ticket : tickets) {
+            List<SupportMessageDTO> messages = ticketDAO.findMessagesByTicketIdDTO(ticket.getId());
+            ticket.setMessages(messages);
+            if (!messages.isEmpty()) {
+                ticket.setLastMessage(messages.get(messages.size() - 1).getMessage());
+                if (ticket.getInitialMessage() == null) {
+                    ticket.setInitialMessage(messages.get(0).getMessage());
+                }
+            }
+        }
+        return tickets;
     }
 
     private Person currentUser() {

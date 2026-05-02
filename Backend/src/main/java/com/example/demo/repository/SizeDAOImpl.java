@@ -1,5 +1,6 @@
 package com.example.demo.repository;
 
+import com.example.demo.dto.SizeDTO;
 import com.example.demo.model.Size;
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.PersistenceContext;
@@ -14,6 +15,17 @@ public class SizeDAOImpl implements SizeDAO {
     @Override
     public Size getSize(String id) {
         return entityManager.find(Size.class, id);
+    }
+
+    @Override
+    public SizeDTO getSizeDTO(String id) {
+        return entityManager.createQuery(
+                        "SELECT new com.example.demo.dto.SizeDTO(s.id, s.name) FROM Size s WHERE s.id = :id",
+                        SizeDTO.class)
+                .setParameter("id", id)
+                .getResultStream()
+                .findFirst()
+                .orElse(null);
     }
 
     @PersistenceContext
@@ -56,4 +68,11 @@ public class SizeDAOImpl implements SizeDAO {
     public List<Size> getAllSizes() {
         return entityManager.createQuery("FROM Size", Size.class).getResultList();
     }
+
+    @Override
+    public List<SizeDTO> getAllSizeDTOs() {
+        return entityManager.createQuery("SELECT new com.example.demo.dto.SizeDTO(s.id, s.name) FROM Size s", SizeDTO.class)
+                .getResultList();
+    }
+
 }

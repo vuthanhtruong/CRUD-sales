@@ -1,5 +1,6 @@
 package com.example.demo.repository;
 
+import com.example.demo.dto.CouponDTO;
 import com.example.demo.model.Coupon;
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.PersistenceContext;
@@ -43,4 +44,14 @@ public class CouponDAOImpl implements CouponDAO {
         Coupon coupon = entityManager.find(Coupon.class, id);
         if (coupon != null) entityManager.remove(coupon);
     }
+
+    @Override
+    public List<CouponDTO> findAllDTO() {
+        return entityManager.createQuery(
+                        "SELECT new com.example.demo.dto.CouponDTO(c.id, c.code, c.name, c.discountType, c.discountValue, c.minOrderAmount, c.maxDiscountAmount, c.usageLimit, c.usedCount, c.active, c.startsAt, c.expiresAt, c.createdAt, c.updatedAt) " +
+                                "FROM Coupon c ORDER BY c.createdAt DESC",
+                        CouponDTO.class)
+                .getResultList();
+    }
+
 }

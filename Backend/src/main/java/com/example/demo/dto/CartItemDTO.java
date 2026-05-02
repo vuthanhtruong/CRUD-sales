@@ -1,6 +1,7 @@
 package com.example.demo.dto;
 
 import lombok.*;
+import java.math.BigDecimal;
 
 @Data
 @NoArgsConstructor
@@ -24,4 +25,15 @@ public class CartItemDTO {
     private Double price;
 
     private Double subtotal;
+    public CartItemDTO(String cartItemId, String productId, String productName, String sizeName, String colorName, Integer quantity, BigDecimal price) {
+        this.cartItemId = cartItemId;
+        this.productId = productId;
+        this.productName = productName;
+        this.sizeName = sizeName;
+        this.colorName = colorName;
+        this.quantity = quantity;
+        this.price = price == null ? null : price.doubleValue();
+        this.subtotal = price == null || quantity == null ? 0.0 : price.multiply(BigDecimal.valueOf(quantity)).doubleValue();
+    }
+
 }

@@ -1,7 +1,6 @@
 package com.example.demo.controller;
 
 import com.example.demo.dto.ColorDTO;
-import com.example.demo.model.Color;
 import com.example.demo.service.ColorService;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -35,16 +34,11 @@ public class ColorController {
 
     @GetMapping("/{id}")
     public ResponseEntity<?> getById(@PathVariable String id) {
-        Color color = service.getColorbyId(id);
+        ColorDTO dto = service.getColorbyId(id);
 
-        if (color == null) {
+        if (dto == null) {
             return ResponseEntity.notFound().build();
         }
-
-        ColorDTO dto = new ColorDTO(
-                color.getId(),
-                color.getName()
-        );
 
         return ResponseEntity.ok(dto);
     }

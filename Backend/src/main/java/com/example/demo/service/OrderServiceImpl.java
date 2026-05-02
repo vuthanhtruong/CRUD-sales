@@ -138,10 +138,7 @@ public class OrderServiceImpl implements OrderService {
 
     @Override
     public List<OrderDTO> findMyOrders() {
-        return orderDAO.findByCurrentUser(accountDAO.getCurrentAccountUsername())
-                .stream()
-                .map(this::toDTO)
-                .toList();
+        return orderDAO.findByCurrentUserDTO(accountDAO.getCurrentAccountUsername());
     }
 
     @Override
@@ -154,12 +151,12 @@ public class OrderServiceImpl implements OrderService {
                 throw new RuntimeException("You cannot access this order");
             }
         }
-        return toDTO(order);
+        return orderDAO.findByIdDTO(id).orElseThrow(() -> new RuntimeException("Order not found"));
     }
 
     @Override
     public List<OrderDTO> findAll(OrderStatus status) {
-        return orderDAO.findAll(status).stream().map(this::toDTO).toList();
+        return orderDAO.findAllDTO(status);
     }
 
     @Override

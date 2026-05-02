@@ -21,7 +21,7 @@ public class CouponServiceImpl implements CouponService {
     public CouponServiceImpl(CouponDAO couponDAO) { this.couponDAO = couponDAO; }
 
     @Override
-    public List<CouponDTO> findAll() { return couponDAO.findAll().stream().map(this::toDTO).toList(); }
+    public List<CouponDTO> findAll() { return couponDAO.findAllDTO(); }
 
     @Override
     public CouponDTO create(CouponDTO dto) {

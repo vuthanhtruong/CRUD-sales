@@ -75,7 +75,7 @@ public class CartItemServiceImpl implements CartItemService {
     @Override
     public List<CartItemDTO> findCurrentUserCartItems() {
         Cart cart = currentCart();
-        return cartItemDAO.findByCartId(cart.getId()).stream().map(this::toDTO).toList();
+        return cartItemDAO.findByCartIdDTO(cart.getId());
     }
 
     @Override
@@ -116,14 +116,14 @@ public class CartItemServiceImpl implements CartItemService {
     public List<CartItemDTO> findByCartId(String cartId) {
         Cart cart = currentCart();
         if (!cart.getId().equals(cartId)) throw new RuntimeException("You cannot access this cart");
-        return cartItemDAO.findByCartId(cartId).stream().map(this::toDTO).toList();
+        return cartItemDAO.findByCartIdDTO(cartId);
     }
 
     @Override
     public Optional<CartItemDTO> findByCartAndVariant(String cartId, String productId, String sizeId, String colorId) {
         Cart cart = currentCart();
         if (!cart.getId().equals(cartId)) throw new RuntimeException("You cannot access this cart");
-        return cartItemDAO.findByCartAndVariant(cartId, productId, sizeId, colorId).map(this::toDTO);
+        return cartItemDAO.findByCartAndVariantDTO(cartId, productId, sizeId, colorId);
     }
 
     @Override

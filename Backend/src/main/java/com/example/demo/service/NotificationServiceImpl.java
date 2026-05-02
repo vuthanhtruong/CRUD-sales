@@ -35,7 +35,7 @@ public class NotificationServiceImpl implements NotificationService {
     }
 
     @Override
-    public List<NotificationDTO> mine() { return notificationDAO.findByUserId(currentUser().getId()).stream().map(this::toDTO).toList(); }
+    public List<NotificationDTO> mine() { return notificationDAO.findByUserIdDTO(currentUser().getId()); }
 
     @Override
     public long unreadCount() { return notificationDAO.unreadCount(currentUser().getId()); }

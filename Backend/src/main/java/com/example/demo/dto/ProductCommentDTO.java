@@ -31,4 +31,20 @@ public class ProductCommentDTO {
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;
     private List<ProductCommentDTO> replies = new ArrayList<>();
+    public ProductCommentDTO(String id, String productId, String productName, String parentId, String username, String customerName,
+                             String content, CommentStatus status, Integer helpfulCount, LocalDateTime createdAt, LocalDateTime updatedAt) {
+        this.id = id;
+        this.productId = productId;
+        this.productName = productName;
+        this.parentId = parentId;
+        this.username = username;
+        this.customerName = customerName;
+        this.content = content;
+        this.status = status;
+        this.helpfulCount = helpfulCount;
+        this.createdAt = createdAt;
+        this.updatedAt = updatedAt;
+        this.replies = new ArrayList<>();
+    }
+
 }

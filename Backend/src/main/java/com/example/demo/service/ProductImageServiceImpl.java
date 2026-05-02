@@ -62,14 +62,14 @@ public class ProductImageServiceImpl implements ProductImageService {
 
     @Override
     public ProductImageDTO findById(String id) {
-        ProductImage image = productImageDAO.findById(id);
+        ProductImageDTO image = productImageDAO.findByIdDTO(id);
         if (image == null) throw new RuntimeException("Image not found");
-        return mapToDTO(image);
+        return image;
     }
 
     @Override
     public List<ProductImageDTO> findByProductId(String productId) {
-        return productImageDAO.findByProductId(productId).stream().map(this::mapToDTO).toList();
+        return productImageDAO.findByProductIdDTO(productId);
     }
 
     @Override

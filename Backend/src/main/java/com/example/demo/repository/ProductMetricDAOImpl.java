@@ -1,5 +1,6 @@
 package com.example.demo.repository;
 
+import com.example.demo.dto.ProductMetricDTO;
 import com.example.demo.model.ProductMetric;
 import com.example.demo.model.ProductStatus;
 import jakarta.persistence.EntityManager;
@@ -46,4 +47,17 @@ public class ProductMetricDAOImpl implements ProductMetricDAO {
                 .setMaxResults(Math.max(1, Math.min(limit, 20)))
                 .getResultList();
     }
+
+    @Override
+    public List<ProductMetricDTO> topViewedDTO(int limit) {
+        return entityManager.createQuery(
+                        "SELECT new com.example.demo.dto.ProductMetricDTO(p.productId, p.productName, p.price, img.imageData, m.viewCount, m.lastViewedAt) " +
+                                "FROM ProductMetric m JOIN m.product p LEFT JOIN p.images img WITH img.isPrimary = true " +
+                                "WHERE p.status = :status ORDER BY m.viewCount DESC, m.lastViewedAt DESC",
+                        ProductMetricDTO.class)
+                .setParameter("status", ProductStatus.ACTIVE)
+                .setMaxResults(Math.max(1, Math.min(limit, 20)))
+                .getResultList();
+    }
+
 }

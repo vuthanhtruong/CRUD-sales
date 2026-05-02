@@ -1,5 +1,6 @@
 package com.example.demo.repository;
 
+import com.example.demo.dto.ProductTypeDTO;
 import com.example.demo.model.Product;
 import com.example.demo.model.ProductType;
 import jakarta.persistence.EntityManager;
@@ -63,4 +64,22 @@ public class ProductTypeDAOImpl implements ProductTypeDAO {
             entityManager.remove(entity);
         }
     }
+
+    @Override
+    public List<ProductTypeDTO> getProductTypeDTOs() {
+        return entityManager
+                .createQuery("SELECT new com.example.demo.dto.ProductTypeDTO(p.id, p.typeName) FROM ProductType p", ProductTypeDTO.class)
+                .getResultList();
+    }
+
+    @Override
+    public ProductTypeDTO getProductTypeDTOById(String id) {
+        return entityManager
+                .createQuery("SELECT new com.example.demo.dto.ProductTypeDTO(p.id, p.typeName) FROM ProductType p WHERE p.id = :id", ProductTypeDTO.class)
+                .setParameter("id", id)
+                .getResultStream()
+                .findFirst()
+                .orElse(null);
+    }
+
 }

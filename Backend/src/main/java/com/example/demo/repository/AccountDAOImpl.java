@@ -1,5 +1,7 @@
 package com.example.demo.repository;
 
+import com.example.demo.dto.AccountDTO;
+import com.example.demo.dto.ProfileDTO;
 import com.example.demo.model.*;
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.PersistenceContext;
@@ -18,6 +20,14 @@ import java.util.UUID;
 @Repository
 @Transactional
 public class AccountDAOImpl implements AccountDAO {
+    private static final String ACCOUNT_DTO_SELECT =
+            "SELECT new com.example.demo.dto.AccountDTO(u.firstName, u.lastName, u.phone, u.email, " +
+                    "u.avatarUrl, u.address, a.username, '', u.gender, u.birthday) FROM Account a JOIN a.user u ";
+
+    private static final String PROFILE_DTO_SELECT =
+            "SELECT new com.example.demo.dto.ProfileDTO(a.username, u.firstName, u.lastName, u.phone, u.email, " +
+                    "u.avatarUrl, u.address, u.gender, u.birthday) FROM Account a JOIN a.user u ";
+
     @Override
     public Person getCurrentUser() {
         return getAccountByUsername(getCurrentAccountUsername()).getUser();
@@ -37,6 +47,17 @@ public class AccountDAOImpl implements AccountDAO {
                                 "WHERE a.username = :username",
                         Account.class
                 )
+                .setParameter("username", username)
+                .getResultStream()
+                .findFirst()
+                .orElse(null);
+    }
+
+    @Override
+    public ProfileDTO getProfileDTOByUsername(String username) {
+        return entityManager.createQuery(
+                        PROFILE_DTO_SELECT + "WHERE a.username = :username",
+                        ProfileDTO.class)
                 .setParameter("username", username)
                 .getResultStream()
                 .findFirst()
@@ -142,6 +163,17 @@ public class AccountDAOImpl implements AccountDAO {
     }
 
     @Override
+    public AccountDTO getAccountDTOByUsername(String username) {
+        return entityManager.createQuery(
+                        ACCOUNT_DTO_SELECT + "WHERE a.username = :username",
+                        AccountDTO.class)
+                .setParameter("username", username)
+                .getResultStream()
+                .findFirst()
+                .orElse(null);
+    }
+
+    @Override
     public Account getAccountByEmail(String email) {
         TypedQuery<Account> query = entityManager.createQuery(
                 "SELECT a FROM Account a WHERE a.user.email = :email",
@@ -149,6 +181,17 @@ public class AccountDAOImpl implements AccountDAO {
         query.setParameter("email", email);
         List<Account> result = query.getResultList();
         return result.isEmpty() ? null : result.get(0);
+    }
+
+    @Override
+    public AccountDTO getAccountDTOByEmail(String email) {
+        return entityManager.createQuery(
+                        ACCOUNT_DTO_SELECT + "WHERE u.email = :email",
+                        AccountDTO.class)
+                .setParameter("email", email)
+                .getResultStream()
+                .findFirst()
+                .orElse(null);
     }
 
     @Override
@@ -162,8 +205,30 @@ public class AccountDAOImpl implements AccountDAO {
     }
 
     @Override
+    public AccountDTO getAccountDTOByPhone(String phone) {
+        return entityManager.createQuery(
+                        ACCOUNT_DTO_SELECT + "WHERE u.phone = :phone",
+                        AccountDTO.class)
+                .setParameter("phone", phone)
+                .getResultStream()
+                .findFirst()
+                .orElse(null);
+    }
+
+    @Override
     public Account getAccountById(String id) {
         return entityManager.find(Account.class, id);
+    }
+
+    @Override
+    public AccountDTO getAccountDTOById(String id) {
+        return entityManager.createQuery(
+                        ACCOUNT_DTO_SELECT + "WHERE a.id = :id",
+                        AccountDTO.class)
+                .setParameter("id", id)
+                .getResultStream()
+                .findFirst()
+                .orElse(null);
     }
 
     @Override

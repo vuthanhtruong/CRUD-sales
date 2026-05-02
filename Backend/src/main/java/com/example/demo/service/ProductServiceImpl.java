@@ -89,13 +89,9 @@ public class ProductServiceImpl implements ProductService {
         validatePriceRange(minPrice, maxPrice);
         ProductStatus productStatus = parseStatus(status);
 
-        List<Product> products = productDAO.searchProductsAdmin(
+        return productDAO.searchProductsAdminDTO(
                 keyword, minPrice, maxPrice, productTypeId, productStatus
         );
-
-        return products.stream()
-                .map(this::toDTO)
-                .collect(Collectors.toList());
     }
 
     @Override
@@ -121,12 +117,9 @@ public class ProductServiceImpl implements ProductService {
         int totalPages = calculateTotalPages(totalItems, pageSize);
         page = Math.min(page, totalPages);
 
-        List<ProductDTO> content = productDAO.searchProductsAdminPaged(
-                        keyword, minPrice, maxPrice, productTypeId, productStatus, page, pageSize
-                )
-                .stream()
-                .map(this::toDTO)
-                .collect(Collectors.toList());
+        List<ProductDTO> content = productDAO.searchProductsAdminPagedDTO(
+                keyword, minPrice, maxPrice, productTypeId, productStatus, page, pageSize
+        );
 
         return new PageResponseDTO<>(
                 content,
@@ -145,8 +138,7 @@ public class ProductServiceImpl implements ProductService {
         pageSize = clampPageSize(pageSize);
         page = Math.max(1, page);
 
-        List<Product> products = productDAO.findAllPaged(page, pageSize);
-        return products.stream().map(this::toDTO).collect(Collectors.toList());
+        return productDAO.findAllPagedDTO(page, pageSize);
     }
 
     @Override
@@ -166,16 +158,13 @@ public class ProductServiceImpl implements ProductService {
     @Override
     @Cacheable(value = "products", key = "'all'")
     public List<ProductDTO> findAll() {
-        List<Product> products = productDAO.findAll();
-        return products.stream().map(this::toDTO).collect(Collectors.toList());
+        return productDAO.findAllDTO();
     }
 
     @Override
     @Cacheable(value = "product", key = "#id")
     public ProductDTO findById(String id) {
-        Product product = productDAO.findById(id);
-        if (product == null) return null;
-        return toDTO(product);
+        return productDAO.findByIdDTO(id);
     }
 
     @Override
@@ -250,30 +239,21 @@ public class ProductServiceImpl implements ProductService {
         List<ProductDTO> data = new ArrayList<>();
 
         if ("all".equals(safeScope)) {
-            data = productDAO.searchProductsAdmin(keyword, minPrice, maxPrice, productTypeId, productStatus)
-                    .stream()
-                    .map(this::toDTO)
-                    .collect(Collectors.toList());
+            data = productDAO.searchProductsAdminDTO(keyword, minPrice, maxPrice, productTypeId, productStatus);
         } else if ("selected".equals(safeScope)) {
             if (pages == null || pages.isEmpty()) {
                 throw new IllegalArgumentException("Please select at least one page to export");
             }
             for (Integer selectedPage : pages.stream().filter(p -> p != null && p > 0).distinct().sorted().toList()) {
-                data.addAll(productDAO.searchProductsAdminPaged(
-                                keyword, minPrice, maxPrice, productTypeId, productStatus, selectedPage, safePageSize
-                        )
-                        .stream()
-                        .map(this::toDTO)
-                        .toList());
+                data.addAll(productDAO.searchProductsAdminPagedDTO(
+                        keyword, minPrice, maxPrice, productTypeId, productStatus, selectedPage, safePageSize
+                ));
             }
         } else {
             int safePage = Math.max(1, page == null ? 1 : page);
-            data = productDAO.searchProductsAdminPaged(
-                            keyword, minPrice, maxPrice, productTypeId, productStatus, safePage, safePageSize
-                    )
-                    .stream()
-                    .map(this::toDTO)
-                    .collect(Collectors.toList());
+            data = productDAO.searchProductsAdminPagedDTO(
+                    keyword, minPrice, maxPrice, productTypeId, productStatus, safePage, safePageSize
+            );
         }
 
         return switch (safeFormat) {
@@ -296,11 +276,7 @@ public class ProductServiceImpl implements ProductService {
             String productTypeId
     ) {
         validatePriceRange(minPrice, maxPrice);
-        List<Product> products = productDAO.searchProducts(keyword, minPrice, maxPrice, productTypeId);
-
-        return products.stream()
-                .map(this::toUserDTO)
-                .collect(Collectors.toList());
+        return productDAO.searchProductsDTO(keyword, minPrice, maxPrice, productTypeId);
     }
 
     @Override
@@ -322,12 +298,9 @@ public class ProductServiceImpl implements ProductService {
         int totalPages = calculateTotalPages(totalItems, pageSize);
         page = Math.min(page, totalPages);
 
-        List<ProductUserDTO> content = productDAO.searchProductsPaged(
-                        keyword, minPrice, maxPrice, productTypeId, page, pageSize
-                )
-                .stream()
-                .map(this::toUserDTO)
-                .collect(Collectors.toList());
+        List<ProductUserDTO> content = productDAO.searchProductsPagedDTO(
+                keyword, minPrice, maxPrice, productTypeId, page, pageSize
+        );
 
         return new PageResponseDTO<>(
                 content,
@@ -343,30 +316,26 @@ public class ProductServiceImpl implements ProductService {
     @Override
     @Cacheable(value = "userProducts", key = "'all'")
     public List<ProductUserDTO> getProductsForUser() {
-        List<Product> products = productDAO.getProductsForUser();
-        return products.stream().map(this::toUserDTO).collect(Collectors.toList());
+        return productDAO.getProductsForUserDTO();
     }
 
     @Override
     @Cacheable(value = "userProducts", key = "'gt:' + #minPrice")
     public List<ProductUserDTO> findUserProductsByPriceGreaterThan(BigDecimal minPrice) {
-        return productDAO.findByPriceGreaterThan(minPrice)
-                .stream().map(this::toUserDTO).collect(Collectors.toList());
+        return productDAO.findByPriceGreaterThanDTO(minPrice);
     }
 
     @Override
     @Cacheable(value = "userProducts", key = "'between:' + #minPrice + ':' + #maxPrice")
     public List<ProductUserDTO> findUserProductsByPriceBetween(BigDecimal minPrice, BigDecimal maxPrice) {
         validatePriceRange(minPrice, maxPrice);
-        return productDAO.findByPriceBetween(minPrice, maxPrice)
-                .stream().map(this::toUserDTO).collect(Collectors.toList());
+        return productDAO.findByPriceBetweenDTO(minPrice, maxPrice);
     }
 
     @Override
     @Cacheable(value = "userProducts", key = "'lt:' + #maxPrice")
     public List<ProductUserDTO> findUserProductsByPriceLessThan(BigDecimal maxPrice) {
-        return productDAO.findByPriceLessThan(maxPrice)
-                .stream().map(this::toUserDTO).collect(Collectors.toList());
+        return productDAO.findByPriceLessThanDTO(maxPrice);
     }
 
     // ==================== EXPORT HELPERS ====================

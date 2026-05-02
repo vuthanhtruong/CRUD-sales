@@ -1,5 +1,6 @@
 package com.example.demo.repository;
 
+import com.example.demo.dto.CartItemDTO;
 import com.example.demo.model.CartItem;
 import com.example.demo.model.ProductVariantId;
 
@@ -14,7 +15,11 @@ public interface CartItemDAO {
 
     List<CartItem> findByCartId(String cartId);
 
+    List<CartItemDTO> findByCartIdDTO(String cartId);
+
     Optional<CartItem> findByCartAndVariant(String cartId, String productId, String sizeId, String colorId);
+
+    Optional<CartItemDTO> findByCartAndVariantDTO(String cartId, String productId, String sizeId, String colorId);
 
     void update(CartItem cartItem);
 
@@ -24,11 +29,12 @@ public interface CartItemDAO {
 
     List<CartItem> findCurrentUserCartItems();
 
+    List<CartItemDTO> findCurrentUserCartItemsDTO();
+
     void decreaseQuantity(String cartItemId, int amount);
 
     void increaseQuantity(String cartItemId, int amount);
 
-    // CartItemDAO.java - thêm method
     List<CartItem> findByIds(List<String> ids);
 
 }

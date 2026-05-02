@@ -1,5 +1,6 @@
 package com.example.demo.repository;
 
+import com.example.demo.dto.ProductImageDTO;
 import com.example.demo.model.ProductImage;
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.PersistenceContext;
@@ -83,4 +84,27 @@ public class ProductImageDAOImpl implements ProductImageDAO {
                 .setParameter("productId", productId)
                 .executeUpdate();
     }
+
+    @Override
+    public ProductImageDTO findByIdDTO(String id) {
+        return entityManager.createQuery(
+                        "SELECT new com.example.demo.dto.ProductImageDTO(i.id, i.imageData, i.contentType, i.isPrimary, p.productId) " +
+                                "FROM ProductImage i JOIN i.product p WHERE i.id = :id",
+                        ProductImageDTO.class)
+                .setParameter("id", id)
+                .getResultStream()
+                .findFirst()
+                .orElse(null);
+    }
+
+    @Override
+    public List<ProductImageDTO> findByProductIdDTO(String productId) {
+        return entityManager.createQuery(
+                        "SELECT new com.example.demo.dto.ProductImageDTO(i.id, i.imageData, i.contentType, i.isPrimary, p.productId) " +
+                                "FROM ProductImage i JOIN i.product p WHERE p.productId = :productId ORDER BY i.isPrimary DESC, i.id ASC",
+                        ProductImageDTO.class)
+                .setParameter("productId", productId)
+                .getResultList();
+    }
+
 }

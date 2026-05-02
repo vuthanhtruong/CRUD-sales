@@ -1,5 +1,6 @@
 package com.example.demo.repository;
 
+import com.example.demo.dto.ProductReviewDTO;
 import com.example.demo.model.ProductReview;
 import com.example.demo.model.ReviewStatus;
 
@@ -11,8 +12,11 @@ public interface ProductReviewDAO {
     Optional<ProductReview> findById(String id);
     Optional<ProductReview> findByUserAndProduct(String userId, String productId);
     List<ProductReview> findApprovedByProduct(String productId);
+    List<ProductReviewDTO> findApprovedByProductDTO(String productId);
     List<ProductReview> findMine(String userId);
+    List<ProductReviewDTO> findMineDTO(String userId);
     List<ProductReview> findAll(ReviewStatus status);
+    List<ProductReviewDTO> findAllDTO(ReviewStatus status);
     long countByProductAndRating(String productId, int rating);
     long countApproved(String productId);
     double averageApproved(String productId);

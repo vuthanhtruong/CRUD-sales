@@ -25,7 +25,7 @@ public class ProductCommentServiceImpl implements ProductCommentService {
 
     @Override
     public List<ProductCommentDTO> publicThread(String productId) {
-        List<ProductCommentDTO> flat = commentDAO.findPublicByProduct(productId).stream().map(this::toDTO).toList();
+        List<ProductCommentDTO> flat = commentDAO.findPublicByProductDTO(productId);
         Map<String, ProductCommentDTO> byId = new LinkedHashMap<>();
         List<ProductCommentDTO> roots = new ArrayList<>();
 
@@ -46,7 +46,7 @@ public class ProductCommentServiceImpl implements ProductCommentService {
 
     @Override
     public List<ProductCommentDTO> mine() {
-        return commentDAO.findMine(currentUser().getId()).stream().map(this::toDTO).toList();
+        return commentDAO.findMineDTO(currentUser().getId());
     }
 
     @Override
@@ -82,7 +82,7 @@ public class ProductCommentServiceImpl implements ProductCommentService {
 
     @Override
     public List<ProductCommentDTO> adminFindAll(CommentStatus status) {
-        return commentDAO.findAll(status).stream().map(this::toDTO).toList();
+        return commentDAO.findAllDTO(status);
     }
 
     @Override

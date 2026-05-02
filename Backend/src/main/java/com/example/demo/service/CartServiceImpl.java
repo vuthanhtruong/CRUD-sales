@@ -3,7 +3,6 @@ package com.example.demo.service;
 import com.example.demo.dto.CartDTO;
 import com.example.demo.dto.CartItemDTO;
 import com.example.demo.model.Cart;
-import com.example.demo.model.CartItem;
 import com.example.demo.repository.AccountDAO;
 import com.example.demo.repository.CartDAO;
 import com.example.demo.repository.CartItemDAO;
@@ -47,21 +46,21 @@ public class CartServiceImpl implements CartService {
     @Override
     public Optional<CartDTO> findById(String id) {
 
-        return cartDAO.findById(id)
-                .map(this::toDTO);
+        return cartDAO.findByIdDTO(id)
+                .map(this::hydrateItems);
     }
 
     // ================= FIND BY USER =================
     @Override
     public CartDTO findByUserId(String userId) {
 
-        Cart cart = cartDAO.findByUserId(userId);
+        CartDTO cart = cartDAO.findByUserIdDTO(userId);
 
         if (cart == null) {
             throw new RuntimeException("Cart not found");
         }
 
-        return toDTO(cart);
+        return hydrateItems(cart);
     }
 
     // ================= UPDATE =================
@@ -84,36 +83,19 @@ public class CartServiceImpl implements CartService {
     @Override
     public CartDTO getReferenceById(String id) {
 
-        Cart cart = cartDAO.getReferenceById(id);
+        return hydrateItems(cartDAO.getReferenceByIdDTO(id));
+    }
 
-        return toDTO(cart);
+    private CartDTO hydrateItems(CartDTO cart) {
+        cart.setItems(cartItemDAO.findByCartIdDTO(cart.getCartId()));
+        return cart;
     }
 
     // ================= MAPPER =================
     private CartDTO toDTO(Cart cart) {
 
-        // lấy items từ DB (tránh lazy lỗi)
-        List<CartItem> items = cartItemDAO.findByCartId(cart.getId());
-
-        List<CartItemDTO> itemDTOs = items.stream().map(item -> {
-
-            var v = item.getProductVariant();
-
-            double price = v.getProduct().getPrice().doubleValue();
-            int quantity = item.getQuantity();
-
-            return new CartItemDTO(
-                    item.getId(),
-                    v.getProduct().getProductId(),
-                    v.getProduct().getProductName(),
-                    v.getSize().getName(),
-                    v.getColor().getName(),
-                    quantity,
-                    price,
-                    price * quantity
-            );
-
-        }).toList();
+        // Lấy thẳng item DTO từ DB, không query entity rồi map thủ công nữa.
+        List<CartItemDTO> itemDTOs = cartItemDAO.findByCartIdDTO(cart.getId());
 
         return new CartDTO(
                 cart.getId(),

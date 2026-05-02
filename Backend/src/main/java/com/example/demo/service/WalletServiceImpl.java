@@ -17,6 +17,12 @@ import java.util.List;
 @Service
 @Transactional
 public class WalletServiceImpl implements WalletService {
+    private static final String WALLET_TX_DTO_SELECT =
+            "SELECT new com.example.demo.dto.WalletTransactionDTO(" +
+                    "t.id, t.type, t.topUpStatus, t.amount, t.balanceAfter, t.referenceId, t.description, " +
+                    "t.createdAt, t.approvedAt, a.username, CONCAT(CONCAT(COALESCE(u.firstName, ''), ' '), COALESCE(u.lastName, ''))) " +
+                    "FROM WalletTransaction t JOIN t.wallet w JOIN w.user u LEFT JOIN Account a ON a.user.id = u.id ";
+
     private final AccountDAO accountDAO;
     private final NotificationService notificationService;
 
@@ -57,12 +63,12 @@ public class WalletServiceImpl implements WalletService {
     public List<WalletTransactionDTO> adminTopUps(WalletTopUpStatus status) {
         WalletTopUpStatus resolved = status == null ? WalletTopUpStatus.PENDING : status;
         return entityManager.createQuery(
-                        "SELECT t FROM WalletTransaction t JOIN FETCH t.wallet w JOIN FETCH w.user u WHERE t.type = :type AND t.topUpStatus = :status ORDER BY t.createdAt DESC",
-                        WalletTransaction.class)
+                        WALLET_TX_DTO_SELECT +
+                                "WHERE t.type = :type AND t.topUpStatus = :status ORDER BY t.createdAt DESC",
+                        WalletTransactionDTO.class)
                 .setParameter("type", WalletTransactionType.TOP_UP)
                 .setParameter("status", resolved)
-                .getResultList()
-                .stream().map(this::toTransactionDTO).toList();
+                .getResultList();
     }
 
     @Override
@@ -155,12 +161,11 @@ public class WalletServiceImpl implements WalletService {
 
     private WalletDTO toWalletDTO(Wallet wallet) {
         List<WalletTransactionDTO> txs = entityManager.createQuery(
-                        "SELECT t FROM WalletTransaction t WHERE t.wallet.id = :walletId ORDER BY t.createdAt DESC",
-                        WalletTransaction.class)
+                        WALLET_TX_DTO_SELECT + "WHERE w.id = :walletId ORDER BY t.createdAt DESC",
+                        WalletTransactionDTO.class)
                 .setParameter("walletId", wallet.getId())
                 .setMaxResults(50)
-                .getResultList()
-                .stream().map(this::toTransactionDTO).toList();
+                .getResultList();
         return new WalletDTO(wallet.getId(), wallet.getBalance(), wallet.getUpdatedAt(), txs);
     }
 

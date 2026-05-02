@@ -23,7 +23,7 @@ public class AddressBookServiceImpl implements AddressBookService {
 
     @Override
     public List<AddressBookDTO> findMine() {
-        return addressBookDAO.findByUserId(currentUser().getId()).stream().map(this::toDTO).toList();
+        return addressBookDAO.findByUserIdDTO(currentUser().getId());
     }
 
     @Override

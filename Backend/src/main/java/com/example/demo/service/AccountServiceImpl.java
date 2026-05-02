@@ -34,22 +34,22 @@ public class AccountServiceImpl implements AccountService {
 
     @Override
     public AccountDTO getAccountByUsername(String username) {
-        return mapToDTO(accountDAO.getAccountByUsername(username));
+        return accountDAO.getAccountDTOByUsername(username);
     }
 
     @Override
     public AccountDTO getAccountByEmail(String email) {
-        return mapToDTO(accountDAO.getAccountByEmail(email));
+        return accountDAO.getAccountDTOByEmail(email);
     }
 
     @Override
     public AccountDTO getAccountByPhone(String phone) {
-        return mapToDTO(accountDAO.getAccountByPhone(phone));
+        return accountDAO.getAccountDTOByPhone(phone);
     }
 
     @Override
     public AccountDTO getAccountById(String id) {
-        return mapToDTO(accountDAO.getAccountById(id));
+        return accountDAO.getAccountDTOById(id);
     }
 
     @Override
@@ -64,20 +64,9 @@ public class AccountServiceImpl implements AccountService {
 
     @Override
     public ProfileDTO getProfileByUsername(String username) {
-        Account account = accountDAO.getProfileByUsername(username);
-        if (account == null || account.getUser() == null) throw new RuntimeException("Profile not found");
-        Person user = account.getUser();
-        return new ProfileDTO(
-                account.getUsername(),
-                user.getFirstName(),
-                user.getLastName(),
-                user.getPhone(),
-                user.getEmail(),
-                user.getAvatarUrl(),
-                user.getAddress(),
-                user.getGender(),
-                user.getBirthday()
-        );
+        ProfileDTO profile = accountDAO.getProfileDTOByUsername(username);
+        if (profile == null) throw new RuntimeException("Profile not found");
+        return profile;
     }
 
     @Override

@@ -1,5 +1,6 @@
 package com.example.demo.repository;
 
+import com.example.demo.dto.CouponDTO;
 import com.example.demo.model.Coupon;
 
 import java.util.List;
@@ -10,5 +11,6 @@ public interface CouponDAO {
     Optional<Coupon> findById(String id);
     Optional<Coupon> findByCode(String code);
     List<Coupon> findAll();
+    List<CouponDTO> findAllDTO();
     void delete(String id);
 }

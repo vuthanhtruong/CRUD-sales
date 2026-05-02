@@ -1,8 +1,6 @@
 package com.example.demo.service;
 
 import com.example.demo.dto.ColorDTO;
-import com.example.demo.model.Color;
-
 import java.util.List;
 
 public interface ColorService {
@@ -10,5 +8,5 @@ public interface ColorService {
     List<ColorDTO> findAllColor();
     void editColor(ColorDTO color);
     void deleteColor(String id);
-    Color getColorbyId(String id);
+    ColorDTO getColorbyId(String id);
 }
