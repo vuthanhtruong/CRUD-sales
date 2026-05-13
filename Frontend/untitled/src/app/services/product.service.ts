@@ -1,5 +1,5 @@
 import { Injectable } from '@angular/core';
-import { HttpClient, HttpHeaders, HttpParams, HttpResponse } from '@angular/common/http';
+import { HttpClient, HttpParams, HttpResponse } from '@angular/common/http';
 import { Observable } from 'rxjs';
 import { ProductImageDTO } from './product-image.service';
 
@@ -42,11 +42,6 @@ export class ProductService {
 
   constructor(private http: HttpClient) {}
 
-  private getAuthHeaders() {
-    const token = localStorage.getItem('token');
-    return new HttpHeaders({ Authorization: token ? `Bearer ${token}` : '' });
-  }
-
   private appendSearchParams(httpParams: HttpParams, params: ProductSearchParams): HttpParams {
     if (params.keyword?.trim()) httpParams = httpParams.set('keyword', params.keyword.trim());
     if (params.minPrice != null) httpParams = httpParams.set('minPrice', params.minPrice.toString());
@@ -57,7 +52,7 @@ export class ProductService {
   }
 
   findAll(): Observable<ProductDTO[]> {
-    return this.http.get<ProductDTO[]>(this.apiUrl, { headers: this.getAuthHeaders() });
+    return this.http.get<ProductDTO[]>(this.apiUrl);
   }
 
   findProductsPage(
@@ -70,72 +65,54 @@ export class ProductService {
       .set('pageSize', pageSize.toString());
     httpParams = this.appendSearchParams(httpParams, params);
 
-    return this.http.get<PageResponse<ProductDTO>>(`${this.apiUrl}/page`, {
-      headers: this.getAuthHeaders(),
-      params: httpParams,
-    });
+    return this.http.get<PageResponse<ProductDTO>>(`${this.apiUrl}/page`, { params: httpParams });
   }
 
   findAllPaged(page: number, pageSize: number): Observable<ProductDTO[]> {
-    return this.http.get<ProductDTO[]>(`${this.apiUrl}/paged?page=${page}&pageSize=${pageSize}`, {
-      headers: this.getAuthHeaders(),
-    });
+    return this.http.get<ProductDTO[]>(`${this.apiUrl}/paged?page=${page}&pageSize=${pageSize}`);
   }
 
   existsByProductType(productTypeId: string): Observable<boolean> {
-    return this.http.get<boolean>(`${this.apiUrl}/exists-by-type/${productTypeId}`, {
-      headers: this.getAuthHeaders(),
-    });
+    return this.http.get<boolean>(`${this.apiUrl}/exists-by-type/${productTypeId}`);
   }
 
   countTotalPages(pageSize: number): Observable<number> {
-    return this.http.get<number>(`${this.apiUrl}/total-pages?pageSize=${pageSize}`, {
-      headers: this.getAuthHeaders(),
-    });
+    return this.http.get<number>(`${this.apiUrl}/total-pages?pageSize=${pageSize}`);
   }
 
   create(product: ProductDTO): Observable<any> {
-    return this.http.post(this.apiUrl, product, { headers: this.getAuthHeaders() });
+    return this.http.post(this.apiUrl, product);
   }
 
   edit(id: string, product: ProductDTO): Observable<any> {
-    return this.http.put(`${this.apiUrl}/${id}`, product, { headers: this.getAuthHeaders() });
+    return this.http.put(`${this.apiUrl}/${id}`, product);
   }
 
   delete(productId: string): Observable<any> {
-    return this.http.delete(`${this.apiUrl}/${productId}`, {
-      headers: this.getAuthHeaders(),
-    });
+    return this.http.delete(`${this.apiUrl}/${productId}`);
   }
 
   getStatuses(): Observable<string[]> {
-    return this.http.get<string[]>(`${this.apiUrl}/statuses`, { headers: this.getAuthHeaders() });
+    return this.http.get<string[]>(`${this.apiUrl}/statuses`);
   }
 
   findById(id: string): Observable<ProductDTO> {
-    return this.http.get<ProductDTO>(`${this.apiUrl}/${id}`, { headers: this.getAuthHeaders() });
+    return this.http.get<ProductDTO>(`${this.apiUrl}/${id}`);
   }
 
   existsByColor(colorId: string): Observable<boolean> {
-    return this.http.get<boolean>(`${this.apiUrl}/exists-by-color/${colorId}`, {
-      headers: this.getAuthHeaders(),
-    });
+    return this.http.get<boolean>(`${this.apiUrl}/exists-by-color/${colorId}`);
   }
 
   existsBySize(sizeId: string): Observable<boolean> {
-    return this.http.get<boolean>(`${this.apiUrl}/exists-by-size/${sizeId}`, {
-      headers: this.getAuthHeaders(),
-    });
+    return this.http.get<boolean>(`${this.apiUrl}/exists-by-size/${sizeId}`);
   }
 
   searchProducts(params: ProductSearchParams): Observable<ProductDTO[]> {
     let httpParams = new HttpParams();
     httpParams = this.appendSearchParams(httpParams, params);
 
-    return this.http.get<ProductDTO[]>(`${this.apiUrl}/search`, {
-      headers: this.getAuthHeaders(),
-      params: httpParams,
-    });
+    return this.http.get<ProductDTO[]>(`${this.apiUrl}/search`, { params: httpParams });
   }
 
   exportProducts(
@@ -159,7 +136,6 @@ export class ProductService {
     httpParams = this.appendSearchParams(httpParams, searchParams);
 
     return this.http.get(`${this.apiUrl}/export`, {
-      headers: this.getAuthHeaders(),
       params: httpParams,
       observe: 'response',
       responseType: 'blob',

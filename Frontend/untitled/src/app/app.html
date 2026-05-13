@@ -46,9 +46,20 @@
         <button class="icon-btn" type="button" (click)="closeAuthPopup()">×</button>
       </div>
 
-      <form *ngIf="showLogin" class="auth-form" [formGroup]="loginForm" (ngSubmit)="submitLogin()">
-        <label class="field"><span class="field-label">Username</span><input class="input" formControlName="username" autocomplete="username"></label>
-        <label class="field"><span class="field-label">Password</span><input class="input" type="password" formControlName="password" autocomplete="current-password"></label>
+      <form *ngIf="showLogin" class="auth-form" [formGroup]="loginForm" (ngSubmit)="submitLogin()" novalidate>
+        <label class="field" [class.field-error]="loginFieldInvalid('username')">
+          <span class="field-label">Username</span>
+          <input class="input" formControlName="username" autocomplete="username">
+          <span class="field-err-msg" *ngIf="loginFieldInvalid('username')">{{ loginFieldError('username') }}</span>
+        </label>
+        <label class="field" [class.field-error]="loginFieldInvalid('password')">
+          <span class="field-label">Password</span>
+          <span class="password-control">
+            <input class="input" [type]="showLoginPassword ? 'text' : 'password'" formControlName="password" autocomplete="current-password">
+            <button class="password-toggle" type="button" (click)="showLoginPassword = !showLoginPassword" [attr.aria-label]="showLoginPassword ? 'Hide password' : 'Show password'">{{ showLoginPassword ? '🙈' : '👁️' }}</button>
+          </span>
+          <span class="field-err-msg" *ngIf="loginFieldInvalid('password')">{{ loginFieldError('password') }}</span>
+        </label>
         <button class="link-button" type="button" (click)="openForgot()">Forgot password?</button>
         <div class="modal-actions"><button class="btn btn-ghost" type="button" (click)="closeAuthPopup()">Cancel</button><button class="btn btn-primary" type="submit">Sign in</button></div>
       </form>
@@ -61,7 +72,7 @@
 
       <form *ngIf="showReset" class="auth-form" [formGroup]="resetForm" (ngSubmit)="submitReset()">
         <label class="field"><span class="field-label">Reset token</span><input class="input" formControlName="token"></label>
-        <label class="field"><span class="field-label">New password</span><input class="input" type="password" formControlName="newPassword"></label>
+        <label class="field"><span class="field-label">New password</span><input class="input" type="password" formControlName="newPassword"><span class="form-hint">Use at least 6 characters and one special character.</span></label>
         <div class="modal-actions"><button class="btn btn-ghost" type="button" (click)="closeAuthPopup()">Cancel</button><button class="btn btn-primary" type="submit" [disabled]="resetSubmitting">{{ resetSubmitting ? 'Saving...' : 'Update password' }}</button></div>
       </form>
 
@@ -73,10 +84,30 @@
           <label class="field" [class.field-error]="regFieldInvalid('phone')"><span class="field-label">Phone</span><input class="input" formControlName="phone"><span class="field-err-msg" *ngIf="regFieldInvalid('phone')">{{ regFieldError('phone') }}</span></label>
           <label class="field field-full" [class.field-error]="regFieldInvalid('address')"><span class="field-label">Shipping address</span><input class="input" formControlName="address"><span class="field-err-msg" *ngIf="regFieldInvalid('address')">{{ regFieldError('address') }}</span></label>
           <label class="field" [class.field-error]="regFieldInvalid('username')"><span class="field-label">Username</span><input class="input" formControlName="username"><span class="field-err-msg" *ngIf="regFieldInvalid('username')">{{ regFieldError('username') }}</span></label>
-          <label class="field" [class.field-error]="regFieldInvalid('password')"><span class="field-label">Password</span><input class="input" type="password" formControlName="password"><span class="field-err-msg" *ngIf="regFieldInvalid('password')">{{ regFieldError('password') }}</span></label>
-          <label class="field" [class.field-error]="!!confirmPasswordError"><span class="field-label">Confirm password</span><input class="input" type="password" formControlName="confirmPassword"><span class="field-err-msg" *ngIf="confirmPasswordError">{{ confirmPasswordError }}</span></label>
+          <label class="field" [class.field-error]="regFieldInvalid('password')">
+            <span class="field-label">Password</span>
+            <span class="password-control">
+              <input class="input" [type]="showRegisterPassword ? 'text' : 'password'" formControlName="password" autocomplete="new-password">
+              <button class="password-toggle" type="button" (click)="showRegisterPassword = !showRegisterPassword" [attr.aria-label]="showRegisterPassword ? 'Hide password' : 'Show password'">{{ showRegisterPassword ? '🙈' : '👁️' }}</button>
+            </span>
+            <span class="form-hint">At least 6 characters and one special character.</span>
+            <span class="field-err-msg" *ngIf="regFieldInvalid('password')">{{ regFieldError('password') }}</span>
+          </label>
+          <label class="field" [class.field-error]="!!confirmPasswordError">
+            <span class="field-label">Confirm password</span>
+            <span class="password-control">
+              <input class="input" [type]="showRegisterConfirmPassword ? 'text' : 'password'" formControlName="confirmPassword" autocomplete="new-password">
+              <button class="password-toggle" type="button" (click)="showRegisterConfirmPassword = !showRegisterConfirmPassword" [attr.aria-label]="showRegisterConfirmPassword ? 'Hide password' : 'Show password'">{{ showRegisterConfirmPassword ? '🙈' : '👁️' }}</button>
+            </span>
+            <span class="field-err-msg" *ngIf="confirmPasswordError">{{ confirmPasswordError }}</span>
+          </label>
           <label class="field"><span class="field-label">Gender</span><select class="input" formControlName="gender"><option value="MALE">Male</option><option value="FEMALE">Female</option></select></label>
-          <label class="field"><span class="field-label">Birthday</span><input class="input" type="date" formControlName="birthday"></label>
+          <label class="field" [class.field-error]="regFieldInvalid('birthday')">
+            <span class="field-label">Birthday</span>
+            <input class="input" type="date" formControlName="birthday" [attr.min]="birthdayMinDate" [attr.max]="birthdayMaxDate">
+            <span class="form-hint">Age must be from 13 to 120 years.</span>
+            <span class="field-err-msg" *ngIf="regFieldInvalid('birthday')">{{ regFieldError('birthday') }}</span>
+          </label>
         </div>
         <div class="modal-actions"><button class="btn btn-ghost" type="button" (click)="closeAuthPopup()">Cancel</button><button class="btn btn-primary" type="submit">Create account</button></div>
       </form>

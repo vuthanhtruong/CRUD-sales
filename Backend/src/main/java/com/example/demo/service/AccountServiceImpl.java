@@ -9,8 +9,13 @@ import com.example.demo.repository.AccountDAO;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
+import java.time.LocalDate;
+
 @Service
 public class AccountServiceImpl implements AccountService {
+
+    private static final int MIN_AGE = 13;
+    private static final int MAX_AGE = 120;
 
     private final AccountDAO accountDAO;
     private final PasswordEncoder passwordEncoder;
@@ -22,12 +27,14 @@ public class AccountServiceImpl implements AccountService {
 
     @Override
     public void register(AccountDTO dto) {
+        validateBirthday(dto.getBirthday());
         validateUnique(dto, null);
         accountDAO.register(mapToEntity(dto));
     }
 
     @Override
     public void createUser(AccountDTO dto) {
+        validateBirthday(dto.getBirthday());
         validateUnique(dto, null);
         accountDAO.createUser(mapToEntity(dto));
     }
@@ -74,6 +81,7 @@ public class AccountServiceImpl implements AccountService {
         Account account = accountDAO.getAccountByUsername(username);
         if (account == null || account.getUser() == null) throw new RuntimeException("Account or profile not found");
 
+        validateBirthday(profile.getBirthday());
         validateProfileUnique(profile, account.getId());
 
         Person person = account.getUser();
@@ -86,6 +94,23 @@ public class AccountServiceImpl implements AccountService {
         person.setGender(profile.getGender());
         person.setBirthday(profile.getBirthday());
         accountDAO.updateProfile(username, person);
+    }
+
+    private void validateBirthday(LocalDate birthday) {
+        if (birthday == null) {
+            throw new IllegalArgumentException("Birthday is required");
+        }
+
+        LocalDate today = LocalDate.now();
+        if (birthday.isAfter(today)) {
+            throw new IllegalArgumentException("Birthday cannot be in the future");
+        }
+        if (birthday.isAfter(today.minusYears(MIN_AGE))) {
+            throw new IllegalArgumentException("User must be at least 13 years old");
+        }
+        if (birthday.isBefore(today.minusYears(MAX_AGE))) {
+            throw new IllegalArgumentException("Birthday cannot be more than 120 years ago");
+        }
     }
 
     private Account mapToEntity(AccountDTO dto) {

@@ -39,10 +39,12 @@ public class AccountDTO {
 
     @NotBlank(message = "Username must not be blank")
     @Size(min = 4, max = 20, message = "Username must be 4-20 characters")
+    @Pattern(regexp = "^[a-zA-Z0-9_]+$", message = "Username can only contain letters, numbers and underscores")
     private String username;
 
     @NotBlank(message = "Password must not be blank")
     @Size(min = 6, message = "Password must be at least 6 characters")
+    @Pattern(regexp = "^(?=.*[^A-Za-z0-9]).+$", message = "Password must contain at least one special character")
     private String password;
 
     @NotNull(message = "Gender must not be null")

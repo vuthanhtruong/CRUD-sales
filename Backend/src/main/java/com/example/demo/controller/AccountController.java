@@ -66,13 +66,7 @@ public class AccountController {
             );
             SecurityContextHolder.getContext().setAuthentication(authentication);
             String token = jwtUtil.generateToken(request.getUsername());
-            String role = authentication.getAuthorities().stream().findFirst().map(Object::toString).orElse(null);
-            return ResponseEntity.ok(Map.of(
-                    "token", token,
-                    "username", request.getUsername(),
-                    "role", role,
-                    "message", "Login success"
-            ));
+            return ResponseEntity.ok(Map.of("token", token));
         } catch (BadCredentialsException e) {
             return ResponseEntity.status(401).body(Map.of("message", "Invalid username or password"));
         }

@@ -1,5 +1,5 @@
 import { Injectable } from '@angular/core';
-import { HttpClient, HttpHeaders } from '@angular/common/http';
+import { HttpClient } from '@angular/common/http';
 import { Observable } from 'rxjs';
 
 export interface Size {
@@ -16,32 +16,23 @@ export class SizeService {
 
   constructor(private http: HttpClient) {}
 
-  private getAuthHeaders() {
-    const token = localStorage.getItem('token');
-
-    return {
-      headers: new HttpHeaders({
-        Authorization: token ? `Bearer ${token}` : ''
-      })
-    };
-  }
-
   getAll(): Observable<Size[]> {
-    return this.http.get<Size[]>(this.apiUrl, this.getAuthHeaders());
+    return this.http.get<Size[]>(this.apiUrl);
   }
 
   create(size: Size): Observable<Size> {
-    return this.http.post<Size>(this.apiUrl, size, this.getAuthHeaders());
+    return this.http.post<Size>(this.apiUrl, size);
   }
 
   update(id: string, size: Size): Observable<Size> {
-    return this.http.put<Size>(`${this.apiUrl}/${id}`, size, this.getAuthHeaders());
+    return this.http.put<Size>(`${this.apiUrl}/${id}`, size);
   }
 
   delete(id: string): Observable<any> {
-    return this.http.delete(`${this.apiUrl}/${id}`, this.getAuthHeaders());
+    return this.http.delete(`${this.apiUrl}/${id}`);
   }
+
   getById(id: string): Observable<Size> {
-    return this.http.get<Size>(`${this.apiUrl}/${id}`, this.getAuthHeaders());
+    return this.http.get<Size>(`${this.apiUrl}/${id}`);
   }
 }
