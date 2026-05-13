@@ -19,12 +19,10 @@ public class CartServiceImpl implements CartService {
 
     private final CartDAO cartDAO;
     private final CartItemDAO cartItemDAO;
-    private final AccountDAO accountDAO;
 
-    public CartServiceImpl(CartDAO cartDAO, CartItemDAO cartItemDAO, AccountDAO accountDAO) {
+    public CartServiceImpl(CartDAO cartDAO, CartItemDAO cartItemDAO) {
         this.cartDAO = cartDAO;
         this.cartItemDAO = cartItemDAO;
-        this.accountDAO = accountDAO;
     }
 
     // ================= CREATE =================

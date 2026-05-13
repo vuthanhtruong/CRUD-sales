@@ -12,10 +12,47 @@ services:
       SPRING_DATASOURCE_PASSWORD: ${MYSQL_ROOT_PASSWORD:-123456}
       SPRING_DATA_REDIS_HOST: redis
       SPRING_DATA_REDIS_PORT: 6379
+      SPRING_RABBITMQ_HOST: rabbitmq
+      SPRING_RABBITMQ_PORT: 5672
+      SPRING_RABBITMQ_USERNAME: ${RABBITMQ_DEFAULT_USER:-guest}
+      SPRING_RABBITMQ_PASSWORD: ${RABBITMQ_DEFAULT_PASS:-guest}
+      APP_RABBITMQ_EXCHANGE: sale.exchange
+      APP_RABBITMQ_MAIL_QUEUE: mail.queue
+      APP_RABBITMQ_MAIL_ROUTING_KEY: mail.send
+      APP_RABBITMQ_NOTIFICATION_QUEUE: notification.queue
+      APP_RABBITMQ_NOTIFICATION_ROUTING_KEY: notification.create
+      GMAIL_USERNAME: ${GMAIL_USERNAME:-}
+      GMAIL_APP_PASSWORD: ${GMAIL_APP_PASSWORD:-}
     depends_on:
       mysql:
         condition: service_healthy
       redis:
+        condition: service_healthy
+      rabbitmq:
+        condition: service_healthy
+    restart: unless-stopped
+    networks:
+      - sale_network
+
+  notification-service:
+    build:
+      context: ./microservices/notification-service
+      dockerfile: Dockerfile
+    container_name: sale_notification_service
+    ports:
+      - "${NOTIFICATION_SERVICE_PORT:-8081}:8081"
+    environment:
+      SPRING_RABBITMQ_HOST: rabbitmq
+      SPRING_RABBITMQ_PORT: 5672
+      SPRING_RABBITMQ_USERNAME: ${RABBITMQ_DEFAULT_USER:-guest}
+      SPRING_RABBITMQ_PASSWORD: ${RABBITMQ_DEFAULT_PASS:-guest}
+      APP_RABBITMQ_EXCHANGE: sale.exchange
+      APP_RABBITMQ_MAIL_QUEUE: mail.queue
+      APP_RABBITMQ_MAIL_ROUTING_KEY: mail.send
+      GMAIL_USERNAME: ${GMAIL_USERNAME:-}
+      GMAIL_APP_PASSWORD: ${GMAIL_APP_PASSWORD:-}
+    depends_on:
+      rabbitmq:
         condition: service_healthy
     restart: unless-stopped
     networks:
@@ -79,9 +116,31 @@ services:
     networks:
       - sale_network
 
+  rabbitmq:
+    image: rabbitmq:4-management-alpine
+    container_name: sale_rabbitmq
+    ports:
+      - "${RABBITMQ_PORT:-5672}:5672"
+      - "${RABBITMQ_MANAGEMENT_PORT:-15672}:15672"
+    environment:
+      RABBITMQ_DEFAULT_USER: ${RABBITMQ_DEFAULT_USER:-guest}
+      RABBITMQ_DEFAULT_PASS: ${RABBITMQ_DEFAULT_PASS:-guest}
+    volumes:
+      - rabbitmq_data:/var/lib/rabbitmq
+    healthcheck:
+      test: ["CMD", "rabbitmq-diagnostics", "-q", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+      start_period: 20s
+    restart: unless-stopped
+    networks:
+      - sale_network
+
 volumes:
   mysql_data:
   redis_data:
+  rabbitmq_data:
 
 networks:
   sale_network:

@@ -2,6 +2,8 @@ package com.example.demo.service;
 
 import com.example.demo.dto.ForgotPasswordRequestDTO;
 import com.example.demo.dto.ResetPasswordRequestDTO;
+import com.example.demo.dto.queue.MailQueueMessageDTO;
+import com.example.demo.messaging.QueuePublisherService;
 import com.example.demo.model.Account;
 import com.example.demo.model.PasswordResetToken;
 import com.example.demo.repository.AccountDAO;
@@ -23,6 +25,7 @@ public class PasswordResetServiceImpl implements PasswordResetService {
     private final AccountDAO accountDAO;
     private final PasswordEncoder passwordEncoder;
     private final JavaMailSender mailSender;
+    private final QueuePublisherService queuePublisherService;
 
     @PersistenceContext
     private EntityManager entityManager;
@@ -33,10 +36,14 @@ public class PasswordResetServiceImpl implements PasswordResetService {
     @Value("${spring.mail.username:}")
     private String mailFrom;
 
-    public PasswordResetServiceImpl(AccountDAO accountDAO, PasswordEncoder passwordEncoder, JavaMailSender mailSender) {
+    public PasswordResetServiceImpl(AccountDAO accountDAO,
+                                    PasswordEncoder passwordEncoder,
+                                    JavaMailSender mailSender,
+                                    QueuePublisherService queuePublisherService) {
         this.accountDAO = accountDAO;
         this.passwordEncoder = passwordEncoder;
         this.mailSender = mailSender;
+        this.queuePublisherService = queuePublisherService;
     }
 
     @Override
@@ -85,16 +92,28 @@ public class PasswordResetServiceImpl implements PasswordResetService {
     private void sendResetEmail(Account account, String token) {
         String email = account.getUser() == null ? null : account.getUser().getEmail();
         if (email == null || email.isBlank()) return;
+
         String link = resetPasswordUrl + "?token=" + token;
-        SimpleMailMessage message = new SimpleMailMessage();
-        if (mailFrom != null && !mailFrom.isBlank()) message.setFrom(mailFrom);
-        message.setTo(email);
-        message.setSubject("Reset your Nova Commerce password");
-        message.setText("Hello " + account.getUsername() + ",\n\n" +
+        String subject = "Reset your Nova Commerce password";
+        String body = "Hello " + account.getUsername() + ",\n\n" +
                 "Use this secure link to reset your password. The link expires in 30 minutes:\n" +
                 link + "\n\n" +
                 "If you did not request this, you can ignore this email.\n\n" +
-                "Nova Commerce Team");
+                "Nova Commerce Team";
+
+        try {
+            queuePublisherService.publishMail(new MailQueueMessageDTO(email, subject, body));
+            return;
+        } catch (Exception ex) {
+            // Local/dev fallback: keep password reset usable when RabbitMQ is not running yet.
+            System.out.println("RabbitMQ mail publish failed. Falling back to direct SMTP. Reset link for development: " + link);
+        }
+
+        SimpleMailMessage message = new SimpleMailMessage();
+        if (mailFrom != null && !mailFrom.isBlank()) message.setFrom(mailFrom);
+        message.setTo(email);
+        message.setSubject(subject);
+        message.setText(body);
         try {
             mailSender.send(message);
         } catch (Exception ex) {

@@ -4,6 +4,8 @@ import com.example.demo.dto.CheckoutRequestDTO;
 import com.example.demo.dto.OrderDTO;
 import com.example.demo.dto.OrderItemDTO;
 import com.example.demo.dto.OrderTimelineDTO;
+import com.example.demo.dto.queue.NotificationQueueMessageDTO;
+import com.example.demo.messaging.QueuePublisherService;
 import com.example.demo.model.*;
 import com.example.demo.repository.*;
 import jakarta.transaction.Transactional;
@@ -22,6 +24,7 @@ public class OrderServiceImpl implements OrderService {
     private final OrderDAO orderDAO;
     private final CouponService couponService;
     private final NotificationService notificationService;
+    private final QueuePublisherService queuePublisherService;
     private final WalletService walletService;
 
     public OrderServiceImpl(AccountDAO accountDAO,
@@ -30,6 +33,7 @@ public class OrderServiceImpl implements OrderService {
                             OrderDAO orderDAO,
                             CouponService couponService,
                             NotificationService notificationService,
+                            QueuePublisherService queuePublisherService,
                             WalletService walletService) {
         this.accountDAO = accountDAO;
         this.cartItemDAO = cartItemDAO;
@@ -37,6 +41,7 @@ public class OrderServiceImpl implements OrderService {
         this.orderDAO = orderDAO;
         this.couponService = couponService;
         this.notificationService = notificationService;
+        this.queuePublisherService = queuePublisherService;
         this.walletService = walletService;
     }
 
@@ -132,7 +137,7 @@ public class OrderServiceImpl implements OrderService {
             cartItemDAO.delete(id);
         }
 
-        notificationService.notifyUser(user, "Order created", "Order " + saved.getId() + " has been created.", "ORDER", "/orders");
+        queueNotification(user, "Order created", "Order " + saved.getId() + " has been created.", "ORDER", "/orders");
         return toDTO(saved);
     }
 
@@ -190,7 +195,7 @@ public class OrderServiceImpl implements OrderService {
         current.setStatus(status);
         current.addTimeline(timeline(status, statusMessage(status)));
         SalesOrder saved = orderDAO.save(current);
-        notificationService.notifyUser(saved.getUser(), "Order update", "Order " + saved.getId() + " changed to status " + status + ".", "ORDER", "/orders");
+        queueNotification(saved.getUser(), "Order update", "Order " + saved.getId() + " changed to status " + status + ".", "ORDER", "/orders");
         return toDTO(saved);
     }
 
@@ -214,6 +219,16 @@ public class OrderServiceImpl implements OrderService {
     private void assertOwnCartItem(CartItem item, String userId) {
         if (item.getCart() == null || item.getCart().getUser() == null || !userId.equals(item.getCart().getUser().getId())) {
             throw new RuntimeException("You cannot modify this cart item");
+        }
+    }
+
+    private void queueNotification(Person user, String title, String message, String type, String targetUrl) {
+        if (user == null) return;
+        try {
+            queuePublisherService.publishNotification(new NotificationQueueMessageDTO(user.getId(), title, message, type, targetUrl));
+        } catch (Exception ex) {
+            // Local/dev fallback: keep in-app notifications working when RabbitMQ is not running yet.
+            notificationService.notifyUser(user, title, message, type, targetUrl);
         }
     }
 
