@@ -116,7 +116,10 @@
             [class.input-error]="isInvalid('birthday')"
             type="date"
             formControlName="birthday"
+            [attr.min]="birthdayMinDate"
+            [attr.max]="birthdayMaxDate"
           >
+          <p class="form-hint">Age must be from 13 to 120 years.</p>
           <p class="form-hint error" *ngIf="isInvalid('birthday')">
             {{ fieldError('birthday') }}
           </p>

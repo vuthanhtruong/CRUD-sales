@@ -1,5 +1,5 @@
 import { Injectable } from '@angular/core';
-import { HttpClient, HttpHeaders } from '@angular/common/http';
+import { HttpClient } from '@angular/common/http';
 import { Observable } from 'rxjs';
 
 export interface ColorDTO {
@@ -16,51 +16,23 @@ export class ColorService {
 
   constructor(private http: HttpClient) {}
 
-  private getAuthHeaders() {
-    const token = localStorage.getItem('token');
-
-    return {
-      headers: new HttpHeaders({
-        Authorization: token ? `Bearer ${token}` : ''
-      })
-    };
-  }
-
   getAll(): Observable<ColorDTO[]> {
-    return this.http.get<ColorDTO[]>(
-      this.apiUrl,
-      this.getAuthHeaders()
-    );
+    return this.http.get<ColorDTO[]>(this.apiUrl);
   }
 
   create(color: ColorDTO): Observable<any> {
-    return this.http.post(
-      this.apiUrl,
-      color,
-      this.getAuthHeaders()
-    );
+    return this.http.post(this.apiUrl, color);
   }
 
   update(id: string, color: ColorDTO) {
-    return this.http.put(
-      `${this.apiUrl}/${id}`,
-      color,
-      {
-        ...this.getAuthHeaders(),
-        responseType: 'text'
-      }
-    );
+    return this.http.put(`${this.apiUrl}/${id}`, color, { responseType: 'text' });
   }
 
   delete(id: string): Observable<any> {
-    return this.http.delete(
-      `${this.apiUrl}/${id}`,
-      {
-        ...this.getAuthHeaders()
-      }
-    );
+    return this.http.delete(`${this.apiUrl}/${id}`);
   }
+
   getById(id: string): Observable<ColorDTO> {
-    return this.http.get<ColorDTO>(`${this.apiUrl}/${id}`, this.getAuthHeaders());
+    return this.http.get<ColorDTO>(`${this.apiUrl}/${id}`);
   }
 }

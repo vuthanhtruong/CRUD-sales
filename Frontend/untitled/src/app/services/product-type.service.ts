@@ -1,5 +1,5 @@
 import { Injectable } from '@angular/core';
-import { HttpClient, HttpHeaders } from '@angular/common/http';
+import { HttpClient } from '@angular/common/http';
 import { Observable } from 'rxjs';
 
 export interface ProductType {
@@ -17,32 +17,22 @@ export class ProductTypeService {
   constructor(private http: HttpClient) {}
 
   getAll(): Observable<ProductType[]> {
-    return this.http.get<ProductType[]>(this.apiUrl, this.getAuthHeaders());
+    return this.http.get<ProductType[]>(this.apiUrl);
   }
 
   getById(id: string): Observable<ProductType> {
-    return this.http.get<ProductType>(`${this.apiUrl}/${id}`, this.getAuthHeaders());
+    return this.http.get<ProductType>(`${this.apiUrl}/${id}`);
   }
 
   create(data: ProductType): Observable<any> {
-    return this.http.post(this.apiUrl, data, this.getAuthHeaders());
+    return this.http.post(this.apiUrl, data);
   }
 
   update(id: string, data: ProductType): Observable<any> {
-    return this.http.put(`${this.apiUrl}/${id}`, data, this.getAuthHeaders());
+    return this.http.put(`${this.apiUrl}/${id}`, data);
   }
 
   delete(id: string): Observable<any> {
-    return this.http.delete(`${this.apiUrl}/${id}`, this.getAuthHeaders());
-  }
-
-  private getAuthHeaders() {
-    const token = localStorage.getItem('token');
-
-    return {
-      headers: new HttpHeaders({
-        Authorization: token ? `Bearer ${token}` : ''
-      })
-    };
+    return this.http.delete(`${this.apiUrl}/${id}`);
   }
 }

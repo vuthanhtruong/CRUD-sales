@@ -1,6 +1,6 @@
 import { Component, OnInit, ChangeDetectorRef } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { ReactiveFormsModule, FormBuilder, Validators } from '@angular/forms';
+import { ReactiveFormsModule, FormBuilder, Validators, AbstractControl, ValidationErrors, ValidatorFn } from '@angular/forms';
 import { RouterModule } from '@angular/router';
 import { DetailAccountService, ProfileDTO } from '../services/detail-account.service';
 
@@ -19,6 +19,10 @@ export class ProfileComponent implements OnInit {
   submitted = false;
   successMessage = '';
   errorMessage = '';
+  private readonly minAge = 13;
+  private readonly maxAge = 120;
+  protected readonly birthdayMinDate = this.toDateInputValue(this.addYears(new Date(), -this.maxAge));
+  protected readonly birthdayMaxDate = this.toDateInputValue(this.addYears(new Date(), -this.minAge));
 
   constructor(
     private fb: FormBuilder,
@@ -33,13 +37,47 @@ export class ProfileComponent implements OnInit {
       email: ['', [Validators.required, Validators.email, Validators.maxLength(120)]],
       address: ['', [Validators.required, Validators.maxLength(255)]],
       gender: ['MALE', Validators.required],
-      birthday: ['', Validators.required],
+      birthday: ['', [Validators.required, this.birthdayValidator()]],
       avatarUrl: [''],
     });
   }
 
   ngOnInit(): void {
     this.loadProfile();
+  }
+
+  private addYears(date: Date, years: number): Date {
+    const copy = new Date(date);
+    copy.setFullYear(copy.getFullYear() + years);
+    return copy;
+  }
+
+  private toDateInputValue(date: Date): string {
+    const yyyy = date.getFullYear();
+    const mm = String(date.getMonth() + 1).padStart(2, '0');
+    const dd = String(date.getDate()).padStart(2, '0');
+    return `${yyyy}-${mm}-${dd}`;
+  }
+
+  private birthdayValidator(): ValidatorFn {
+    return (control: AbstractControl): ValidationErrors | null => {
+      const value = control.value;
+      if (!value) return null;
+
+      const birthday = new Date(`${value}T00:00:00`);
+      if (Number.isNaN(birthday.getTime())) return { invalidDate: true };
+
+      const today = new Date();
+      today.setHours(0, 0, 0, 0);
+      const youngestAllowed = this.addYears(today, -this.minAge);
+      const oldestAllowed = this.addYears(today, -this.maxAge);
+
+      if (birthday > today) return { futureDate: true };
+      if (birthday > youngestAllowed) return { ageTooYoung: { minAge: this.minAge } };
+      if (birthday < oldestAllowed) return { ageTooOld: { maxAge: this.maxAge } };
+
+      return null;
+    };
   }
 
   // ─── Field helpers (giống register) ──────────────────────────────────────
@@ -63,6 +101,10 @@ export class ProfileComponent implements OnInit {
     if (ctrl.errors['pattern']) {
       if (name === 'phone') return 'Phone must be Vietnam format (0xxxxxxxxx or +84xxxxxxxxx).';
     }
+    if (ctrl.errors['invalidDate']) return 'Enter a valid birthday.';
+    if (ctrl.errors['futureDate']) return 'Birthday cannot be in the future.';
+    if (ctrl.errors['ageTooYoung']) return `You must be at least ${this.minAge} years old.`;
+    if (ctrl.errors['ageTooOld']) return `Birthday cannot be more than ${this.maxAge} years ago.`;
     return 'Invalid value.';
   }
 
