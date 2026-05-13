@@ -33,8 +33,6 @@ export class AccountService {
   login(data: LoginRequest): Observable<LoginResponse> { return this.http.post<LoginResponse>(`${this.baseUrl}/login`, data); }
   forgotPassword(email: string): Observable<any> { return this.http.post(`${this.baseUrl}/forgot-password`, { email }); }
   resetPassword(token: string, newPassword: string): Observable<any> { return this.http.post(`${this.baseUrl}/reset-password`, { token, newPassword }); }
-  getRole(): Observable<{ role: string }> { return this.http.get<{ role: string }>(`${this.baseUrl}/role`); }
-  getCurrentUser(): Observable<{ username: string }> { return this.http.get<{ username: string }>(`${this.baseUrl}/current`); }
   checkUsername(username: string): Observable<boolean> { return this.http.get<boolean>(`${this.baseUrl}/exists/username`, { params: { username } }); }
   checkPhone(phone: string): Observable<boolean> { return this.http.get<boolean>(`${this.baseUrl}/exists/phone`, { params: { phone } }); }
   checkEmail(email: string): Observable<boolean> { return this.http.get<boolean>(`${this.baseUrl}/exists/email`, { params: { email } }); }

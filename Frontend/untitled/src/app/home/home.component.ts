@@ -16,6 +16,7 @@ import { DetailAccountService } from '../services/detail-account.service';
 import { CheckoutRequestDTO, PaymentMethod } from '../services/order.service';
 import { CouponPreviewDTO, CouponService } from '../services/coupon.service';
 import { ProductInsightService, ProductMetricDTO } from '../services/product-insight.service';
+import { readAuthState } from '../auth/jwt-auth.util';
 
 export interface ConfirmDialog {
   title: string;
@@ -121,9 +122,18 @@ export class HomeComponent implements OnInit {
   }
 
   refreshAuthState() {
-    this.token = localStorage.getItem('token');
-    this.role = localStorage.getItem('role');
-    this.currentUser = localStorage.getItem('username');
+    const authState = readAuthState();
+
+    if (!authState) {
+      this.token = null;
+      this.role = null;
+      this.currentUser = null;
+      return;
+    }
+
+    this.token = authState.token;
+    this.role = authState.role;
+    this.currentUser = authState.username;
   }
 
   showPopup(type: PopupType, title: string, message: string) {

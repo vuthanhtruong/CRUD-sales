@@ -4,6 +4,7 @@ import { Router, RouterModule, RouterOutlet } from '@angular/router';
 import { ReactiveFormsModule, FormBuilder, Validators, AbstractControl, ValidationErrors, ValidatorFn } from '@angular/forms';
 import { forkJoin } from 'rxjs';
 import { AccountService } from './services/account.service';
+import { clearAuthStorage, isAdminRole, isUserRole, readAuthState, storeAuthToken } from './auth/jwt-auth.util';
 
 type PopupType = 'success' | 'error' | 'info';
 
@@ -88,12 +89,23 @@ export class App implements OnInit {
       this.resetForm.patchValue({ token });
       this.showReset = true;
     }
-    if (this.token) {
-      this.loadAuthenticatedContext(false);
-    }
   }
 
-  refreshAuthState() { this.token = localStorage.getItem('token'); this.role = localStorage.getItem('role'); this.currentUser = localStorage.getItem('username'); }
+  refreshAuthState() {
+    const authState = readAuthState();
+
+    if (!authState) {
+      this.currentUser = null;
+      this.role = null;
+      this.token = null;
+      return;
+    }
+
+    this.token = authState.token;
+    this.currentUser = authState.username;
+    this.role = authState.role;
+  }
+
   passwordMatchValidator(group: AbstractControl): ValidationErrors | null { const pw = group.get('password')?.value; const cpw = group.get('confirmPassword')?.value; return pw && cpw && pw !== cpw ? { passwordMismatch: true } : null; }
 
   private addYears(date: Date, years: number): Date {
@@ -181,35 +193,24 @@ export class App implements OnInit {
     this.accountService.login(this.loginForm.value).subscribe({
       next: (res) => {
         if (!res?.token) { this.showPopup('error', 'Login failed', 'Server did not return an access token.'); return; }
-        this.token = res.token;
-        localStorage.setItem('token', res.token);
-        this.loadAuthenticatedContext(true);
+
+        const authState = storeAuthToken(res.token);
+        if (!authState) {
+          this.currentUser = null;
+          this.role = null;
+          this.token = null;
+          this.showPopup('error', 'Login failed', 'Server returned an invalid access token.');
+          return;
+        }
+
+        this.token = authState.token;
+        this.currentUser = authState.username;
+        this.role = authState.role;
+        this.loginSubmitted = false;
+        this.closeAuthPopup();
+        this.showPopup('success', 'Welcome back', `Signed in as ${this.currentUser}.`);
       },
       error: (err) => this.showPopup('error', 'Login failed', err?.error?.message || 'Invalid username or password.'),
-    });
-  }
-
-  private loadAuthenticatedContext(showWelcome: boolean) {
-    forkJoin({
-      user: this.accountService.getCurrentUser(),
-      role: this.accountService.getRole(),
-    }).subscribe({
-      next: ({ user, role }) => {
-        this.currentUser = user.username;
-        this.role = role.role;
-        localStorage.setItem('username', this.currentUser || '');
-        localStorage.setItem('role', this.role || '');
-        if (showWelcome) {
-          this.loginSubmitted = false;
-          this.closeAuthPopup();
-          this.showPopup('success', 'Welcome back', `Signed in as ${this.currentUser}.`);
-        }
-        this.cdr.detectChanges();
-      },
-      error: () => {
-        this.logout(false);
-        if (showWelcome) this.showPopup('error', 'Login failed', 'Could not load your account context. Please sign in again.');
-      },
     });
   }
 
@@ -270,11 +271,11 @@ export class App implements OnInit {
     });
   }
 
-  logout(showMessage = true) { this.currentUser = null; this.role = null; this.token = null; localStorage.removeItem('token'); localStorage.removeItem('username'); localStorage.removeItem('role'); this.router.navigate(['/home']); if (showMessage) this.showPopup('info', 'Signed out', 'You have been signed out successfully.'); }
+  logout(showMessage = true) { this.currentUser = null; this.role = null; this.token = null; clearAuthStorage(); this.router.navigate(['/home']); if (showMessage) this.showPopup('info', 'Signed out', 'You have been signed out successfully.'); }
   showPopup(type: PopupType, title: string, message: string) { this.popup = { type, title, message }; this.cdr.detectChanges(); }
   closePopup() { this.popup = null; this.cdr.detectChanges(); }
-  isUser(): boolean { return this.role === 'ROLE_USER' || this.role === 'USER'; }
-  isAdmin(): boolean { return this.role === 'ROLE_ADMIN' || this.role === 'ADMIN'; }
+  isUser(): boolean { return isUserRole(this.role); }
+  isAdmin(): boolean { return isAdminRole(this.role); }
   isShopper(): boolean { return this.isLoggedIn(); }
   isLoggedIn(): boolean { return !!this.token; }
   get initials(): string { return (this.currentUser || 'G').slice(0, 2).toUpperCase(); }

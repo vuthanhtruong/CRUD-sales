@@ -1,23 +1,12 @@
-import { CanActivateFn, Router } from '@angular/router';
 import { inject } from '@angular/core';
-
-function getRole(): string {
-  return localStorage.getItem('role') || '';
-}
-
-function isAdminRole(role: string): boolean {
-  return role === 'ADMIN' || role === 'ROLE_ADMIN';
-}
-
-function isUserRole(role: string): boolean {
-  return role === 'USER' || role === 'ROLE_USER';
-}
+import { CanActivateFn, Router } from '@angular/router';
+import { isAdminRole, isUserRole, readAuthState } from '../auth/jwt-auth.util';
 
 export const adminGuard: CanActivateFn = () => {
   const router = inject(Router);
-  const role = getRole();
+  const authState = readAuthState();
 
-  if (isAdminRole(role)) return true;
+  if (authState && isAdminRole(authState.role)) return true;
 
   router.navigate(['/home']);
   return false;
@@ -25,10 +14,9 @@ export const adminGuard: CanActivateFn = () => {
 
 export const profileGuard: CanActivateFn = () => {
   const router = inject(Router);
-  const role = getRole();
-  const token = localStorage.getItem('token');
+  const authState = readAuthState();
 
-  if (token && (isAdminRole(role) || isUserRole(role))) return true;
+  if (authState && (isAdminRole(authState.role) || isUserRole(authState.role))) return true;
 
   router.navigate(['/home']);
   return false;
