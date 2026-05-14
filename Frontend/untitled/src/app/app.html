@@ -1,121 +1,453 @@
 <div class="app-shell">
-  <header class="topbar">
-    <a class="brand-mark" routerLink="/home" aria-label="Aster Store home">
-      <span class="brand-orb">A</span>
-      <span><strong>Aster Store</strong><small>Premium commerce suite</small></span>
-    </a>
+    <header class="topbar">
+        <a class="brand-mark" routerLink="/home" aria-label="Aster Store home">
+            <span class="brand-orb">A</span>
+            <span>
+        <strong>Aster Store</strong>
+        <small>Premium commerce suite</small>
+      </span>
+        </a>
 
-    <button class="menu-toggle" type="button" (click)="toggleMobileMenu()" aria-label="Toggle menu">☰</button>
+        <button
+                class="menu-toggle"
+                type="button"
+                (click)="toggleMobileMenu()"
+                aria-label="Toggle menu"
+        >
+            ☰
+        </button>
 
-    <nav class="nav-rail" [class.open]="isMobileMenuOpen">
-      <a routerLink="/home" routerLinkActive="active" (click)="closeMobileMenu()">Storefront</a>
-      <a *ngIf="isShopper()" routerLink="/orders" routerLinkActive="active" (click)="closeMobileMenu()">Orders</a>
-      <a *ngIf="isShopper()" routerLink="/wishlist" routerLinkActive="active" (click)="closeMobileMenu()">Wishlist</a>
-      <a *ngIf="isShopper()" routerLink="/wallet" routerLinkActive="active" (click)="closeMobileMenu()">Wallet</a>
-      <a *ngIf="isShopper()" routerLink="/addresses" routerLinkActive="active" (click)="closeMobileMenu()">Addresses</a>
-      <a *ngIf="isShopper()" routerLink="/support" routerLinkActive="active" (click)="closeMobileMenu()">Support</a>
-      <a *ngIf="isAdmin()" routerLink="/admin" routerLinkActive="active" (click)="closeMobileMenu()">Command</a>
-      <a *ngIf="isAdmin()" routerLink="/products" routerLinkActive="active" (click)="closeMobileMenu()">Products</a>
-      <a *ngIf="isAdmin()" routerLink="/admin/orders" routerLinkActive="active" (click)="closeMobileMenu()">Fulfillment</a>
-      <a *ngIf="isAdmin()" routerLink="/admin/wallet" routerLinkActive="active" (click)="closeMobileMenu()">Finance</a>
-    </nav>
+        <nav class="nav-rail" [class.open]="isMobileMenuOpen">
+            <a routerLink="/home" routerLinkActive="active" (click)="closeMobileMenu()">Storefront</a>
+            <a *ngIf="isShopper()" routerLink="/orders" routerLinkActive="active" (click)="closeMobileMenu()">Orders</a>
+            <a *ngIf="isShopper()" routerLink="/wishlist" routerLinkActive="active" (click)="closeMobileMenu()">Wishlist</a>
+            <a *ngIf="isShopper()" routerLink="/wallet" routerLinkActive="active" (click)="closeMobileMenu()">Wallet</a>
+            <a *ngIf="isShopper()" routerLink="/addresses" routerLinkActive="active" (click)="closeMobileMenu()">Addresses</a>
+            <a *ngIf="isShopper()" routerLink="/support" routerLinkActive="active" (click)="closeMobileMenu()">Support</a>
+            <a *ngIf="isAdmin()" routerLink="/admin" routerLinkActive="active" (click)="closeMobileMenu()">Command</a>
+            <a *ngIf="isAdmin()" routerLink="/products" routerLinkActive="active" (click)="closeMobileMenu()">Products</a>
+            <a *ngIf="isAdmin()" routerLink="/admin/orders" routerLinkActive="active" (click)="closeMobileMenu()">Fulfillment</a>
+            <a *ngIf="isAdmin()" routerLink="/admin/wallet" routerLinkActive="active" (click)="closeMobileMenu()">Finance</a>
+        </nav>
 
-    <div class="account-zone">
-      <button *ngIf="!isLoggedIn()" class="btn btn-ghost btn-small" type="button" (click)="openRegister()">Create account</button>
-      <button *ngIf="!isLoggedIn()" class="btn btn-primary btn-small" type="button" (click)="openLogin()">Sign in</button>
-      <a *ngIf="isLoggedIn()" class="avatar-chip" routerLink="/profile" title="Profile"><span>{{ initials }}</span><strong>{{ currentUser }}</strong></a>
-      <button *ngIf="isLoggedIn()" class="btn btn-ghost btn-small" type="button" (click)="logout()">Sign out</button>
-    </div>
-  </header>
+        <div class="account-zone">
+            <button
+                    *ngIf="!isLoggedIn()"
+                    class="btn btn-ghost btn-small"
+                    type="button"
+                    (click)="openRegister()"
+            >
+                Create account
+            </button>
 
-  <main class="main-stage"><router-outlet /></main>
+            <button
+                    *ngIf="!isLoggedIn()"
+                    class="btn btn-primary btn-small"
+                    type="button"
+                    (click)="openLogin()"
+            >
+                Sign in
+            </button>
 
-  <footer class="footer"><span>© {{ currentYear }} Aster Store.</span><span>Commerce, wallet, reviews, comments, support and admin operations.</span></footer>
+            <a
+                    *ngIf="isLoggedIn()"
+                    class="avatar-chip"
+                    routerLink="/profile"
+                    title="Profile"
+            >
+                <span>{{ initials }}</span>
+                <strong>{{ currentUser }}</strong>
+            </a>
 
-  <div class="modal" *ngIf="showLogin || showRegister || showForgot || showReset" role="dialog" aria-modal="true">
-    <div class="modal-backdrop" (click)="closeAuthPopup()"></div>
-    <div class="modal-card auth-card">
-      <div class="modal-head">
-        <div>
-          <p class="eyebrow">Secure access</p>
-          <h2 *ngIf="showLogin">Sign in to continue</h2>
-          <h2 *ngIf="showRegister">Create customer account</h2>
-          <h2 *ngIf="showForgot">Recover password</h2>
-          <h2 *ngIf="showReset">Set a new password</h2>
+            <button
+                    *ngIf="isLoggedIn()"
+                    class="btn btn-ghost btn-small"
+                    type="button"
+                    (click)="logout()"
+            >
+                Sign out
+            </button>
         </div>
-        <button class="icon-btn" type="button" (click)="closeAuthPopup()">×</button>
-      </div>
+    </header>
 
-      <form *ngIf="showLogin" class="auth-form" [formGroup]="loginForm" (ngSubmit)="submitLogin()" novalidate>
-        <label class="field" [class.field-error]="loginFieldInvalid('username')">
-          <span class="field-label">Username</span>
-          <input class="input" formControlName="username" autocomplete="username">
-          <span class="field-err-msg" *ngIf="loginFieldInvalid('username')">{{ loginFieldError('username') }}</span>
-        </label>
-        <label class="field" [class.field-error]="loginFieldInvalid('password')">
-          <span class="field-label">Password</span>
-          <span class="password-control">
-            <input class="input" [type]="showLoginPassword ? 'text' : 'password'" formControlName="password" autocomplete="current-password">
-            <button class="password-toggle" type="button" (click)="showLoginPassword = !showLoginPassword" [attr.aria-label]="showLoginPassword ? 'Hide password' : 'Show password'">{{ showLoginPassword ? '🙈' : '👁️' }}</button>
+    <main class="main-stage">
+        <router-outlet />
+    </main>
+
+    <footer class="footer">
+        <span>© {{ currentYear }} Aster Store.</span>
+        <span>Commerce, wallet, reviews, comments, support and admin operations.</span>
+    </footer>
+
+    <div
+            class="modal"
+            *ngIf="showLogin || showRegister || showForgot || showReset"
+            role="dialog"
+            aria-modal="true"
+    >
+        <div class="modal-backdrop" (click)="closeAuthPopup()"></div>
+
+        <div class="modal-card auth-card">
+            <div class="modal-head">
+                <div>
+                    <p class="eyebrow">Secure access</p>
+                    <h2 *ngIf="showLogin">Sign in to continue</h2>
+                    <h2 *ngIf="showRegister">Create customer account</h2>
+                    <h2 *ngIf="showForgot">Recover password</h2>
+                    <h2 *ngIf="showReset">Set a new password</h2>
+                </div>
+
+                <button class="icon-btn" type="button" (click)="closeAuthPopup()">×</button>
+            </div>
+
+            <!-- LOGIN: chỉ hiện lỗi sau Submit -->
+            <form
+                    *ngIf="showLogin"
+                    class="auth-form"
+                    [formGroup]="loginForm"
+                    (ngSubmit)="submitLogin()"
+                    novalidate
+            >
+                <label class="field" [class.field-error]="loginFieldInvalid('username')">
+                    <span class="field-label">Username</span>
+
+                    <input
+                            class="input"
+                            formControlName="username"
+                            autocomplete="username"
+                    />
+
+                    <span class="field-err-msg" *ngIf="loginFieldInvalid('username')">
+            {{ loginFieldError('username') }}
           </span>
-          <span class="field-err-msg" *ngIf="loginFieldInvalid('password')">{{ loginFieldError('password') }}</span>
-        </label>
-        <button class="link-button" type="button" (click)="openForgot()">Forgot password?</button>
-        <div class="modal-actions"><button class="btn btn-ghost" type="button" (click)="closeAuthPopup()">Cancel</button><button class="btn btn-primary" type="submit">Sign in</button></div>
-      </form>
+                </label>
 
-      <form *ngIf="showForgot" class="auth-form" [formGroup]="forgotForm" (ngSubmit)="submitForgot()">
-        <p class="muted">Enter the email you used during registration. Gmail SMTP will send a reset link.</p>
-        <label class="field"><span class="field-label">Email</span><input class="input" formControlName="email" type="email" autocomplete="email"></label>
-        <div class="modal-actions"><button class="btn btn-ghost" type="button" (click)="openLogin()">Back</button><button class="btn btn-primary" type="submit" [disabled]="forgotSubmitting">{{ forgotSubmitting ? 'Sending...' : 'Send reset email' }}</button></div>
-      </form>
+                <label class="field" [class.field-error]="loginFieldInvalid('password')">
+                    <span class="field-label">Password</span>
 
-      <form *ngIf="showReset" class="auth-form" [formGroup]="resetForm" (ngSubmit)="submitReset()">
-        <label class="field"><span class="field-label">Reset token</span><input class="input" formControlName="token"></label>
-        <label class="field"><span class="field-label">New password</span><input class="input" type="password" formControlName="newPassword"><span class="form-hint">Use at least 6 characters and one special character.</span></label>
-        <div class="modal-actions"><button class="btn btn-ghost" type="button" (click)="closeAuthPopup()">Cancel</button><button class="btn btn-primary" type="submit" [disabled]="resetSubmitting">{{ resetSubmitting ? 'Saving...' : 'Update password' }}</button></div>
-      </form>
+                    <span class="password-control">
+            <input
+                    class="input"
+                    [type]="showLoginPassword ? 'text' : 'password'"
+                    formControlName="password"
+                    autocomplete="current-password"
+            />
 
-      <form *ngIf="showRegister" class="auth-form" [formGroup]="registerForm" (ngSubmit)="submitRegister()" novalidate>
-        <div class="auth-grid">
-          <label class="field" [class.field-error]="regFieldInvalid('firstName')"><span class="field-label">First name</span><input class="input" formControlName="firstName"><span class="field-err-msg" *ngIf="regFieldInvalid('firstName')">{{ regFieldError('firstName') }}</span></label>
-          <label class="field" [class.field-error]="regFieldInvalid('lastName')"><span class="field-label">Last name</span><input class="input" formControlName="lastName"><span class="field-err-msg" *ngIf="regFieldInvalid('lastName')">{{ regFieldError('lastName') }}</span></label>
-          <label class="field" [class.field-error]="regFieldInvalid('email')"><span class="field-label">Email</span><input class="input" type="email" formControlName="email"><span class="field-err-msg" *ngIf="regFieldInvalid('email')">{{ regFieldError('email') }}</span></label>
-          <label class="field" [class.field-error]="regFieldInvalid('phone')"><span class="field-label">Phone</span><input class="input" formControlName="phone"><span class="field-err-msg" *ngIf="regFieldInvalid('phone')">{{ regFieldError('phone') }}</span></label>
-          <label class="field field-full" [class.field-error]="regFieldInvalid('address')"><span class="field-label">Shipping address</span><input class="input" formControlName="address"><span class="field-err-msg" *ngIf="regFieldInvalid('address')">{{ regFieldError('address') }}</span></label>
-          <label class="field" [class.field-error]="regFieldInvalid('username')"><span class="field-label">Username</span><input class="input" formControlName="username"><span class="field-err-msg" *ngIf="regFieldInvalid('username')">{{ regFieldError('username') }}</span></label>
-          <label class="field" [class.field-error]="regFieldInvalid('password')">
-            <span class="field-label">Password</span>
-            <span class="password-control">
-              <input class="input" [type]="showRegisterPassword ? 'text' : 'password'" formControlName="password" autocomplete="new-password">
-              <button class="password-toggle" type="button" (click)="showRegisterPassword = !showRegisterPassword" [attr.aria-label]="showRegisterPassword ? 'Hide password' : 'Show password'">{{ showRegisterPassword ? '🙈' : '👁️' }}</button>
+            <button
+                    class="password-toggle"
+                    type="button"
+                    (click)="showLoginPassword = !showLoginPassword"
+                    [attr.aria-label]="showLoginPassword ? 'Hide password' : 'Show password'"
+                    [attr.aria-pressed]="showLoginPassword"
+            >
+              <fa-icon [icon]="showLoginPassword ? faEyeSlash : faEye"></fa-icon>
+            </button>
+          </span>
+
+                    <span class="field-err-msg" *ngIf="loginFieldInvalid('password')">
+            {{ loginFieldError('password') }}
+          </span>
+                </label>
+
+                <button class="link-button" type="button" (click)="openForgot()">
+                    Forgot password?
+                </button>
+
+                <div class="modal-actions">
+                    <button class="btn btn-ghost" type="button" (click)="closeAuthPopup()">
+                        Cancel
+                    </button>
+
+                    <button class="btn btn-primary" type="submit">
+                        Sign in
+                    </button>
+                </div>
+            </form>
+
+            <form
+                    *ngIf="showForgot"
+                    class="auth-form"
+                    [formGroup]="forgotForm"
+                    (ngSubmit)="submitForgot()"
+            >
+                <p class="muted">
+                    Enter the email you used during registration. Gmail SMTP will send a reset link.
+                </p>
+
+                <label class="field">
+                    <span class="field-label">Email</span>
+                    <input
+                            class="input"
+                            formControlName="email"
+                            type="email"
+                            autocomplete="email"
+                    />
+                </label>
+
+                <div class="modal-actions">
+                    <button class="btn btn-ghost" type="button" (click)="openLogin()">
+                        Back
+                    </button>
+
+                    <button
+                            class="btn btn-primary"
+                            type="submit"
+                            [disabled]="forgotSubmitting"
+                    >
+                        {{ forgotSubmitting ? 'Sending...' : 'Send reset email' }}
+                    </button>
+                </div>
+            </form>
+
+            <form
+                    *ngIf="showReset"
+                    class="auth-form"
+                    [formGroup]="resetForm"
+                    (ngSubmit)="submitReset()"
+            >
+                <label class="field">
+                    <span class="field-label">Reset token</span>
+                    <input class="input" formControlName="token" />
+                </label>
+
+                <label class="field">
+                    <span class="field-label">New password</span>
+                    <input
+                            class="input"
+                            type="password"
+                            formControlName="newPassword"
+                    />
+                    <span class="form-hint">
+            Use at least 6 characters and one special character.
+          </span>
+                </label>
+
+                <div class="modal-actions">
+                    <button class="btn btn-ghost" type="button" (click)="closeAuthPopup()">
+                        Cancel
+                    </button>
+
+                    <button
+                            class="btn btn-primary"
+                            type="submit"
+                            [disabled]="resetSubmitting"
+                    >
+                        {{ resetSubmitting ? 'Saving...' : 'Update password' }}
+                    </button>
+                </div>
+            </form>
+
+            <!-- REGISTER: real-time inline validation -->
+            <form
+                    *ngIf="showRegister"
+                    class="auth-form"
+                    [formGroup]="registerForm"
+                    (ngSubmit)="submitRegister()"
+                    novalidate
+            >
+                <div class="auth-grid">
+                    <label class="field" [class.field-error]="regFieldInvalid('firstName')">
+                        <span class="field-label">First name</span>
+
+                        <input
+                                class="input"
+                                formControlName="firstName"
+                                autocomplete="given-name"
+                        />
+
+                        <span class="field-err-msg" *ngIf="regFieldInvalid('firstName')">
+              {{ regFieldError('firstName') }}
             </span>
-            <span class="form-hint">At least 6 characters and one special character.</span>
-            <span class="field-err-msg" *ngIf="regFieldInvalid('password')">{{ regFieldError('password') }}</span>
-          </label>
-          <label class="field" [class.field-error]="!!confirmPasswordError">
-            <span class="field-label">Confirm password</span>
-            <span class="password-control">
-              <input class="input" [type]="showRegisterConfirmPassword ? 'text' : 'password'" formControlName="confirmPassword" autocomplete="new-password">
-              <button class="password-toggle" type="button" (click)="showRegisterConfirmPassword = !showRegisterConfirmPassword" [attr.aria-label]="showRegisterConfirmPassword ? 'Hide password' : 'Show password'">{{ showRegisterConfirmPassword ? '🙈' : '👁️' }}</button>
+                    </label>
+
+                    <label class="field" [class.field-error]="regFieldInvalid('lastName')">
+                        <span class="field-label">Last name</span>
+
+                        <input
+                                class="input"
+                                formControlName="lastName"
+                                autocomplete="family-name"
+                        />
+
+                        <span class="field-err-msg" *ngIf="regFieldInvalid('lastName')">
+              {{ regFieldError('lastName') }}
             </span>
-            <span class="field-err-msg" *ngIf="confirmPasswordError">{{ confirmPasswordError }}</span>
-          </label>
-          <label class="field"><span class="field-label">Gender</span><select class="input" formControlName="gender"><option value="MALE">Male</option><option value="FEMALE">Female</option></select></label>
-          <label class="field" [class.field-error]="regFieldInvalid('birthday')">
-            <span class="field-label">Birthday</span>
-            <input class="input" type="date" formControlName="birthday" [attr.min]="birthdayMinDate" [attr.max]="birthdayMaxDate">
-            <span class="form-hint">Age must be from 13 to 120 years.</span>
-            <span class="field-err-msg" *ngIf="regFieldInvalid('birthday')">{{ regFieldError('birthday') }}</span>
-          </label>
+                    </label>
+
+                    <label class="field" [class.field-error]="regFieldInvalid('email')">
+                        <span class="field-label">Email</span>
+
+                        <input
+                                class="input"
+                                type="email"
+                                formControlName="email"
+                                autocomplete="email"
+                        />
+
+                        <span class="field-err-msg" *ngIf="regFieldInvalid('email')">
+              {{ regFieldError('email') }}
+            </span>
+                    </label>
+
+                    <label class="field" [class.field-error]="regFieldInvalid('phone')">
+                        <span class="field-label">Phone</span>
+
+                        <input
+                                class="input"
+                                formControlName="phone"
+                                autocomplete="tel"
+                        />
+
+                        <span class="field-err-msg" *ngIf="regFieldInvalid('phone')">
+              {{ regFieldError('phone') }}
+            </span>
+                    </label>
+
+                    <label class="field field-full" [class.field-error]="regFieldInvalid('address')">
+                        <span class="field-label">Shipping address</span>
+
+                        <input
+                                class="input"
+                                formControlName="address"
+                                autocomplete="street-address"
+                        />
+
+                        <span class="field-err-msg" *ngIf="regFieldInvalid('address')">
+              {{ regFieldError('address') }}
+            </span>
+                    </label>
+
+                    <label class="field" [class.field-error]="regFieldInvalid('username')">
+                        <span class="field-label">Username</span>
+
+                        <input
+                                class="input"
+                                formControlName="username"
+                                autocomplete="username"
+                        />
+
+                        <span class="field-err-msg" *ngIf="regFieldInvalid('username')">
+              {{ regFieldError('username') }}
+            </span>
+                    </label>
+
+                    <label class="field" [class.field-error]="regFieldInvalid('password')">
+                        <span class="field-label">Password</span>
+
+                        <span class="password-control">
+              <input
+                      class="input"
+                      [type]="showRegisterPassword ? 'text' : 'password'"
+                      formControlName="password"
+                      autocomplete="new-password"
+              />
+
+              <button
+                      class="password-toggle"
+                      type="button"
+                      (click)="showRegisterPassword = !showRegisterPassword"
+                      [attr.aria-label]="showRegisterPassword ? 'Hide password' : 'Show password'"
+                      [attr.aria-pressed]="showRegisterPassword"
+              >
+                <fa-icon [icon]="showRegisterPassword ? faEyeSlash : faEye"></fa-icon>
+              </button>
+            </span>
+
+                        <span class="form-hint">
+              At least 6 characters and one special character.
+            </span>
+
+                        <span class="field-err-msg" *ngIf="regFieldInvalid('password')">
+              {{ regFieldError('password') }}
+            </span>
+                    </label>
+
+                    <label class="field" [class.field-error]="!!confirmPasswordError">
+                        <span class="field-label">Confirm password</span>
+
+                        <span class="password-control">
+              <input
+                      class="input"
+                      [type]="showRegisterConfirmPassword ? 'text' : 'password'"
+                      formControlName="confirmPassword"
+                      autocomplete="new-password"
+              />
+
+              <button
+                      class="password-toggle"
+                      type="button"
+                      (click)="showRegisterConfirmPassword = !showRegisterConfirmPassword"
+                      [attr.aria-label]="showRegisterConfirmPassword ? 'Hide password' : 'Show password'"
+                      [attr.aria-pressed]="showRegisterConfirmPassword"
+              >
+                <fa-icon [icon]="showRegisterConfirmPassword ? faEyeSlash : faEye"></fa-icon>
+              </button>
+            </span>
+
+                        <span class="field-err-msg" *ngIf="confirmPasswordError">
+              {{ confirmPasswordError }}
+            </span>
+                    </label>
+
+                    <label class="field">
+                        <span class="field-label">Gender</span>
+
+                        <select class="input" formControlName="gender">
+                            <option value="MALE">Male</option>
+                            <option value="FEMALE">Female</option>
+                        </select>
+                    </label>
+
+                    <label class="field" [class.field-error]="regFieldInvalid('birthday')">
+                        <span class="field-label">Birthday</span>
+
+                        <input
+                                class="input"
+                                type="date"
+                                formControlName="birthday"
+                                [attr.min]="birthdayMinDate"
+                                [attr.max]="birthdayMaxDate"
+                        />
+
+                        <span class="form-hint">
+              Age must be from 13 to 120 years.
+            </span>
+
+                        <span class="field-err-msg" *ngIf="regFieldInvalid('birthday')">
+              {{ regFieldError('birthday') }}
+            </span>
+                    </label>
+                </div>
+
+                <div class="modal-actions">
+                    <button class="btn btn-ghost" type="button" (click)="closeAuthPopup()">
+                        Cancel
+                    </button>
+
+                    <button class="btn btn-primary" type="submit">
+                        Create account
+                    </button>
+                </div>
+            </form>
         </div>
-        <div class="modal-actions"><button class="btn btn-ghost" type="button" (click)="closeAuthPopup()">Cancel</button><button class="btn btn-primary" type="submit">Create account</button></div>
-      </form>
     </div>
-  </div>
 
-  <div class="modal" *ngIf="popup" role="dialog" aria-modal="true">
-    <div class="modal-backdrop" (click)="closePopup()"></div>
-    <div class="modal-card popup-card"><div class="popup-icon" [ngClass]="popup.type">{{ popup.type === 'success' ? '✓' : popup.type === 'error' ? '!' : 'i' }}</div><h2>{{ popup.title }}</h2><p>{{ popup.message }}</p><div class="modal-actions center"><button class="btn btn-primary" type="button" (click)="closePopup()">OK</button></div></div>
-  </div>
+    <div class="modal" *ngIf="popup" role="dialog" aria-modal="true">
+        <div class="modal-backdrop" (click)="closePopup()"></div>
+
+        <div class="modal-card popup-card">
+            <div class="popup-icon" [ngClass]="popup.type">
+                {{ popup.type === 'success' ? '✓' : popup.type === 'error' ? '!' : 'i' }}
+            </div>
+
+            <h2>{{ popup.title }}</h2>
+            <p>{{ popup.message }}</p>
+
+            <div class="modal-actions center">
+                <button class="btn btn-primary" type="button" (click)="closePopup()">
+                    OK
+                </button>
+            </div>
+        </div>
+    </div>
 </div>

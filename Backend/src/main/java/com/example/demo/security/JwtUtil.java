@@ -16,7 +16,7 @@ public class JwtUtil {
 
     private final Key key = Keys.hmacShaKeyFor(SECRET.getBytes());
 
-    private static final long EXPIRATION = 86400000;
+    private static final long EXPIRATION = 86400000; //1 ngày
 
     public String generateToken(String username, String role) {
         return Jwts.builder()
