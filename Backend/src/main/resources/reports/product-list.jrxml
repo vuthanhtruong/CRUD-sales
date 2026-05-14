@@ -1,0 +1,113 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- Product PDF export template rendered by JasperReports on the Spring Boot backend. -->
+<jasperReport xmlns="http://jasperreports.sourceforge.net/jasperreports"
+              xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+              xsi:schemaLocation="http://jasperreports.sourceforge.net/jasperreports http://jasperreports.sourceforge.net/xsd/jasperreport.xsd"
+              name="product-list"
+              whenNoDataType="NoDataSection"
+              pageWidth="842"
+              pageHeight="595"
+              orientation="Landscape"
+              columnWidth="794"
+              leftMargin="24"
+              rightMargin="24"
+              topMargin="24"
+              bottomMargin="24"
+              uuid="9ad33c51-2f5d-4932-b6e8-80d5ac361f0e">
+
+    <property name="com.jaspersoft.studio.data.defaultdataadapter" value="One Empty Record"/>
+    <property name="net.sf.jasperreports.export.pdf.tagged" value="true"/>
+
+    <parameter name="REPORT_TITLE" class="java.lang.String"/>
+    <parameter name="TOTAL_PRODUCTS" class="java.lang.Integer"/>
+    <parameter name="GENERATED_AT" class="java.lang.String"/>
+
+    <field name="productId" class="java.lang.String"/>
+    <field name="productName" class="java.lang.String"/>
+    <field name="productTypeId" class="java.lang.String"/>
+    <field name="status" class="java.lang.String"/>
+    <field name="price" class="java.math.BigDecimal"/>
+    <field name="description" class="java.lang.String"/>
+    <field name="createdBy" class="java.lang.String"/>
+
+    <style name="Title" fontName="SansSerif" fontSize="18" isBold="true" pdfFontName="Helvetica-Bold"/>
+    <style name="Meta" fontName="SansSerif" fontSize="9" pdfFontName="Helvetica"/>
+    <style name="TableHeader" mode="Opaque" backcolor="#E8EEF7" forecolor="#111827" fontName="SansSerif" fontSize="9" isBold="true" pdfFontName="Helvetica-Bold">
+        <box topPadding="4" leftPadding="4" bottomPadding="4" rightPadding="4">
+            <pen lineWidth="0.5" lineColor="#9CA3AF"/>
+        </box>
+    </style>
+    <style name="TableCell" fontName="SansSerif" fontSize="8" pdfFontName="Helvetica">
+        <box topPadding="3" leftPadding="4" bottomPadding="3" rightPadding="4">
+            <pen lineWidth="0.3" lineColor="#D1D5DB"/>
+        </box>
+    </style>
+
+    <title>
+        <band height="64">
+            <textField>
+                <reportElement style="Title" x="0" y="0" width="794" height="24" uuid="523ebc0c-7148-4acc-84cc-0f091e9bda53"/>
+                <textElement textAlignment="Center" verticalAlignment="Middle"/>
+                <textFieldExpression><![CDATA[$P{REPORT_TITLE}]]></textFieldExpression>
+            </textField>
+            <textField>
+                <reportElement style="Meta" x="0" y="34" width="230" height="16" uuid="0cf51abe-2b4d-41f5-8a39-4eaa652dc865"/>
+                <textFieldExpression><![CDATA["Total products: " + $P{TOTAL_PRODUCTS}]]></textFieldExpression>
+            </textField>
+            <textField>
+                <reportElement style="Meta" x="564" y="34" width="230" height="16" uuid="fc7ead35-9767-468d-978b-2b7852b08fc8"/>
+                <textElement textAlignment="Right"/>
+                <textFieldExpression><![CDATA["Generated at: " + $P{GENERATED_AT}]]></textFieldExpression>
+            </textField>
+        </band>
+    </title>
+
+    <columnHeader>
+        <band height="24">
+            <staticText><reportElement style="TableHeader" x="0" y="0" width="85" height="24" uuid="6cf36d66-1708-439a-8a91-1379bf985b86"/><textElement verticalAlignment="Middle"/><text><![CDATA[Product ID]]></text></staticText>
+            <staticText><reportElement style="TableHeader" x="85" y="0" width="135" height="24" uuid="e9360e67-0524-4c3c-981e-eeb048a25d9d"/><textElement verticalAlignment="Middle"/><text><![CDATA[Product Name]]></text></staticText>
+            <staticText><reportElement style="TableHeader" x="220" y="0" width="75" height="24" uuid="ed5eaa10-6e65-43cf-8ae0-287661f2214a"/><textElement verticalAlignment="Middle"/><text><![CDATA[Type]]></text></staticText>
+            <staticText><reportElement style="TableHeader" x="295" y="0" width="70" height="24" uuid="ca478b9b-4a14-4da1-93e2-28cdd0837075"/><textElement verticalAlignment="Middle"/><text><![CDATA[Status]]></text></staticText>
+            <staticText><reportElement style="TableHeader" x="365" y="0" width="80" height="24" uuid="f837f5cf-06ac-4738-a6fd-bcf921f2bb28"/><textElement textAlignment="Right" verticalAlignment="Middle"/><text><![CDATA[Price]]></text></staticText>
+            <staticText><reportElement style="TableHeader" x="445" y="0" width="260" height="24" uuid="3050eda8-27ae-4ed8-88b1-2e51a3143f62"/><textElement verticalAlignment="Middle"/><text><![CDATA[Description]]></text></staticText>
+            <staticText><reportElement style="TableHeader" x="705" y="0" width="89" height="24" uuid="46cd86aa-645b-4f4d-ae39-35a41263b89e"/><textElement verticalAlignment="Middle"/><text><![CDATA[Created By]]></text></staticText>
+        </band>
+    </columnHeader>
+
+    <detail>
+        <band height="30" splitType="Stretch">
+            <textField isBlankWhenNull="true" isStretchWithOverflow="true"><reportElement style="TableCell" x="0" y="0" width="85" height="30" uuid="f6fa2514-6a11-454e-8c88-01dbed9f6e72"/><textElement verticalAlignment="Top"/><textFieldExpression><![CDATA[$F{productId}]]></textFieldExpression></textField>
+            <textField isBlankWhenNull="true" isStretchWithOverflow="true"><reportElement style="TableCell" x="85" y="0" width="135" height="30" uuid="981985c9-9dd2-49cf-98fe-6241bd7c24b0"/><textElement verticalAlignment="Top"/><textFieldExpression><![CDATA[$F{productName}]]></textFieldExpression></textField>
+            <textField isBlankWhenNull="true" isStretchWithOverflow="true"><reportElement style="TableCell" x="220" y="0" width="75" height="30" uuid="d7e0f8b8-94ce-4958-a662-eb2720c91a6a"/><textElement verticalAlignment="Top"/><textFieldExpression><![CDATA[$F{productTypeId}]]></textFieldExpression></textField>
+            <textField isBlankWhenNull="true" isStretchWithOverflow="true"><reportElement style="TableCell" x="295" y="0" width="70" height="30" uuid="48295007-5d97-4370-922d-a3d6bf2717fd"/><textElement verticalAlignment="Top"/><textFieldExpression><![CDATA[$F{status}]]></textFieldExpression></textField>
+            <textField isBlankWhenNull="true"><reportElement style="TableCell" x="365" y="0" width="80" height="30" uuid="1e71495d-1190-4cf5-88ba-feb6d91ff72f"/><textElement textAlignment="Right" verticalAlignment="Top"/><textFieldExpression><![CDATA[$F{price} == null ? "" : $F{price}.toPlainString()]]></textFieldExpression></textField>
+            <textField isBlankWhenNull="true" isStretchWithOverflow="true"><reportElement style="TableCell" x="445" y="0" width="260" height="30" uuid="3fb7758c-1764-49c9-b3a9-ad22590c34ca"/><textElement verticalAlignment="Top"/><textFieldExpression><![CDATA[$F{description}]]></textFieldExpression></textField>
+            <textField isBlankWhenNull="true" isStretchWithOverflow="true"><reportElement style="TableCell" x="705" y="0" width="89" height="30" uuid="dcb7437e-058d-4852-9a7c-d9509f60f48e"/><textElement verticalAlignment="Top"/><textFieldExpression><![CDATA[$F{createdBy}]]></textFieldExpression></textField>
+        </band>
+    </detail>
+
+    <pageFooter>
+        <band height="18">
+            <textField>
+                <reportElement style="Meta" x="0" y="0" width="794" height="14" uuid="c49d8d2b-1912-4c53-8d44-246f2f0eca8d"/>
+                <textElement textAlignment="Right"/>
+                <textFieldExpression><![CDATA["Page " + $V{PAGE_NUMBER}]]></textFieldExpression>
+            </textField>
+        </band>
+    </pageFooter>
+
+    <noData>
+        <band height="110">
+            <staticText>
+                <reportElement style="Title" x="0" y="0" width="794" height="24" uuid="6afbf5cf-93fc-43a4-848c-74a8c71450b8"/>
+                <textElement textAlignment="Center" verticalAlignment="Middle"/>
+                <text><![CDATA[Product List]]></text>
+            </staticText>
+            <staticText>
+                <reportElement style="Meta" x="0" y="48" width="794" height="20" uuid="ee452688-3f07-4016-a685-ce7a5cc98616"/>
+                <textElement textAlignment="Center" verticalAlignment="Middle"/>
+                <text><![CDATA[No products found for the selected export scope.]]></text>
+            </staticText>
+        </band>
+    </noData>
+</jasperReport>
