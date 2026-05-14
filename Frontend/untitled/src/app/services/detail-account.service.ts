@@ -18,7 +18,7 @@ export interface ProfileDTO {
 
 @Injectable({ providedIn: 'root' })
 export class DetailAccountService {
-  private apiUrl = 'http://localhost:8080/api/detail-account';
+  private apiUrl = '/api/detail-account';
   constructor(private http: HttpClient) {}
 
   getMe(): Observable<ProfileDTO> {

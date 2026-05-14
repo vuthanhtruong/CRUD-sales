@@ -18,7 +18,7 @@ export interface WishlistStatusDTO {
 
 @Injectable({ providedIn: 'root' })
 export class WishlistService {
-  private apiUrl = 'http://localhost:8080/api/wishlist';
+  private apiUrl = '/api/wishlist';
   constructor(private http: HttpClient) {}
 
   getMine(): Observable<WishlistItemDTO[]> {

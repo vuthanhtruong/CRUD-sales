@@ -12,7 +12,7 @@ export interface Size {
 })
 export class SizeService {
 
-  private apiUrl = 'http://localhost:8080/api/sizes';
+  private apiUrl = '/api/sizes';
 
   constructor(private http: HttpClient) {}
 

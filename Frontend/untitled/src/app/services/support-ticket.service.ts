@@ -31,7 +31,7 @@ export interface SupportTicketDTO {
 
 @Injectable({ providedIn: 'root' })
 export class SupportTicketService {
-  private apiUrl = 'http://localhost:8080/api/support';
+  private apiUrl = '/api/support';
   constructor(private http: HttpClient) {}
 
   mine(): Observable<SupportTicketDTO[]> {

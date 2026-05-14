@@ -24,8 +24,8 @@ export interface CartItemDTO {
 
 @Injectable({ providedIn: 'root' })
 export class CartService {
-  private baseUrl = 'http://localhost:8080/api/cart';
-  private orderUrl = 'http://localhost:8080/api/orders';
+  private baseUrl = '/api/cart';
+  private orderUrl = '/api/orders';
 
   constructor(private http: HttpClient) {}
 

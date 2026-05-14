@@ -18,8 +18,9 @@ public class RedisConfig {
 
     @Bean
     public RedisCacheManager cacheManager(RedisConnectionFactory factory) {
-        RedisCacheConfiguration config = RedisCacheConfiguration.defaultCacheConfig()
+        RedisCacheConfiguration defaultConfig = RedisCacheConfiguration.defaultCacheConfig()
                 .entryTtl(Duration.ofMinutes(5))
+                .disableCachingNullValues()
                 .serializeKeysWith(
                         RedisSerializationContext.SerializationPair.fromSerializer(new StringRedisSerializer()))
                 .serializeValuesWith(
@@ -27,9 +28,11 @@ public class RedisConfig {
                                 new GenericJackson2JsonRedisSerializer()));
 
         return RedisCacheManager.builder(factory)
-                .cacheDefaults(config)
-                .withCacheConfiguration("products", config.entryTtl(Duration.ofMinutes(10)))
-                .withCacheConfiguration("product", config.entryTtl(Duration.ofMinutes(10)))
+                .cacheDefaults(defaultConfig)
+                .withCacheConfiguration("products", defaultConfig.entryTtl(Duration.ofMinutes(10)))
+                .withCacheConfiguration("product", defaultConfig.entryTtl(Duration.ofMinutes(10)))
+                .withCacheConfiguration("userProducts", defaultConfig.entryTtl(Duration.ofMinutes(10)))
+                .withCacheConfiguration("trendingProducts", defaultConfig.entryTtl(Duration.ofMinutes(2)))
                 .build();
     }
 }

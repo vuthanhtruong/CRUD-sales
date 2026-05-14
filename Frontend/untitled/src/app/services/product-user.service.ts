@@ -26,7 +26,7 @@ export interface ColorDTO {
 })
 export class ProductUserService {
 
-  private apiUrl = 'http://localhost:8080/api/products/user';
+  private apiUrl = '/api/products/user';
 
   constructor(private http: HttpClient) {}
 

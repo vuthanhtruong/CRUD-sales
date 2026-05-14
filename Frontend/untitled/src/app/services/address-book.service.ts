@@ -18,7 +18,7 @@ export interface AddressBookDTO {
 
 @Injectable({ providedIn: 'root' })
 export class AddressBookService {
-  private apiUrl = 'http://localhost:8080/api/addresses';
+  private apiUrl = '/api/addresses';
   constructor(private http: HttpClient) {}
 
   getMine(): Observable<AddressBookDTO[]> {

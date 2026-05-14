@@ -21,7 +21,7 @@ export interface ProductVariantDTO {
 })
 export class ProductVariantService {
 
-  private apiUrl = 'http://localhost:8080/api/variants';
+  private apiUrl = '/api/variants';
 
   constructor(private http: HttpClient) {}
 

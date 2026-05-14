@@ -13,7 +13,7 @@ export interface ProductMetricDTO {
 
 @Injectable({ providedIn: 'root' })
 export class ProductInsightService {
-  private apiUrl = 'http://localhost:8080/api/insights';
+  private apiUrl = '/api/insights';
   constructor(private http: HttpClient) {}
 
   recordView(productId: string): Observable<ProductMetricDTO> {

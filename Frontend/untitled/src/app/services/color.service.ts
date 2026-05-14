@@ -12,7 +12,7 @@ export interface ColorDTO {
 })
 export class ColorService {
 
-  private apiUrl = 'http://localhost:8080/api/colors';
+  private apiUrl = '/api/colors';
 
   constructor(private http: HttpClient) {}
 

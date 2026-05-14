@@ -1,4 +1,4 @@
-package com.example.notification.service;
+package com.example.demo.service;
 
 import com.example.demo.dto.queue.MailQueueMessageDTO;
 import org.springframework.beans.factory.annotation.Value;
@@ -13,7 +13,7 @@ public class MailSenderService {
     private final JavaMailSender mailSender;
 
     @Value("${spring.mail.username:}")
-    private String from;
+    private String mailFrom;
 
     public MailSenderService(JavaMailSender mailSender) {
         this.mailSender = mailSender;
@@ -21,7 +21,9 @@ public class MailSenderService {
 
     public void send(MailQueueMessageDTO request) {
         SimpleMailMessage message = new SimpleMailMessage();
-        if (from != null && !from.isBlank()) message.setFrom(from);
+        if (mailFrom != null && !mailFrom.isBlank()) {
+            message.setFrom(mailFrom);
+        }
         message.setTo(request.getTo());
         message.setSubject(request.getSubject());
         message.setText(request.getBody());

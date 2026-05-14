@@ -26,7 +26,7 @@ export interface LoginResponse {
 
 @Injectable({ providedIn: 'root' })
 export class AccountService {
-  private baseUrl = 'http://localhost:8080/api/accounts';
+  private baseUrl = '/api/accounts';
   constructor(private http: HttpClient) {}
 
   register(data: AccountDTO): Observable<any> { return this.http.post(`${this.baseUrl}/register`, data); }

@@ -21,7 +21,7 @@ export interface ProductCommentDTO {
 
 @Injectable({ providedIn: 'root' })
 export class ProductCommentService {
-  private apiUrl = 'http://localhost:8080/api/comments';
+  private apiUrl = '/api/comments';
   constructor(private http: HttpClient) {}
 
   productThread(productId: string): Observable<ProductCommentDTO[]> {

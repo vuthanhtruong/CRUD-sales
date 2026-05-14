@@ -12,7 +12,7 @@ export interface ProductImageDTO {
 
 @Injectable({ providedIn: 'root' })
 export class ProductImageService {
-  private apiUrl = 'http://localhost:8080/api/product-images';
+  private apiUrl = '/api/product-images';
 
   constructor(private http: HttpClient) {}
 

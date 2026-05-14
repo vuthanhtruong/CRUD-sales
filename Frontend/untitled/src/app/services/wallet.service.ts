@@ -28,7 +28,7 @@ export interface WalletDTO {
 
 @Injectable({ providedIn: 'root' })
 export class WalletService {
-  private apiUrl = 'http://localhost:8080/api/wallet';
+  private apiUrl = '/api/wallet';
   constructor(private http: HttpClient) {}
 
   mine(): Observable<WalletDTO> {

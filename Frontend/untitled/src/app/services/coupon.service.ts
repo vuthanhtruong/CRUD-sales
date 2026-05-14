@@ -32,7 +32,7 @@ export interface CouponPreviewDTO {
 
 @Injectable({ providedIn: 'root' })
 export class CouponService {
-  private apiUrl = 'http://localhost:8080/api/coupons';
+  private apiUrl = '/api/coupons';
   constructor(private http: HttpClient) {}
 
   findAll(): Observable<CouponDTO[]> {

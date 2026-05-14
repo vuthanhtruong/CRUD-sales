@@ -11,8 +11,6 @@ import jakarta.persistence.EntityManager;
 import jakarta.persistence.PersistenceContext;
 import jakarta.transaction.Transactional;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.mail.SimpleMailMessage;
-import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
@@ -24,8 +22,8 @@ import java.util.UUID;
 public class PasswordResetServiceImpl implements PasswordResetService {
     private final AccountDAO accountDAO;
     private final PasswordEncoder passwordEncoder;
-    private final JavaMailSender mailSender;
     private final QueuePublisherService queuePublisherService;
+    private final MailSenderService mailSenderService;
 
     @PersistenceContext
     private EntityManager entityManager;
@@ -33,17 +31,14 @@ public class PasswordResetServiceImpl implements PasswordResetService {
     @Value("${app.frontend.reset-password-url:http://localhost:4200/reset-password}")
     private String resetPasswordUrl;
 
-    @Value("${spring.mail.username:}")
-    private String mailFrom;
-
     public PasswordResetServiceImpl(AccountDAO accountDAO,
                                     PasswordEncoder passwordEncoder,
-                                    JavaMailSender mailSender,
-                                    QueuePublisherService queuePublisherService) {
+                                    QueuePublisherService queuePublisherService,
+                                    MailSenderService mailSenderService) {
         this.accountDAO = accountDAO;
         this.passwordEncoder = passwordEncoder;
-        this.mailSender = mailSender;
         this.queuePublisherService = queuePublisherService;
+        this.mailSenderService = mailSenderService;
     }
 
     @Override
@@ -109,13 +104,8 @@ public class PasswordResetServiceImpl implements PasswordResetService {
             System.out.println("RabbitMQ mail publish failed. Falling back to direct SMTP. Reset link for development: " + link);
         }
 
-        SimpleMailMessage message = new SimpleMailMessage();
-        if (mailFrom != null && !mailFrom.isBlank()) message.setFrom(mailFrom);
-        message.setTo(email);
-        message.setSubject(subject);
-        message.setText(body);
         try {
-            mailSender.send(message);
+            mailSenderService.send(new MailQueueMessageDTO(email, subject, body));
         } catch (Exception ex) {
             // Development fallback: keep the app usable while Gmail SMTP is not configured yet.
             System.out.println("Password reset mail could not be sent. Reset link for development: " + link);

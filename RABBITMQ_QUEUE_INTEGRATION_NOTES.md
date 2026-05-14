@@ -1,56 +1,27 @@
 # RabbitMQ / Queue Integration Notes
 
-## What was added
+## Trạng thái sau chỉnh sửa
 
-- Added `spring-boot-starter-amqp` to the Backend and `notification-service`.
-- Added a durable RabbitMQ direct exchange: `sale.exchange`.
-- Added durable queues:
-  - `mail.queue` for email jobs.
-  - `notification.queue` for in-app notification jobs.
-- Backend now publishes password-reset email jobs to `mail.queue`.
-- `notification-service` now consumes `mail.queue` and sends email through Gmail SMTP.
-- Backend now publishes order notification jobs to `notification.queue`.
-- Backend consumes `notification.queue` and persists in-app notifications to MySQL.
-- Added RabbitMQ and `notification-service` to `docker-compose.yml`.
-- Added RabbitMQ Management UI port mapping: `15672`.
+Dự án đã chuyển về **monolith**. Backend Spring Boot là service duy nhất publish và consume queue.
 
-## Run with Docker Compose
+## Queue chính
 
-```bash
-docker compose up --build
-```
+| Purpose | Queue | Routing Key | Consumer |
+|---|---|---|---|
+| Gửi email reset mật khẩu | `mail.queue` | `mail.send` | Backend `MailQueueListener` |
+| Tạo in-app notification | `notification.queue` | `notification.create` | Backend `NotificationQueueListener` |
 
-RabbitMQ Management UI:
+## Dead-letter queue
 
-```text
-http://localhost:15672
-```
-
-Default credentials:
-
-```text
-username: guest
-password: guest
-```
-
-## Email configuration
-
-Set Gmail SMTP values before running if you want real email delivery:
-
-```bash
-export GMAIL_USERNAME="your-email@gmail.com"
-export GMAIL_APP_PASSWORD="your-gmail-app-password"
-docker compose up --build
-```
-
-## Queue names and routing keys
-
-| Purpose | Queue | Routing Key |
+| Source Queue | DLQ | DLQ Routing Key |
 |---|---|---|
-| Email sending | `mail.queue` | `mail.send` |
-| In-app notification creation | `notification.queue` | `notification.create` |
+| `mail.queue` | `mail.dlq` | `mail.dead` |
+| `notification.queue` | `notification.dlq` | `notification.dead` |
 
-## Fallback behavior
+Message xử lý lỗi sẽ được đưa vào DLQ thay vì bị mất. Điều này phù hợp với monolith vì vẫn đơn giản nhưng có đường kiểm tra lỗi queue rõ ràng.
 
-- If RabbitMQ is unavailable in local/dev mode, Backend falls back to direct SMTP for password reset email.
-- If RabbitMQ is unavailable in local/dev mode, Backend falls back to direct in-app notification persistence for order notifications.
+## Fallback local/dev
+
+- Nếu RabbitMQ chưa chạy, password-reset flow fallback sang gửi SMTP trực tiếp.
+- Nếu SMTP chưa cấu hình, backend in reset link ra console để dev tiếp tục test được.
+- Nếu RabbitMQ chạy nhưng SMTP lỗi, mail job sẽ dead-letter để tránh request bị treo hoặc message mất im lặng.
