@@ -19,7 +19,7 @@ import java.util.List;
 import java.util.Map;
 
 @Service
-public class JasperReportService {
+public class JasperProductReportService {
     private static final String PRODUCT_LIST_TEMPLATE = "/reports/product-list.jrxml";
     private static final DateTimeFormatter EXPORT_TIME_FORMATTER = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
 
@@ -30,7 +30,6 @@ public class JasperReportService {
 
         try (ByteArrayOutputStream out = new ByteArrayOutputStream()) {
             Map<String, Object> parameters = new HashMap<>();
-
             parameters.put("REPORT_TITLE", "Product List");
             parameters.put("TOTAL_PRODUCTS", safeProducts.size());
             parameters.put("GENERATED_AT", LocalDateTime.now().format(EXPORT_TIME_FORMATTER));

@@ -36,6 +36,7 @@ import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
+import java.util.stream.Collectors;
 
 @Service
 @Transactional
@@ -50,7 +51,7 @@ public class ProductServiceImpl implements ProductService {
     private ProductTypeDAO productType;
 
     @Autowired
-    private JasperReportService jasperProductReportService;
+    private JasperProductReportService jasperProductReportService;
 
     @Override
     public boolean existsByColorId(String colorId) {
