@@ -11,15 +11,6 @@ import com.example.demo.model.ProductType;
 import com.example.demo.repository.ProductDAO;
 import com.example.demo.repository.ProductImageDAO;
 import com.example.demo.repository.ProductTypeDAO;
-import com.lowagie.text.Document;
-import com.lowagie.text.Element;
-import com.lowagie.text.Font;
-import com.lowagie.text.PageSize;
-import com.lowagie.text.Paragraph;
-import com.lowagie.text.Phrase;
-import com.lowagie.text.pdf.PdfPCell;
-import com.lowagie.text.pdf.PdfPTable;
-import com.lowagie.text.pdf.PdfWriter;
 import jakarta.transaction.Transactional;
 import org.apache.poi.ss.usermodel.Row;
 import org.apache.poi.ss.usermodel.Sheet;
@@ -58,6 +49,9 @@ public class ProductServiceImpl implements ProductService {
 
     @Autowired
     private ProductTypeDAO productType;
+
+    @Autowired
+    private JasperProductReportService jasperProductReportService;
 
     @Override
     public boolean existsByColorId(String colorId) {
@@ -412,52 +406,11 @@ public class ProductServiceImpl implements ProductService {
     }
 
     private ExportFileDTO buildPdfExport(List<ProductDTO> products) {
-        String[] headers = exportHeaders();
-        try (ByteArrayOutputStream out = new ByteArrayOutputStream()) {
-            Document document = new Document(PageSize.A4.rotate());
-            PdfWriter.getInstance(document, out);
-            document.open();
-
-            Font titleFont = new Font(Font.HELVETICA, 18, Font.BOLD);
-            Font headerFont = new Font(Font.HELVETICA, 10, Font.BOLD);
-            Font bodyFont = new Font(Font.HELVETICA, 9, Font.NORMAL);
-
-            Paragraph title = new Paragraph("Product List", titleFont);
-            title.setAlignment(Element.ALIGN_CENTER);
-            title.setSpacingAfter(12);
-            document.add(title);
-            document.add(new Paragraph("Total products: " + products.size(), bodyFont));
-            document.add(new Paragraph(" "));
-
-            PdfPTable table = new PdfPTable(headers.length);
-            table.setWidthPercentage(100);
-            table.setWidths(new float[]{1.2f, 2.5f, 1.4f, 1.2f, 1.2f, 3.2f, 1.4f});
-
-            for (String header : headers) {
-                PdfPCell cell = new PdfPCell(new Phrase(header, headerFont));
-                cell.setPadding(5);
-                table.addCell(cell);
-            }
-
-            for (ProductDTO product : products) {
-                for (String value : exportRow(product)) {
-                    PdfPCell cell = new PdfPCell(new Phrase(value, bodyFont));
-                    cell.setPadding(5);
-                    table.addCell(cell);
-                }
-            }
-
-            document.add(table);
-            document.close();
-
-            return new ExportFileDTO(
-                    exportFileName("products", "pdf"),
-                    "application/pdf",
-                    out.toByteArray()
-            );
-        } catch (Exception e) {
-            throw new RuntimeException("Could not export PDF file", e);
-        }
+        return new ExportFileDTO(
+                exportFileName("products", "pdf"),
+                "application/pdf",
+                jasperProductReportService.buildProductListPdf(products)
+        );
     }
 
     private String[] exportHeaders() {
