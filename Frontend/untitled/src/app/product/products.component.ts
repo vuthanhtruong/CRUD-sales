@@ -423,9 +423,9 @@ export class ProductsComponent implements OnInit {
           this.exportLoading = false;
           this.closeExportModal();
         },
-        error: (err) => {
+        error: async (err) => {
           console.error(err);
-          this.exportError = 'Export failed. Please try again.';
+          this.exportError = await this.extractExportError(err);
           this.exportLoading = false;
           this.cdr.detectChanges();
         },
@@ -449,6 +449,28 @@ export class ProductsComponent implements OnInit {
 
     const match = contentDisposition.match(/filename\*?=(?:UTF-8'')?"?([^";]+)"?/i);
     return match?.[1] ? decodeURIComponent(match[1]) : fallback;
+  }
+
+  private async extractExportError(err: any): Promise<string> {
+    const fallback = 'Export failed. Please try again.';
+
+    try {
+      if (err?.error instanceof Blob) {
+        const text = await err.error.text();
+        if (!text) return fallback;
+
+        try {
+          const parsed = JSON.parse(text);
+          return parsed?.message || parsed?.error || fallback;
+        } catch {
+          return text;
+        }
+      }
+
+      return err?.error?.message || err?.message || fallback;
+    } catch {
+      return fallback;
+    }
   }
 
   private exportExtension(): string {

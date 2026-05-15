@@ -72,3 +72,30 @@ On Windows PowerShell:
 ```powershell
 .\mvnw.cmd clean package -DskipTests
 ```
+
+## PDF export failure fix
+
+The PDF branch was hardened for JasperReports runtime export:
+
+- Added `net.sf.jasperreports:jasperreports-fonts:6.21.3` so Jasper can render/export Unicode text with bundled DejaVu font support.
+- Reworked `Backend/src/main/resources/reports/product-list.jrxml` so styles are declared before parameters/fields and the report uses `DejaVu Sans` with `Identity-H` PDF encoding.
+- Replaced deprecated overflow handling in text fields with `textAdjust="StretchHeight"`.
+- Added backend logging/root-cause messages in `JasperProductReportService` so a future export failure exposes the real Jasper exception instead of only a generic frontend message.
+- Updated the Angular export modal to display the backend error message when the response body is a JSON/Blob error.
+- Made status parsing case-insensitive in `ProductServiceImpl`.
+
+Run backend after dependencies refresh:
+
+```bash
+cd Backend
+./mvnw clean package -DskipTests
+./mvnw spring-boot:run
+```
+
+If you copied this project between Windows/Linux, reinstall frontend dependencies on the target OS before building Angular:
+
+```bash
+cd Frontend/untitled
+npm install
+npm run build
+```

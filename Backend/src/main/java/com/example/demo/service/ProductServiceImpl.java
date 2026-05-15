@@ -452,7 +452,7 @@ public class ProductServiceImpl implements ProductService {
 
     private ProductStatus parseStatus(String status) {
         if (status == null || status.isBlank()) return null;
-        return ProductStatus.valueOf(status.trim());
+        return ProductStatus.valueOf(status.trim().toUpperCase(Locale.ROOT));
     }
 
     private int clampPageSize(int pageSize) {
