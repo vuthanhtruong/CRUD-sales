@@ -28,6 +28,7 @@ services:
       APP_RABBITMQ_NOTIFICATION_DEAD_LETTER_ROUTING_KEY: notification.dead
       APP_CORS_ALLOWED_ORIGINS: ${APP_CORS_ALLOWED_ORIGINS:-http://localhost:4200}
       APP_FRONTEND_RESET_PASSWORD_URL: ${APP_FRONTEND_RESET_PASSWORD_URL:-http://localhost:4200/reset-password}
+      APP_FRONTEND_ORDERS_URL: ${APP_FRONTEND_ORDERS_URL:-http://localhost:4200/orders}
       GMAIL_USERNAME: ${GMAIL_USERNAME:?Set GMAIL_USERNAME in .env or run .\run.ps1}
       GMAIL_APP_PASSWORD: ${GMAIL_APP_PASSWORD:?Set GMAIL_APP_PASSWORD in .env or run .\run.ps1}
     depends_on:

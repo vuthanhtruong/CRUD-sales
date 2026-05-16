@@ -1,27 +1,46 @@
-# RabbitMQ / Queue Integration Notes
+# RabbitMQ Queue Integration Notes
 
-## Trạng thái sau chỉnh sửa
+RabbitMQ trong dự án này nên được trình bày là cơ chế xử lý bất đồng bộ cho **email** và **notification**, đặc biệt trong nghiệp vụ đơn hàng.
 
-Dự án đã chuyển về **monolith**. Backend Spring Boot là service duy nhất publish và consume queue.
+## Use case chính nên nói khi bảo vệ
 
-## Queue chính
+1. User tạo đơn hàng thành công.
+2. Admin cập nhật trạng thái đơn hàng.
+3. Backend chỉ xử lý nghiệp vụ chính trong transaction: tạo/cập nhật đơn, trừ/hoàn kho, thanh toán/hoàn tiền ví nếu có.
+4. Sau khi transaction commit, backend publish message vào RabbitMQ.
+5. Consumer xử lý tác vụ phụ:
+   - gửi email cho khách hàng qua `mail.queue`;
+   - tạo thông báo trong hệ thống qua `notification.queue`.
 
-| Purpose | Queue | Routing Key | Consumer |
-|---|---|---|---|
-| Gửi email reset mật khẩu | `mail.queue` | `mail.send` | Backend `MailQueueListener` |
-| Tạo in-app notification | `notification.queue` | `notification.create` | Backend `NotificationQueueListener` |
+Cách này giúp API trả response nhanh hơn và tránh để tác vụ phụ như SMTP làm ảnh hưởng giao dịch chính.
 
-## Dead-letter queue
+## Queue configuration
 
-| Source Queue | DLQ | DLQ Routing Key |
-|---|---|---|
-| `mail.queue` | `mail.dlq` | `mail.dead` |
-| `notification.queue` | `notification.dlq` | `notification.dead` |
+- Main exchange: `sale.exchange`
+- Dead-letter exchange: `sale.dlx`
+- Mail queue: `mail.queue`, routing key `mail.send`
+- Notification queue: `notification.queue`, routing key `notification.create`
+- Mail DLQ: `mail.dlq`, routing key `mail.dead`
+- Notification DLQ: `notification.dlq`, routing key `notification.dead`
 
-Message xử lý lỗi sẽ được đưa vào DLQ thay vì bị mất. Điều này phù hợp với monolith vì vẫn đơn giản nhưng có đường kiểm tra lỗi queue rõ ràng.
+## Files chính
 
-## Fallback local/dev
+- `RabbitMQConfig.java`
+- `QueuePublisherService.java`
+- `MailQueueListener.java`
+- `NotificationQueueListener.java`
+- `OrderServiceImpl.java`
+- `PasswordResetServiceImpl.java`
 
-- Nếu RabbitMQ chưa chạy, password-reset flow fallback sang gửi SMTP trực tiếp.
-- Nếu SMTP chưa cấu hình, backend in reset link ra console để dev tiếp tục test được.
-- Nếu RabbitMQ chạy nhưng SMTP lỗi, mail job sẽ dead-letter để tránh request bị treo hoặc message mất im lặng.
+## Chức năng đang dùng queue
+
+- Quên mật khẩu: publish email reset password vào `mail.queue`.
+- Tạo đơn hàng: publish notification và email đơn hàng.
+- Cập nhật trạng thái đơn hàng: publish notification và email trạng thái mới.
+
+## Lý do kỹ thuật
+
+- Email và notification không phải phần bắt buộc để transaction đơn hàng đúng.
+- SMTP có thể chậm/lỗi, nên nên tách khỏi request chính.
+- DLQ giúp giữ lại message lỗi để debug hoặc xử lý lại.
+- Producer và consumer tách biệt, code dễ mở rộng sang nhiều loại event hơn.

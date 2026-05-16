@@ -4,7 +4,7 @@ Write-Host "=== CRUD Sales - Docker runner ===" -ForegroundColor Cyan
 Write-Host "This script creates .env for Gmail SMTP, then starts MySQL, Redis, RabbitMQ, Backend, and Frontend." -ForegroundColor Cyan
 Write-Host ""
 
-$defaultEmail = "vuthanhtruong1280@gmail.com"
+$defaultEmail = "your-email@gmail.com"
 $emailInput = Read-Host "Gmail username [$defaultEmail]"
 if ([string]::IsNullOrWhiteSpace($emailInput)) {
     $emailInput = $defaultEmail
@@ -21,6 +21,7 @@ $envContent = @"
 GMAIL_USERNAME=$emailInput
 GMAIL_APP_PASSWORD=$appPassword
 APP_FRONTEND_RESET_PASSWORD_URL=http://localhost:4200/reset-password
+APP_FRONTEND_ORDERS_URL=http://localhost:4200/orders
 BACKEND_PORT=8080
 FRONTEND_PORT=4200
 MYSQL_PORT=3307

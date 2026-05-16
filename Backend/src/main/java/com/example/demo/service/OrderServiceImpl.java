@@ -4,12 +4,18 @@ import com.example.demo.dto.CheckoutRequestDTO;
 import com.example.demo.dto.OrderDTO;
 import com.example.demo.dto.OrderItemDTO;
 import com.example.demo.dto.OrderTimelineDTO;
+import com.example.demo.dto.queue.MailQueueMessageDTO;
 import com.example.demo.dto.queue.NotificationQueueMessageDTO;
 import com.example.demo.messaging.QueuePublisherService;
 import com.example.demo.model.*;
 import com.example.demo.repository.*;
 import jakarta.transaction.Transactional;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.support.TransactionSynchronization;
+import org.springframework.transaction.support.TransactionSynchronizationManager;
 
 import java.math.BigDecimal;
 import java.util.List;
@@ -17,6 +23,7 @@ import java.util.List;
 @Service
 @Transactional
 public class OrderServiceImpl implements OrderService {
+    private static final Logger log = LoggerFactory.getLogger(OrderServiceImpl.class);
 
     private final AccountDAO accountDAO;
     private final CartItemDAO cartItemDAO;
@@ -25,7 +32,11 @@ public class OrderServiceImpl implements OrderService {
     private final CouponService couponService;
     private final NotificationService notificationService;
     private final QueuePublisherService queuePublisherService;
+    private final MailSenderService mailSenderService;
     private final WalletService walletService;
+
+    @Value("${app.frontend.orders-url:http://localhost:4200/orders}")
+    private String ordersUrl;
 
     public OrderServiceImpl(AccountDAO accountDAO,
                             CartItemDAO cartItemDAO,
@@ -34,6 +45,7 @@ public class OrderServiceImpl implements OrderService {
                             CouponService couponService,
                             NotificationService notificationService,
                             QueuePublisherService queuePublisherService,
+                            MailSenderService mailSenderService,
                             WalletService walletService) {
         this.accountDAO = accountDAO;
         this.cartItemDAO = cartItemDAO;
@@ -42,6 +54,7 @@ public class OrderServiceImpl implements OrderService {
         this.couponService = couponService;
         this.notificationService = notificationService;
         this.queuePublisherService = queuePublisherService;
+        this.mailSenderService = mailSenderService;
         this.walletService = walletService;
     }
 
@@ -137,7 +150,7 @@ public class OrderServiceImpl implements OrderService {
             cartItemDAO.delete(id);
         }
 
-        queueNotification(user, "Order created", "Order " + saved.getId() + " has been created.", "ORDER", "/orders");
+        queueOrderCreatedEvents(saved);
         return toDTO(saved);
     }
 
@@ -188,14 +201,14 @@ public class OrderServiceImpl implements OrderService {
             }
         }
 
-        if (status == OrderStatus.CANCELLED && current.getPaymentMethod() == PaymentMethod.WALLET && current.getTotalAmount() != null && current.getTotalAmount().compareTo(java.math.BigDecimal.ZERO) > 0) {
+        if (status == OrderStatus.CANCELLED && current.getPaymentMethod() == PaymentMethod.WALLET && current.getTotalAmount() != null && current.getTotalAmount().compareTo(BigDecimal.ZERO) > 0) {
             walletService.refund(current.getUser(), current.getTotalAmount(), current.getId(), "Refund for cancelled order " + current.getId());
         }
 
         current.setStatus(status);
         current.addTimeline(timeline(status, statusMessage(status)));
         SalesOrder saved = orderDAO.save(current);
-        queueNotification(saved.getUser(), "Order update", "Order " + saved.getId() + " changed to status " + status + ".", "ORDER", "/orders");
+        queueOrderStatusChangedEvents(saved, status);
         return toDTO(saved);
     }
 
@@ -222,13 +235,121 @@ public class OrderServiceImpl implements OrderService {
         }
     }
 
+    private void queueOrderCreatedEvents(SalesOrder order) {
+        if (order == null || order.getUser() == null) return;
+
+        Person user = order.getUser();
+        String notificationTitle = "Order created";
+        String notificationMessage = "Order " + order.getId() + " has been created.";
+        MailQueueMessageDTO mailMessage = buildOrderCreatedEmail(order);
+
+        runAfterCommit(() -> {
+            queueNotification(user, notificationTitle, notificationMessage, "ORDER", "/orders");
+            queueMail(mailMessage);
+        });
+    }
+
+    private void queueOrderStatusChangedEvents(SalesOrder order, OrderStatus status) {
+        if (order == null || order.getUser() == null) return;
+
+        Person user = order.getUser();
+        String notificationTitle = "Order update";
+        String notificationMessage = "Order " + order.getId() + " changed to status " + status + ".";
+        MailQueueMessageDTO mailMessage = buildOrderStatusChangedEmail(order, status);
+
+        runAfterCommit(() -> {
+            queueNotification(user, notificationTitle, notificationMessage, "ORDER", "/orders");
+            queueMail(mailMessage);
+        });
+    }
+
+    private MailQueueMessageDTO buildOrderCreatedEmail(SalesOrder order) {
+        String email = getUserEmail(order);
+        if (email == null) return null;
+
+        String subject = "Nova Commerce - Order " + order.getId() + " created";
+        String body = "Hello " + displayName(order) + ",\n\n" +
+                "Your order has been created and is waiting for confirmation.\n\n" +
+                "Order ID: " + order.getId() + "\n" +
+                "Status: " + order.getStatus() + "\n" +
+                "Payment method: " + order.getPaymentMethod() + "\n" +
+                "Total amount: " + money(order.getTotalAmount()) + "\n" +
+                "Shipping address: " + safe(order.getShippingAddress()) + "\n\n" +
+                "You can view your order here: " + ordersUrl + "\n\n" +
+                "Nova Commerce Team";
+        return new MailQueueMessageDTO(email, subject, body);
+    }
+
+    private MailQueueMessageDTO buildOrderStatusChangedEmail(SalesOrder order, OrderStatus status) {
+        String email = getUserEmail(order);
+        if (email == null) return null;
+
+        String subject = "Nova Commerce - Order " + order.getId() + " status updated";
+        String body = "Hello " + displayName(order) + ",\n\n" +
+                "Your order status has been updated.\n\n" +
+                "Order ID: " + order.getId() + "\n" +
+                "New status: " + status + "\n" +
+                "Message: " + statusMessage(status) + "\n" +
+                "Total amount: " + money(order.getTotalAmount()) + "\n\n" +
+                "You can view your order here: " + ordersUrl + "\n\n" +
+                "Nova Commerce Team";
+        return new MailQueueMessageDTO(email, subject, body);
+    }
+
+    private String getUserEmail(SalesOrder order) {
+        if (order.getUser() == null || order.getUser().getEmail() == null || order.getUser().getEmail().isBlank()) {
+            return null;
+        }
+        return order.getUser().getEmail();
+    }
+
+    private String displayName(SalesOrder order) {
+        if (order.getReceiverName() != null && !order.getReceiverName().isBlank()) {
+            return order.getReceiverName();
+        }
+        if (order.getUser() == null) return "customer";
+        String fullName = (safe(order.getUser().getFirstName()) + " " + safe(order.getUser().getLastName())).trim();
+        return fullName.isBlank() ? "customer" : fullName;
+    }
+
+    private String money(BigDecimal amount) {
+        return amount == null ? "0" : amount.stripTrailingZeros().toPlainString();
+    }
+
+    private void runAfterCommit(Runnable task) {
+        if (TransactionSynchronizationManager.isSynchronizationActive()) {
+            TransactionSynchronizationManager.registerSynchronization(new TransactionSynchronization() {
+                @Override
+                public void afterCommit() {
+                    task.run();
+                }
+            });
+            return;
+        }
+        task.run();
+    }
+
     private void queueNotification(Person user, String title, String message, String type, String targetUrl) {
         if (user == null) return;
         try {
             queuePublisherService.publishNotification(new NotificationQueueMessageDTO(user.getId(), title, message, type, targetUrl));
         } catch (Exception ex) {
-            // Local/dev fallback: keep in-app notifications working when RabbitMQ is not running yet.
+            log.warn("RabbitMQ notification publish failed for user {}. Falling back to direct notification.", user.getId(), ex);
             notificationService.notifyUser(user, title, message, type, targetUrl);
+        }
+    }
+
+    private void queueMail(MailQueueMessageDTO message) {
+        if (message == null || message.getTo() == null || message.getTo().isBlank()) return;
+        try {
+            queuePublisherService.publishMail(message);
+        } catch (Exception ex) {
+            log.warn("RabbitMQ mail publish failed for {}. Falling back to direct SMTP.", message.getTo(), ex);
+            try {
+                mailSenderService.send(message);
+            } catch (Exception mailEx) {
+                log.warn("Order email could not be sent to {}. Checkout/status update was kept successful.", message.getTo(), mailEx);
+            }
         }
     }
 
