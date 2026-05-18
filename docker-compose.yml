@@ -44,7 +44,7 @@ services:
 
   frontend:
     build:
-      context: ./Frontend/untitled
+      context: ./Frontend
       dockerfile: Dockerfile
     container_name: sale_frontend
     ports:
