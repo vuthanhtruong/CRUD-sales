@@ -82,7 +82,7 @@ export class ProductsComponent implements OnInit {
   // =========================
   currentPage = 1;
   totalPages = 1;
-  pageSize = 10;
+  pageSize = 12;
   totalItems = 0;
 
   // =========================
@@ -537,7 +537,11 @@ export class ProductsComponent implements OnInit {
   // --- Delete Images Popup ---
   openDeleteImagesPopup() {
     if (this.selectedImageIds.size === 0) {
-      this.openAlertPopup('No images selected', 'Please select at least one image to delete.', true);
+      this.openAlertPopup(
+        'No images selected',
+        'Please select at least one image to delete.',
+        true,
+      );
       return;
     }
     this.deleteImagesError = '';
@@ -676,7 +680,11 @@ export class ProductsComponent implements OnInit {
         error: () => {
           hasError = true;
           this.modalUploadSubmitting = false;
-          this.openAlertPopup('Upload error', `Error uploading image ${i + 1}. Please try again.`, true);
+          this.openAlertPopup(
+            'Upload error',
+            `Error uploading image ${i + 1}. Please try again.`,
+            true,
+          );
           this.cdr.detectChanges();
         },
       });
@@ -970,7 +978,11 @@ export class ProductsComponent implements OnInit {
       (v) => !v.sizeId || !v.colorId || (v.quantity ?? 0) < 1,
     );
     if (invalid) {
-      this.openAlertPopup('Validation error', 'Please fill in all fields for each variant row.', true);
+      this.openAlertPopup(
+        'Validation error',
+        'Please fill in all fields for each variant row.',
+        true,
+      );
       return;
     }
     if (this.newVariantRows.length === 0) {

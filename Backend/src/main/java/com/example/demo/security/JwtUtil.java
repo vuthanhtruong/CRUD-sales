@@ -14,7 +14,7 @@ public class JwtUtil {
     private static final String SECRET =
             "THIS_IS_A_SUPER_LONG_SECRET_KEY_FOR_JWT_SIGNING_2026_CHANGE_ME_IMMEDIATELY_32BYTES_MINIMUM";
 
-    private final Key key = Keys.hmacShaKeyFor(SECRET.getBytes());
+    private final Key key = Keys.hmacShaKeyFor(SECRET.getBytes()); //Dòng này chuyển chuỗi SECRET thành object Key hợp lệ cho thuật toán HMAC SHA.
 
     private static final long EXPIRATION = 86400000; //1 ngày
 

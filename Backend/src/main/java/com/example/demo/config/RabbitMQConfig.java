@@ -61,7 +61,7 @@ public class RabbitMQConfig {
     }
 
     @Bean
-    public Queue mailQueue() {
+    public Queue mailQueue() { // Queue này dùng để nhận các message liên quan đến gửi mail.
         return QueueBuilder.durable(mailQueueName)
                 .deadLetterExchange(deadLetterExchangeName)
                 .deadLetterRoutingKey(mailDeadLetterRoutingKey)

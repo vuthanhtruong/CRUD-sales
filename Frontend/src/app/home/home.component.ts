@@ -45,7 +45,7 @@ export class HomeComponent implements OnInit {
   pagedProducts: ProductUserDTO[] = [];
   currentPage = 1;
   totalPages = 1;
-  pageSize = 8;
+  pageSize = 12;
   totalItems = 0;
 
   keyword = '';

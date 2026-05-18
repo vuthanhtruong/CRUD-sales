@@ -326,8 +326,8 @@ public class ProductDAOImpl implements ProductDAO {
 
     @Override
     public List<Product> findAllPaged(int page, int pageSize) {
-        page = Math.max(1, page);
-        pageSize = Math.max(1, Math.min(pageSize, 100));
+        page = Math.max(1, page); // tránh âm
+        pageSize = Math.max(1, Math.min(pageSize, 100)); // tránh âm
 
         return entityManager.createQuery(
                         "SELECT p FROM Product p ORDER BY p.createdDate DESC",
