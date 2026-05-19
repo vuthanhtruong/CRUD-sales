@@ -1,4 +1,5 @@
-import { Component, OnInit, ChangeDetectorRef } from '@angular/core';
+import { Component, OnInit, ChangeDetectorRef, AfterViewInit, OnDestroy, DestroyRef, inject } from '@angular/core';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { ProductTypeService, ProductType } from '../services/product-type.service';
@@ -13,7 +14,8 @@ import { catchError } from 'rxjs/operators';
   templateUrl: './product-type.component.html',
   styleUrls: ['./product-type.component.css'],
 })
-export class ProductTypeComponent implements OnInit {
+export class ProductTypeComponent implements OnInit, AfterViewInit, OnDestroy {
+  private readonly destroyRef = inject(DestroyRef);
   productTypes: ProductType[] = [];
 
   form: ProductType = {
@@ -65,7 +67,7 @@ export class ProductTypeComponent implements OnInit {
     this.service
       .getById(id)
       .pipe(catchError(() => of(null)))
-      .subscribe((res) => {
+      .pipe(takeUntilDestroyed(this.destroyRef)).subscribe((res) => {
         if (res) this.idExists = true;
         this.cdr.detectChanges();
       });
@@ -98,7 +100,7 @@ export class ProductTypeComponent implements OnInit {
       ? this.service.update(this.form.id, this.form)
       : this.service.create(this.form);
 
-    req.subscribe({
+    req.pipe(takeUntilDestroyed(this.destroyRef)).subscribe({
       next: () => {
         this.resetForm();
         this.loadData();
@@ -115,7 +117,7 @@ export class ProductTypeComponent implements OnInit {
     this.loading = true;
     this.errorMsg = '';
 
-    this.service.getAll().subscribe({
+    this.service.getAll().pipe(takeUntilDestroyed(this.destroyRef)).subscribe({
       next: (res) => {
         this.productTypes = res || [];
         this.loading = false;
@@ -150,7 +152,7 @@ export class ProductTypeComponent implements OnInit {
     this.productService
       .existsByProductType(item.id)
       .pipe(catchError(() => of(false)))
-      .subscribe((exists) => {
+      .pipe(takeUntilDestroyed(this.destroyRef)).subscribe((exists) => {
         this.deleteBlocked = exists;
         this.deleteCheckLoading = false;
         this.cdr.detectChanges();
@@ -160,7 +162,7 @@ export class ProductTypeComponent implements OnInit {
   confirmDelete() {
     if (!this.deleteTarget || this.deleteBlocked) return;
 
-    this.service.delete(this.deleteTarget.id).subscribe({
+    this.service.delete(this.deleteTarget.id).pipe(takeUntilDestroyed(this.destroyRef)).subscribe({
       next: () => {
         this.closeDeleteConfirm();
         this.loadData();
@@ -189,4 +191,13 @@ export class ProductTypeComponent implements OnInit {
     this.isEdit = false;
     this.cdr.detectChanges();
   }
+
+  ngAfterViewInit(): void {
+    this.cdr.detectChanges();
+  }
+
+  ngOnDestroy(): void {
+    this.cdr.detach();
+  }
+
 }

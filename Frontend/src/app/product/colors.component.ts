@@ -1,4 +1,5 @@
-import { Component, OnInit, ChangeDetectorRef } from '@angular/core';
+import { Component, OnInit, ChangeDetectorRef, AfterViewInit, OnDestroy, DestroyRef, inject } from '@angular/core';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { ColorService, ColorDTO } from '../services/color.service';
 import { ProductService } from '../services/product.service';
 import { CommonModule } from '@angular/common';
@@ -13,7 +14,8 @@ import { catchError } from 'rxjs/operators';
   templateUrl: './colors.component.html',
   styleUrls: ['./colors.component.css'],
 })
-export class ColorsComponent implements OnInit {
+export class ColorsComponent implements OnInit, AfterViewInit, OnDestroy {
+  private readonly destroyRef = inject(DestroyRef);
   colors: ColorDTO[] = [];
 
   form: ColorDTO = { id: '', name: '' };
@@ -56,7 +58,7 @@ export class ColorsComponent implements OnInit {
     this.colorService
       .getById(id)
       .pipe(catchError(() => of(null)))
-      .subscribe((res) => {
+      .pipe(takeUntilDestroyed(this.destroyRef)).subscribe((res) => {
         if (res) this.idExists = true;
         this.cdr.detectChanges();
       });
@@ -83,7 +85,7 @@ export class ColorsComponent implements OnInit {
       ? this.colorService.update(this.form.id, this.form)
       : this.colorService.create(this.form);
 
-    req.subscribe({
+    req.pipe(takeUntilDestroyed(this.destroyRef)).subscribe({
       next: () => {
         this.reset();
         this.loadColors();
@@ -93,7 +95,7 @@ export class ColorsComponent implements OnInit {
   }
 
   loadColors() {
-    this.colorService.getAll().subscribe((data) => {
+    this.colorService.getAll().pipe(takeUntilDestroyed(this.destroyRef)).subscribe((data) => {
       this.colors = data;
       this.cdr.detectChanges();
     });
@@ -118,7 +120,7 @@ export class ColorsComponent implements OnInit {
     this.productService
       .existsByColor(item.id)
       .pipe(catchError(() => of(false)))
-      .subscribe((exists) => {
+      .pipe(takeUntilDestroyed(this.destroyRef)).subscribe((exists) => {
         this.deleteBlocked = exists;
         this.deleteCheckLoading = false;
         this.cdr.detectChanges();
@@ -127,7 +129,7 @@ export class ColorsComponent implements OnInit {
 
   confirmDelete() {
     if (!this.deleteTarget || this.deleteBlocked) return;
-    this.colorService.delete(this.deleteTarget.id).subscribe({
+    this.colorService.delete(this.deleteTarget.id).pipe(takeUntilDestroyed(this.destroyRef)).subscribe({
       next: () => {
         this.closeDeleteConfirm();
         this.loadColors();
@@ -153,4 +155,13 @@ export class ColorsComponent implements OnInit {
     this.idExists = false;
     this.cdr.detectChanges();
   }
+
+  ngAfterViewInit(): void {
+    this.cdr.detectChanges();
+  }
+
+  ngOnDestroy(): void {
+    this.cdr.detach();
+  }
+
 }

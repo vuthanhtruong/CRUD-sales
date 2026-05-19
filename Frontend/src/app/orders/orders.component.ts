@@ -1,5 +1,6 @@
 import { CommonModule } from '@angular/common';
-import { Component, OnInit, ChangeDetectorRef } from '@angular/core';
+import { Component, OnInit, ChangeDetectorRef, AfterViewInit, OnDestroy, DestroyRef, inject } from '@angular/core';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { RouterModule } from '@angular/router';
 import { OrderDTO, OrderService } from '../services/order.service';
 
@@ -10,7 +11,8 @@ import { OrderDTO, OrderService } from '../services/order.service';
   templateUrl: './orders.component.html',
   styleUrls: ['./orders.component.css'],
 })
-export class OrdersComponent implements OnInit {
+export class OrdersComponent implements OnInit, AfterViewInit, OnDestroy {
+  private readonly destroyRef = inject(DestroyRef);
   orders: OrderDTO[] = [];
   loading = true;
   error = '';
@@ -23,7 +25,7 @@ export class OrdersComponent implements OnInit {
   loadOrders() {
     this.loading = true;
     this.error = '';
-    this.orderService.getMyOrders().subscribe({
+    this.orderService.getMyOrders().pipe(takeUntilDestroyed(this.destroyRef)).subscribe({
       next: (orders) => {
         this.orders = orders;
         this.loading = false;
@@ -46,4 +48,13 @@ export class OrdersComponent implements OnInit {
   isExpanded(id: string): boolean { return this.expanded.has(id); }
 
   statusClass(status: string): string { return `status ${status.toLowerCase()}`; }
+
+  ngAfterViewInit(): void {
+    this.cdr.detectChanges();
+  }
+
+  ngOnDestroy(): void {
+    this.cdr.detach();
+  }
+
 }

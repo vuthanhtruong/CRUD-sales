@@ -1,4 +1,5 @@
-import { Component, OnInit, ChangeDetectorRef } from '@angular/core';
+import { Component, OnInit, ChangeDetectorRef, AfterViewInit, OnDestroy, DestroyRef, inject } from '@angular/core';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { RouterModule } from '@angular/router';
@@ -35,7 +36,8 @@ type PopupType = 'success' | 'error' | 'info' | 'warning';
   templateUrl: './home.component.html',
   styleUrls: ['./home.component.css'],
 })
-export class HomeComponent implements OnInit {
+export class HomeComponent implements OnInit, AfterViewInit, OnDestroy {
+  private readonly destroyRef = inject(DestroyRef);
   currentUser: string | null = null;
   role: string | null = null;
   token: string | null = null;
@@ -115,7 +117,7 @@ export class HomeComponent implements OnInit {
     });
 
 
-    this.searchSubject.pipe(debounceTime(400)).subscribe(() => this.loadProducts(true));
+    this.searchSubject.pipe(debounceTime(400)).pipe(takeUntilDestroyed(this.destroyRef)).subscribe(() => this.loadProducts(true));
 
     this.loadProducts();
     this.loadTrending();
@@ -172,7 +174,7 @@ export class HomeComponent implements OnInit {
 
 
   loadTrending() {
-    this.productInsightService.trending(6).subscribe({
+    this.productInsightService.trending(6).pipe(takeUntilDestroyed(this.destroyRef)).subscribe({
       next: (res) => { this.trendingProducts = res; this.cdr.detectChanges(); },
       error: () => undefined,
     });
@@ -190,7 +192,7 @@ export class HomeComponent implements OnInit {
         this.currentPage,
         this.pageSize,
       )
-      .subscribe({
+      .pipe(takeUntilDestroyed(this.destroyRef)).subscribe({
         next: (res) => {
           this.products = res.content ?? [];
           this.pagedProducts = res.content ?? [];
@@ -248,7 +250,7 @@ export class HomeComponent implements OnInit {
 
       this.stockLoading.add(productId);
 
-      this.productVariantService.getTotalQuantityByProductId(productId).subscribe({
+      this.productVariantService.getTotalQuantityByProductId(productId).pipe(takeUntilDestroyed(this.destroyRef)).subscribe({
         next: (totalQuantity) => {
           this.stockMap.set(productId, totalQuantity ?? 0);
           this.stockLoading.delete(productId);
@@ -309,7 +311,7 @@ export class HomeComponent implements OnInit {
       }
     };
 
-    this.productUserService.getSizesByProduct(productId).subscribe({
+    this.productUserService.getSizesByProduct(productId).pipe(takeUntilDestroyed(this.destroyRef)).subscribe({
       next: (sizes) => {
         this.quickAddSizes = sizes;
         checkDone();
@@ -317,7 +319,7 @@ export class HomeComponent implements OnInit {
       error: () => checkDone(),
     });
 
-    this.productUserService.getColorsByProduct(productId).subscribe({
+    this.productUserService.getColorsByProduct(productId).pipe(takeUntilDestroyed(this.destroyRef)).subscribe({
       next: (colors) => {
         this.quickAddColors = colors;
         checkDone();
@@ -325,7 +327,7 @@ export class HomeComponent implements OnInit {
       error: () => checkDone(),
     });
 
-    this.productVariantService.findByProduct(productId).subscribe({
+    this.productVariantService.findByProduct(productId).pipe(takeUntilDestroyed(this.destroyRef)).subscribe({
       next: (variants) => {
         this.quickAddVariants = variants;
         checkDone();
@@ -416,7 +418,7 @@ export class HomeComponent implements OnInit {
       quantity: this.quickAddQuantity,
     };
 
-    this.cartService.addToCart(request).subscribe({
+    this.cartService.addToCart(request).pipe(takeUntilDestroyed(this.destroyRef)).subscribe({
       next: () => {
         const productName = this.quickAddProduct?.productName || 'Product';
         const productId = this.quickAddProduct!.productId;
@@ -472,7 +474,7 @@ export class HomeComponent implements OnInit {
       return;
     }
     this.couponChecking = true;
-    this.couponService.preview(code, this.selectedTotal).subscribe({
+    this.couponService.preview(code, this.selectedTotal).pipe(takeUntilDestroyed(this.destroyRef)).subscribe({
       next: (preview) => {
         this.couponPreview = preview;
         this.couponChecking = false;
@@ -532,7 +534,7 @@ export class HomeComponent implements OnInit {
   }
 
   prefillCheckoutInfo() {
-    this.detailAccountService.getMe().subscribe({
+    this.detailAccountService.getMe().pipe(takeUntilDestroyed(this.destroyRef)).subscribe({
       next: (profile) => {
         this.checkoutInfo.receiverName = `${profile.firstName} ${profile.lastName}`.trim();
         this.checkoutInfo.receiverPhone = profile.phone || '';
@@ -554,7 +556,7 @@ export class HomeComponent implements OnInit {
     this.cartLoading = true;
     this.cartError = null;
 
-    this.cartService.getMyCart().subscribe({
+    this.cartService.getMyCart().pipe(takeUntilDestroyed(this.destroyRef)).subscribe({
       next: (items) => {
         this.cartItems = items;
         this.cartLoading = false;
@@ -585,7 +587,7 @@ export class HomeComponent implements OnInit {
 
     this.cartLoading = true;
 
-    this.cartService.increaseQuantity(item.cartItemId, 1).subscribe({
+    this.cartService.increaseQuantity(item.cartItemId, 1).pipe(takeUntilDestroyed(this.destroyRef)).subscribe({
       next: () => {
         this.loadMyCart(false);
         this.stockMap.clear();
@@ -605,7 +607,7 @@ export class HomeComponent implements OnInit {
 
     this.cartLoading = true;
 
-    this.cartService.decreaseQuantity(item.cartItemId, 1).subscribe({
+    this.cartService.decreaseQuantity(item.cartItemId, 1).pipe(takeUntilDestroyed(this.destroyRef)).subscribe({
       next: () => {
         this.loadMyCart(false);
         this.stockMap.clear();
@@ -626,7 +628,7 @@ export class HomeComponent implements OnInit {
 
     this.cartLoading = true;
 
-    this.cartService.deleteCartItem(item.cartItemId).subscribe({
+    this.cartService.deleteCartItem(item.cartItemId).pipe(takeUntilDestroyed(this.destroyRef)).subscribe({
       next: () => {
         this.selectedIds.delete(item.cartItemId);
         this.loadMyCart(false);
@@ -707,7 +709,7 @@ export class HomeComponent implements OnInit {
       couponCode: this.checkoutInfo.couponCode || undefined,
     };
 
-    this.cartService.checkout(checkoutRequest).subscribe({
+    this.cartService.checkout(checkoutRequest).pipe(takeUntilDestroyed(this.destroyRef)).subscribe({
       next: () => {
         this.cartItems = this.cartItems.filter(
           (item) => !selectedIdsSnapshot.includes(item.cartItemId),
@@ -753,4 +755,13 @@ export class HomeComponent implements OnInit {
   isLoggedIn(): boolean {
     return !!this.token;
   }
+
+  ngAfterViewInit(): void {
+    this.cdr.detectChanges();
+  }
+
+  ngOnDestroy(): void {
+    this.cdr.detach();
+  }
+
 }

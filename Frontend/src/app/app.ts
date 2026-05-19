@@ -1,5 +1,5 @@
 import { CommonModule } from '@angular/common';
-import { Component, OnInit, signal, ChangeDetectorRef, DestroyRef } from '@angular/core';
+import { Component, OnInit, signal, ChangeDetectorRef, DestroyRef, AfterViewInit, OnDestroy } from '@angular/core';
 import { Router, RouterModule, RouterOutlet } from '@angular/router';
 import {
   ReactiveFormsModule,
@@ -41,7 +41,7 @@ type DuplicateFieldName = 'username' | 'email' | 'phone';
   templateUrl: './app.html',
   styleUrl: './app.css',
 })
-export class App implements OnInit {
+export class App implements OnInit, AfterViewInit, OnDestroy {
   protected readonly title = signal('Aster Store');
   protected readonly currentYear = new Date().getFullYear();
   protected isMobileMenuOpen = false;
@@ -413,7 +413,7 @@ export class App implements OnInit {
       return;
     }
 
-    this.accountService.login(this.loginForm.value).subscribe({
+    this.accountService.login(this.loginForm.value).pipe(takeUntilDestroyed(this.destroyRef)).subscribe({
       next: (res) => {
         if (!res?.token) {
           this.showPopup('error', 'Login failed', 'Server did not return an access token.');
@@ -475,7 +475,7 @@ export class App implements OnInit {
       usernameExists: this.accountService.checkUsername(payload.username),
       emailExists: this.accountService.checkEmail(payload.email),
       phoneExists: this.accountService.checkPhone(payload.phone),
-    }).subscribe({
+    }).pipe(takeUntilDestroyed(this.destroyRef)).subscribe({
       next: ({ usernameExists, emailExists, phoneExists }) => {
         const duplicateMessages: string[] = [];
 
@@ -503,7 +503,7 @@ export class App implements OnInit {
           return;
         }
 
-        this.accountService.register(payload).subscribe({
+        this.accountService.register(payload).pipe(takeUntilDestroyed(this.destroyRef)).subscribe({
           next: () => {
             this.closeAuthPopup();
             this.registerForm.reset({ gender: 'MALE' });
@@ -542,7 +542,7 @@ export class App implements OnInit {
 
     this.forgotSubmitting = true;
 
-    this.accountService.forgotPassword(this.forgotForm.value.email).subscribe({
+    this.accountService.forgotPassword(this.forgotForm.value.email).pipe(takeUntilDestroyed(this.destroyRef)).subscribe({
       next: () => {
         this.forgotSubmitting = false;
         this.closeAuthPopup();
@@ -582,7 +582,7 @@ export class App implements OnInit {
 
     this.accountService
         .resetPassword(this.resetForm.value.token, this.resetForm.value.newPassword)
-        .subscribe({
+        .pipe(takeUntilDestroyed(this.destroyRef)).subscribe({
           next: () => {
             this.resetSubmitting = false;
             this.closeAuthPopup();
@@ -657,4 +657,13 @@ export class App implements OnInit {
   closeMobileMenu() {
     this.isMobileMenuOpen = false;
   }
+
+  ngAfterViewInit(): void {
+    this.cdr.detectChanges();
+  }
+
+  ngOnDestroy(): void {
+    this.cdr.detach();
+  }
+
 }

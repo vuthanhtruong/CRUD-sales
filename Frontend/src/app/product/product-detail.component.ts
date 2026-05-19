@@ -1,4 +1,5 @@
-import { Component, OnInit, ChangeDetectorRef } from '@angular/core';
+import { Component, OnInit, ChangeDetectorRef, AfterViewInit, OnDestroy, DestroyRef, inject } from '@angular/core';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { CommonModule } from '@angular/common';
 import { ActivatedRoute, RouterModule } from '@angular/router';
 import { FormsModule } from '@angular/forms';
@@ -22,7 +23,8 @@ type PopupType = 'success' | 'error' | 'info' | 'warning';
   templateUrl: './product-detail.component.html',
   styleUrls: ['./product-detail.component.css'],
 })
-export class ProductDetailComponent implements OnInit {
+export class ProductDetailComponent implements OnInit, AfterViewInit, OnDestroy {
+  private readonly destroyRef = inject(DestroyRef);
   product: ProductDTO | null = null;
   images: ProductImageDTO[] = [];
   sizes: SizeDTO[] = [];
@@ -83,7 +85,7 @@ export class ProductDetailComponent implements OnInit {
       reviews: this.reviewService.productReviews(productId),
       reviewSummary: this.reviewService.summary(productId),
       comments: this.commentService.productThread(productId),
-    }).subscribe({
+    }).pipe(takeUntilDestroyed(this.destroyRef)).subscribe({
       next: (res) => {
         this.product = res.product;
         this.images = res.images;
@@ -94,7 +96,7 @@ export class ProductDetailComponent implements OnInit {
         this.reviews = res.reviews;
         this.reviewSummary = res.reviewSummary;
         this.comments = res.comments;
-        this.insightService.recordView(productId).subscribe({ next: (m) => { this.viewCount = m.viewCount; this.cdr.detectChanges(); }, error: () => undefined });
+        this.insightService.recordView(productId).pipe(takeUntilDestroyed(this.destroyRef)).subscribe({ next: (m) => { this.viewCount = m.viewCount; this.cdr.detectChanges(); }, error: () => undefined });
         this.selectedImage = this.images.find((img) => img.isPrimary) ?? this.images[0] ?? null;
         this.loadWishlistStatus(productId);
         this.loading = false;
@@ -206,7 +208,7 @@ export class ProductDetailComponent implements OnInit {
 
   loadWishlistStatus(productId: string) {
     if (!this.isLoggedIn()) return;
-    this.wishlistService.status(productId).subscribe({
+    this.wishlistService.status(productId).pipe(takeUntilDestroyed(this.destroyRef)).subscribe({
       next: (res) => {
         this.liked = !!res.liked;
         this.wishlistCount = res.count || 0;
@@ -235,14 +237,14 @@ export class ProductDetailComponent implements OnInit {
     };
 
     if (this.liked) {
-      this.wishlistService.remove(productId).subscribe({
+      this.wishlistService.remove(productId).pipe(takeUntilDestroyed(this.destroyRef)).subscribe({
         next: () => updateUi(false),
         error: () => this.showPopup('error', 'Wishlist failed', 'Could not update wishlist.'),
       });
       return;
     }
 
-    this.wishlistService.add(productId).subscribe({
+    this.wishlistService.add(productId).pipe(takeUntilDestroyed(this.destroyRef)).subscribe({
       next: () => updateUi(true),
       error: () => this.showPopup('error', 'Wishlist failed', 'Could not update wishlist.'),
     });
@@ -264,7 +266,7 @@ export class ProductDetailComponent implements OnInit {
       rating: this.reviewForm.rating,
       title: this.reviewForm.title,
       comment: this.reviewForm.comment,
-    }).subscribe({
+    }).pipe(takeUntilDestroyed(this.destroyRef)).subscribe({
       next: () => {
         this.submittingReview = false;
         this.reviewForm = { rating: 5, title: '', comment: '' };
@@ -292,7 +294,7 @@ export class ProductDetailComponent implements OnInit {
       return;
     }
     this.submittingComment = true;
-    this.commentService.create({ productId: this.product.productId, parentId, content }).subscribe({
+    this.commentService.create({ productId: this.product.productId, parentId, content }).pipe(takeUntilDestroyed(this.destroyRef)).subscribe({
       next: () => {
         this.submittingComment = false;
         this.commentForm = { content: '', parentId: null };
@@ -308,7 +310,7 @@ export class ProductDetailComponent implements OnInit {
 
   loadComments() {
     if (!this.product) return;
-    this.commentService.productThread(this.product.productId).subscribe({
+    this.commentService.productThread(this.product.productId).pipe(takeUntilDestroyed(this.destroyRef)).subscribe({
       next: (comments) => { this.comments = comments; this.cdr.detectChanges(); },
       error: () => undefined,
     });
@@ -316,7 +318,7 @@ export class ProductDetailComponent implements OnInit {
 
   markHelpful(comment: ProductCommentDTO) {
     if (!comment.id) return;
-    this.commentService.helpful(comment.id).subscribe({
+    this.commentService.helpful(comment.id).pipe(takeUntilDestroyed(this.destroyRef)).subscribe({
       next: (updated) => { comment.helpfulCount = updated.helpfulCount; this.cdr.detectChanges(); },
       error: () => undefined,
     });
@@ -343,7 +345,7 @@ export class ProductDetailComponent implements OnInit {
       reviews: this.reviewService.productReviews(productId),
       reviewSummary: this.reviewService.summary(productId),
       comments: this.commentService.productThread(productId),
-    }).subscribe({
+    }).pipe(takeUntilDestroyed(this.destroyRef)).subscribe({
       next: (res) => {
         this.variants = res.variants;
         this.totalQuantity = res.totalQuantity ?? 0;
@@ -412,7 +414,7 @@ export class ProductDetailComponent implements OnInit {
       quantity: this.quantity,
     };
 
-    this.cartService.addToCart(request).subscribe({
+    this.cartService.addToCart(request).pipe(takeUntilDestroyed(this.destroyRef)).subscribe({
       next: () => {
         this.addingToCart = false;
         this.showPopup(
@@ -435,4 +437,13 @@ export class ProductDetailComponent implements OnInit {
       },
     });
   }
+
+  ngAfterViewInit(): void {
+    this.cdr.detectChanges();
+  }
+
+  ngOnDestroy(): void {
+    this.cdr.detach();
+  }
+
 }

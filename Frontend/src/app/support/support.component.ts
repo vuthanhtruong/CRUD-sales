@@ -1,5 +1,6 @@
 import { CommonModule } from '@angular/common';
-import { Component, OnInit, ChangeDetectorRef } from '@angular/core';
+import { Component, OnInit, ChangeDetectorRef, AfterViewInit, OnDestroy, DestroyRef, inject } from '@angular/core';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { FormsModule } from '@angular/forms';
 import { SupportTicketDTO, SupportTicketService } from '../services/support-ticket.service';
 
@@ -12,7 +13,8 @@ type PopupType = 'success' | 'error' | 'info';
   templateUrl: './support.component.html',
   styleUrls: ['./support.component.css'],
 })
-export class SupportComponent implements OnInit {
+export class SupportComponent implements OnInit, AfterViewInit, OnDestroy {
+  private readonly destroyRef = inject(DestroyRef);
   tickets: SupportTicketDTO[] = [];
   selected: SupportTicketDTO | null = null;
   loading = false;
@@ -37,7 +39,7 @@ export class SupportComponent implements OnInit {
 
   loadTickets(): void {
     this.loading = true;
-    this.supportService.mine().subscribe({
+    this.supportService.mine().pipe(takeUntilDestroyed(this.destroyRef)).subscribe({
       next: (res) => {
         this.tickets = res;
         this.selected = this.selected ? this.tickets.find(t => t.id === this.selected?.id) || this.tickets[0] || null : this.tickets[0] || null;
@@ -61,7 +63,7 @@ export class SupportComponent implements OnInit {
       return;
     }
     this.creating = true;
-    this.supportService.create(this.newTicket).subscribe({
+    this.supportService.create(this.newTicket).pipe(takeUntilDestroyed(this.destroyRef)).subscribe({
       next: (ticket) => {
         this.creating = false;
         this.newTicket = { subject: '', category: 'ORDER', priority: 'NORMAL', initialMessage: '' };
@@ -80,7 +82,7 @@ export class SupportComponent implements OnInit {
   sendReply(): void {
     if (!this.selected?.id || !this.replyText.trim()) return;
     this.sending = true;
-    this.supportService.addMessage(this.selected.id, { message: this.replyText }).subscribe({
+    this.supportService.addMessage(this.selected.id, { message: this.replyText }).pipe(takeUntilDestroyed(this.destroyRef)).subscribe({
       next: (ticket) => {
         this.sending = false;
         this.replyText = '';
@@ -108,4 +110,13 @@ export class SupportComponent implements OnInit {
     this.popup = null;
     this.cdr.detectChanges();
   }
+
+  ngAfterViewInit(): void {
+    this.cdr.detectChanges();
+  }
+
+  ngOnDestroy(): void {
+    this.cdr.detach();
+  }
+
 }

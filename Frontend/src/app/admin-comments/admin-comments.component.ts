@@ -1,5 +1,6 @@
 import { CommonModule } from '@angular/common';
-import { Component, OnInit, ChangeDetectorRef } from '@angular/core';
+import { Component, OnInit, ChangeDetectorRef, AfterViewInit, OnDestroy, DestroyRef, inject } from '@angular/core';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { FormsModule } from '@angular/forms';
 import { CommentStatus, ProductCommentDTO, ProductCommentService } from '../services/product-comment.service';
 
@@ -10,7 +11,8 @@ import { CommentStatus, ProductCommentDTO, ProductCommentService } from '../serv
   templateUrl: './admin-comments.component.html',
   styleUrls: ['./admin-comments.component.css'],
 })
-export class AdminCommentsComponent implements OnInit {
+export class AdminCommentsComponent implements OnInit, AfterViewInit, OnDestroy {
+  private readonly destroyRef = inject(DestroyRef);
   comments: ProductCommentDTO[] = [];
   statusFilter: CommentStatus | '' = '';
   loading = false;
@@ -22,7 +24,7 @@ export class AdminCommentsComponent implements OnInit {
 
   loadComments(): void {
     this.loading = true;
-    this.commentService.adminFindAll(this.statusFilter).subscribe({
+    this.commentService.adminFindAll(this.statusFilter).pipe(takeUntilDestroyed(this.destroyRef)).subscribe({
       next: (res) => { this.comments = res; this.loading = false; this.cdr.detectChanges(); },
       error: () => { this.loading = false; this.cdr.detectChanges(); },
     });
@@ -30,15 +32,24 @@ export class AdminCommentsComponent implements OnInit {
 
   moderate(comment: ProductCommentDTO, status: CommentStatus): void {
     if (!comment.id) return;
-    this.commentService.moderate(comment.id, status).subscribe({
+    this.commentService.moderate(comment.id, status).pipe(takeUntilDestroyed(this.destroyRef)).subscribe({
       next: (updated) => { this.comments = this.comments.map(c => c.id === updated.id ? updated : c); this.cdr.detectChanges(); },
     });
   }
 
   remove(comment: ProductCommentDTO): void {
     if (!comment.id) return;
-    this.commentService.delete(comment.id).subscribe({
+    this.commentService.delete(comment.id).pipe(takeUntilDestroyed(this.destroyRef)).subscribe({
       next: () => { this.comments = this.comments.filter(c => c.id !== comment.id); this.cdr.detectChanges(); },
     });
   }
+
+  ngAfterViewInit(): void {
+    this.cdr.detectChanges();
+  }
+
+  ngOnDestroy(): void {
+    this.cdr.detach();
+  }
+
 }

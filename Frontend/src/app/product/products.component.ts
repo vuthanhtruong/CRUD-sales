@@ -1,4 +1,5 @@
-import { Component, OnInit, ChangeDetectorRef } from '@angular/core';
+import { Component, OnInit, ChangeDetectorRef, AfterViewInit, OnDestroy, DestroyRef, inject } from '@angular/core';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { ProductService, ProductDTO, ProductSearchParams } from '../services/product.service';
 import { ProductImageService, ProductImageDTO } from '../services/product-image.service';
 import { ProductVariantService, ProductVariantDTO } from '../services/product-variant.service';
@@ -38,7 +39,8 @@ const MAX_IMAGE_SIZE_BYTES = MAX_IMAGE_SIZE_MB * 1024 * 1024;
   templateUrl: './products.component.html',
   styleUrls: ['./products.component.css'],
 })
-export class ProductsComponent implements OnInit {
+export class ProductsComponent implements OnInit, AfterViewInit, OnDestroy {
+  private readonly destroyRef = inject(DestroyRef);
   protected readonly currentYear = new Date().getFullYear();
   cartCount = 0;
   showProductModal = false;
@@ -260,7 +262,7 @@ export class ProductsComponent implements OnInit {
   loadProductsPaged() {
     this.productService
       .findProductsPage(this.searchParams, this.currentPage, this.pageSize)
-      .subscribe({
+      .pipe(takeUntilDestroyed(this.destroyRef)).subscribe({
         next: (res) => {
           this.products = res.content ?? [];
           this.totalPages = Math.max(1, res.totalPages || 1);
@@ -285,28 +287,28 @@ export class ProductsComponent implements OnInit {
   }
 
   loadStatuses() {
-    this.productService.getStatuses().subscribe((res) => {
+    this.productService.getStatuses().pipe(takeUntilDestroyed(this.destroyRef)).subscribe((res) => {
       this.statuses = res;
       this.cdr.detectChanges();
     });
   }
 
   loadProductTypes() {
-    this.productTypeService.getAll().subscribe((res) => {
+    this.productTypeService.getAll().pipe(takeUntilDestroyed(this.destroyRef)).subscribe((res) => {
       this.productTypes = res;
       this.cdr.detectChanges();
     });
   }
 
   loadSizes() {
-    this.sizeService.getAll().subscribe((res) => {
+    this.sizeService.getAll().pipe(takeUntilDestroyed(this.destroyRef)).subscribe((res) => {
       this.sizes = res;
       this.cdr.detectChanges();
     });
   }
 
   loadColors() {
-    this.colorService.getAll().subscribe((res) => {
+    this.colorService.getAll().pipe(takeUntilDestroyed(this.destroyRef)).subscribe((res) => {
       this.colors = res;
       this.cdr.detectChanges();
     });
@@ -406,7 +408,7 @@ export class ProductsComponent implements OnInit {
         this.pageSize,
         selected,
       )
-      .subscribe({
+      .pipe(takeUntilDestroyed(this.destroyRef)).subscribe({
         next: (response) => {
           const blob = response.body;
           if (!blob) {
@@ -492,7 +494,7 @@ export class ProductsComponent implements OnInit {
     this.modalImageErrors = [];
     this.cdr.detectChanges();
 
-    this.productImageService.findByProductId(productId).subscribe({
+    this.productImageService.findByProductId(productId).pipe(takeUntilDestroyed(this.destroyRef)).subscribe({
       next: (res) => {
         this.productImages = res;
         this.imageModalLoading = false;
@@ -562,7 +564,7 @@ export class ProductsComponent implements OnInit {
     this.deleteImagesError = '';
     this.cdr.detectChanges();
 
-    this.productImageService.deleteBatch(Array.from(this.selectedImageIds)).subscribe({
+    this.productImageService.deleteBatch(Array.from(this.selectedImageIds)).pipe(takeUntilDestroyed(this.destroyRef)).subscribe({
       next: () => {
         this.deleteImagesLoading = false;
         this.showDeleteImagesPopup = false;
@@ -580,7 +582,7 @@ export class ProductsComponent implements OnInit {
   makePrimaryImage(img: ProductImageDTO, event?: Event) {
     event?.stopPropagation();
     if (!img.id) return;
-    this.productImageService.setPrimary(img.id).subscribe({
+    this.productImageService.setPrimary(img.id).pipe(takeUntilDestroyed(this.destroyRef)).subscribe({
       next: () => this.openImageModal(this.imageModalProductId),
       error: () => this.openAlertPopup('Error', 'Could not update primary image.', true),
     });
@@ -675,7 +677,7 @@ export class ProductsComponent implements OnInit {
         this.cdr.detectChanges();
         return;
       }
-      requests[i].subscribe({
+      requests[i].pipe(takeUntilDestroyed(this.destroyRef)).subscribe({
         next: () => sendNext(i + 1),
         error: () => {
           hasError = true;
@@ -770,7 +772,7 @@ export class ProductsComponent implements OnInit {
     this.productService
       .findById(id)
       .pipe(catchError(() => of(null)))
-      .subscribe((res) => {
+      .pipe(takeUntilDestroyed(this.destroyRef)).subscribe((res) => {
         this.idExists = !!res;
         this.cdr.detectChanges();
       });
@@ -846,7 +848,7 @@ export class ProductsComponent implements OnInit {
     const req$ = this.isEdit
       ? this.productService.edit(this.form.productId, this.form)
       : this.productService.create(this.form);
-    req$.subscribe({
+    req$.pipe(takeUntilDestroyed(this.destroyRef)).subscribe({
       next: () => {
         this.loadProductsPaged();
         this.reset();
@@ -891,7 +893,7 @@ export class ProductsComponent implements OnInit {
     this.deleteError = '';
     this.cdr.detectChanges();
 
-    this.productService.delete(this.deleteProductId).subscribe({
+    this.productService.delete(this.deleteProductId).pipe(takeUntilDestroyed(this.destroyRef)).subscribe({
       next: () => {
         this.deleteLoading = false;
         this.showDeletePopup = false;
@@ -952,7 +954,7 @@ export class ProductsComponent implements OnInit {
   }
 
   loadVariants(productId: string) {
-    this.variantService.findByProduct(productId).subscribe((res) => {
+    this.variantService.findByProduct(productId).pipe(takeUntilDestroyed(this.destroyRef)).subscribe((res) => {
       this.existingVariants = res;
       this.cdr.detectChanges();
     });
@@ -998,7 +1000,7 @@ export class ProductsComponent implements OnInit {
           quantity: v.quantity,
         })),
       )
-      .subscribe({
+      .pipe(takeUntilDestroyed(this.destroyRef)).subscribe({
         next: () => {
           this.newVariantRows = [];
           this.loadVariants(this.selectedProductId);
@@ -1009,7 +1011,7 @@ export class ProductsComponent implements OnInit {
   }
 
   updateVariant(v: ProductVariantDTO) {
-    this.variantService.update(v).subscribe({
+    this.variantService.update(v).pipe(takeUntilDestroyed(this.destroyRef)).subscribe({
       next: () => this.openAlertPopup('Success', 'Variant updated successfully.'),
       error: (err) => console.error(err),
     });
@@ -1039,7 +1041,7 @@ export class ProductsComponent implements OnInit {
     this.deleteVariantError = '';
     this.cdr.detectChanges();
 
-    this.variantService.delete(v.productId, v.sizeId, v.colorId).subscribe({
+    this.variantService.delete(v.productId, v.sizeId, v.colorId).pipe(takeUntilDestroyed(this.destroyRef)).subscribe({
       next: () => {
         this.deleteVariantLoading = false;
         this.showDeleteVariantPopup = false;
@@ -1058,4 +1060,13 @@ export class ProductsComponent implements OnInit {
   deleteVariant(v: ProductVariantDTO) {
     this.openDeleteVariantPopup(v);
   }
+
+  ngAfterViewInit(): void {
+    this.cdr.detectChanges();
+  }
+
+  ngOnDestroy(): void {
+    this.cdr.detach();
+  }
+
 }

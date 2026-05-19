@@ -1,5 +1,6 @@
 import { CommonModule } from '@angular/common';
-import { Component, OnInit, ChangeDetectorRef } from '@angular/core';
+import { Component, OnInit, ChangeDetectorRef, AfterViewInit, OnDestroy, DestroyRef, inject } from '@angular/core';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { FormsModule } from '@angular/forms';
 import { SupportTicketDTO, SupportTicketService, TicketStatus } from '../services/support-ticket.service';
 
@@ -10,7 +11,8 @@ import { SupportTicketDTO, SupportTicketService, TicketStatus } from '../service
   templateUrl: './admin-support.component.html',
   styleUrls: ['./admin-support.component.css'],
 })
-export class AdminSupportComponent implements OnInit {
+export class AdminSupportComponent implements OnInit, AfterViewInit, OnDestroy {
+  private readonly destroyRef = inject(DestroyRef);
   tickets: SupportTicketDTO[] = [];
   selected: SupportTicketDTO | null = null;
   statusFilter: TicketStatus | '' = '';
@@ -26,7 +28,7 @@ export class AdminSupportComponent implements OnInit {
 
   loadTickets(): void {
     this.loading = true;
-    this.supportService.adminFindAll(this.statusFilter).subscribe({
+    this.supportService.adminFindAll(this.statusFilter).pipe(takeUntilDestroyed(this.destroyRef)).subscribe({
       next: (res) => {
         this.tickets = res;
         this.selected = this.selected ? this.tickets.find(t => t.id === this.selected?.id) || this.tickets[0] || null : this.tickets[0] || null;
@@ -42,7 +44,7 @@ export class AdminSupportComponent implements OnInit {
   sendReply(): void {
     if (!this.selected?.id || !this.replyText.trim()) return;
     this.saving = true;
-    this.supportService.addMessage(this.selected.id, { message: this.replyText, internalNote: this.internalNote }).subscribe({
+    this.supportService.addMessage(this.selected.id, { message: this.replyText, internalNote: this.internalNote }).pipe(takeUntilDestroyed(this.destroyRef)).subscribe({
       next: (ticket) => {
         this.saving = false;
         this.replyText = '';
@@ -58,7 +60,7 @@ export class AdminSupportComponent implements OnInit {
   updateStatus(status: TicketStatus): void {
     if (!this.selected?.id) return;
     this.saving = true;
-    this.supportService.updateStatus(this.selected.id, status).subscribe({
+    this.supportService.updateStatus(this.selected.id, status).pipe(takeUntilDestroyed(this.destroyRef)).subscribe({
       next: (ticket) => {
         this.saving = false;
         this.selected = ticket;
@@ -70,4 +72,13 @@ export class AdminSupportComponent implements OnInit {
   }
 
   badge(status?: string): string { return (status || 'OPEN').toLowerCase().replace('_', '-'); }
+
+  ngAfterViewInit(): void {
+    this.cdr.detectChanges();
+  }
+
+  ngOnDestroy(): void {
+    this.cdr.detach();
+  }
+
 }

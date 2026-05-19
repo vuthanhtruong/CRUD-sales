@@ -1,4 +1,5 @@
-import { Component, OnInit, ChangeDetectorRef } from '@angular/core';
+import { Component, OnInit, ChangeDetectorRef, AfterViewInit, OnDestroy, DestroyRef, inject } from '@angular/core';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { CommonModule } from '@angular/common';
 import { ReactiveFormsModule, FormBuilder, Validators, AbstractControl, ValidationErrors, ValidatorFn } from '@angular/forms';
 import { RouterModule } from '@angular/router';
@@ -11,7 +12,8 @@ import { DetailAccountService, ProfileDTO } from '../services/detail-account.ser
   templateUrl: './profile.component.html',
   styleUrls: ['./profile.component.css'],
 })
-export class ProfileComponent implements OnInit {
+export class ProfileComponent implements OnInit, AfterViewInit, OnDestroy {
+  private readonly destroyRef = inject(DestroyRef);
   profileForm: any;
   loading = true;
   submitting = false;
@@ -111,7 +113,7 @@ export class ProfileComponent implements OnInit {
   // ─── Load ─────────────────────────────────────────────────────────────────
   loadProfile() {
     this.loading = true;
-    this.detailAccountService.getMe().subscribe({
+    this.detailAccountService.getMe().pipe(takeUntilDestroyed(this.destroyRef)).subscribe({
       next: (res: ProfileDTO) => {
         this.profileForm.patchValue({
           username: res.username,
@@ -209,7 +211,7 @@ export class ProfileComponent implements OnInit {
       avatarUrl: raw.avatarUrl,
     };
 
-    this.detailAccountService.updateAccount(dto).subscribe({
+    this.detailAccountService.updateAccount(dto).pipe(takeUntilDestroyed(this.destroyRef)).subscribe({
       next: () => {
         this.submitting = false;
         this.isEdit = false;
@@ -232,4 +234,13 @@ export class ProfileComponent implements OnInit {
       },
     });
   }
+
+  ngAfterViewInit(): void {
+    this.cdr.detectChanges();
+  }
+
+  ngOnDestroy(): void {
+    this.cdr.detach();
+  }
+
 }

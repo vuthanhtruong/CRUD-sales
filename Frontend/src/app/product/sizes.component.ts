@@ -1,4 +1,5 @@
-import { Component, OnInit, ChangeDetectorRef } from '@angular/core';
+import { Component, OnInit, ChangeDetectorRef, AfterViewInit, OnDestroy, DestroyRef, inject } from '@angular/core';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { SizeService, Size } from '../services/size.service';
 import { ProductService } from '../services/product.service';
 import { CommonModule } from '@angular/common';
@@ -13,7 +14,8 @@ import { catchError } from 'rxjs/operators';
   templateUrl: './sizes.component.html',
   styleUrls: ['./sizes.component.css'],
 })
-export class SizesComponent implements OnInit {
+export class SizesComponent implements OnInit, AfterViewInit, OnDestroy {
+  private readonly destroyRef = inject(DestroyRef);
   sizes: Size[] = [];
 
   form: Size = { id: '', name: '' };
@@ -56,7 +58,7 @@ export class SizesComponent implements OnInit {
     this.sizeService
       .getById(id)
       .pipe(catchError(() => of(null)))
-      .subscribe((res) => {
+      .pipe(takeUntilDestroyed(this.destroyRef)).subscribe((res) => {
         if (res) this.idExists = true;
         this.cdr.detectChanges();
       });
@@ -83,7 +85,7 @@ export class SizesComponent implements OnInit {
       ? this.sizeService.update(this.form.id, this.form)
       : this.sizeService.create(this.form);
 
-    req.subscribe({
+    req.pipe(takeUntilDestroyed(this.destroyRef)).subscribe({
       next: () => {
         this.resetForm();
         this.loadSizes();
@@ -93,7 +95,7 @@ export class SizesComponent implements OnInit {
   }
 
   loadSizes() {
-    this.sizeService.getAll().subscribe({
+    this.sizeService.getAll().pipe(takeUntilDestroyed(this.destroyRef)).subscribe({
       next: (data) => {
         this.sizes = data;
         this.cdr.detectChanges();
@@ -121,7 +123,7 @@ export class SizesComponent implements OnInit {
     this.productService
       .existsBySize(item.id)
       .pipe(catchError(() => of(false)))
-      .subscribe((exists) => {
+      .pipe(takeUntilDestroyed(this.destroyRef)).subscribe((exists) => {
         this.deleteBlocked = exists;
         this.deleteCheckLoading = false;
         this.cdr.detectChanges();
@@ -130,7 +132,7 @@ export class SizesComponent implements OnInit {
 
   confirmDelete() {
     if (!this.deleteTarget || this.deleteBlocked) return;
-    this.sizeService.delete(this.deleteTarget.id).subscribe({
+    this.sizeService.delete(this.deleteTarget.id).pipe(takeUntilDestroyed(this.destroyRef)).subscribe({
       next: () => {
         this.closeDeleteConfirm();
         this.loadSizes();
@@ -156,4 +158,13 @@ export class SizesComponent implements OnInit {
     this.isEditMode = false;
     this.cdr.detectChanges();
   }
+
+  ngAfterViewInit(): void {
+    this.cdr.detectChanges();
+  }
+
+  ngOnDestroy(): void {
+    this.cdr.detach();
+  }
+
 }

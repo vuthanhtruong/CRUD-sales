@@ -1,4 +1,5 @@
-import { Component, OnInit, ChangeDetectorRef } from '@angular/core';
+import { Component, OnInit, ChangeDetectorRef, AfterViewInit, OnDestroy, DestroyRef, inject } from '@angular/core';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { CommonModule } from '@angular/common';
 import { RouterModule } from '@angular/router';
 import { DashboardChartDTO, DashboardService, DashboardStatsDTO } from '../services/dashboard.service';
@@ -10,7 +11,8 @@ import { DashboardChartDTO, DashboardService, DashboardStatsDTO } from '../servi
   templateUrl: './admin.component.html',
   styleUrls: ['./admin.component.css']
 })
-export class AdminComponent implements OnInit {
+export class AdminComponent implements OnInit, AfterViewInit, OnDestroy {
+  private readonly destroyRef = inject(DestroyRef);
   stats: DashboardStatsDTO | null = null;
   revenue: DashboardChartDTO[] = [];
   statuses: DashboardChartDTO[] = [];
@@ -22,7 +24,7 @@ export class AdminComponent implements OnInit {
 
   ngOnInit(): void {
     this.loadingStats = true;
-    this.dashboardService.getStats().subscribe({
+    this.dashboardService.getStats().pipe(takeUntilDestroyed(this.destroyRef)).subscribe({
       next: (stats) => {
         this.stats = stats;
         this.loadingStats = false;
@@ -37,10 +39,19 @@ export class AdminComponent implements OnInit {
   }
 
   loadCharts() {
-    this.dashboardService.revenue(14).subscribe({ next: (x) => { this.revenue = x; this.cdr.detectChanges(); } });
-    this.dashboardService.orderStatus().subscribe({ next: (x) => { this.statuses = x; this.cdr.detectChanges(); } });
-    this.dashboardService.topProducts(8).subscribe({ next: (x) => { this.topProducts = x; this.cdr.detectChanges(); } });
-    this.dashboardService.lowStock(5).subscribe({ next: (x) => { this.lowStock = x; this.cdr.detectChanges(); } });
+    this.dashboardService.revenue(14).pipe(takeUntilDestroyed(this.destroyRef)).subscribe({ next: (x) => { this.revenue = x; this.cdr.detectChanges(); } });
+    this.dashboardService.orderStatus().pipe(takeUntilDestroyed(this.destroyRef)).subscribe({ next: (x) => { this.statuses = x; this.cdr.detectChanges(); } });
+    this.dashboardService.topProducts(8).pipe(takeUntilDestroyed(this.destroyRef)).subscribe({ next: (x) => { this.topProducts = x; this.cdr.detectChanges(); } });
+    this.dashboardService.lowStock(5).pipe(takeUntilDestroyed(this.destroyRef)).subscribe({ next: (x) => { this.lowStock = x; this.cdr.detectChanges(); } });
   }
+
+  ngAfterViewInit(): void {
+    this.cdr.detectChanges();
+  }
+
+  ngOnDestroy(): void {
+    this.cdr.detach();
+  }
+
 }
 
